@@ -171,12 +171,87 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| USER-01 | Phase 1 | Pending |
+| USER-02 | Phase 1 | Pending |
+| USER-03 | Phase 1 | Pending |
+| USER-04 | Phase 1 | Pending |
+| USER-05 | Phase 1 | Pending |
+| USER-06 | Phase 1 | Pending |
+| USER-07 | Phase 1 | Pending |
+| USER-08 | Phase 1 | Pending |
+| ALERT-01 | Phase 2 | Pending |
+| INT-01 | Phase 2 | Pending |
+| INT-02 | Phase 2 | Pending |
+| INT-03 | Phase 2 | Pending |
+| SCHED-01 | Phase 3 | Pending |
+| SCHED-02 | Phase 3 | Pending |
+| SCHED-03 | Phase 3 | Pending |
+| SCHED-04 | Phase 3 | Pending |
+| SCHED-05 | Phase 3 | Pending |
+| SCHED-06 | Phase 3 | Pending |
+| SCHED-07 | Phase 3 | Pending |
+| SCHED-08 | Phase 3 | Pending |
+| SCHED-09 | Phase 3 | Pending |
+| SCHED-10 | Phase 3 | Pending |
+| ALERT-02 | Phase 4 | Pending |
+| ALERT-03 | Phase 4 | Pending |
+| ALERT-04 | Phase 4 | Pending |
+| ALERT-05 | Phase 4 | Pending |
+| ROUTE-01 | Phase 4 | Pending |
+| ROUTE-02 | Phase 4 | Pending |
+| ROUTE-03 | Phase 4 | Pending |
+| ROUTE-04 | Phase 4 | Pending |
+| ROUTE-05 | Phase 4 | Pending |
+| NOTIF-01 | Phase 5 | Pending |
+| NOTIF-02 | Phase 5 | Pending |
+| NOTIF-03 | Phase 5 | Pending |
+| NOTIF-04 | Phase 5 | Pending |
+| NOTIF-05 | Phase 5 | Pending |
+| NOTIF-06 | Phase 5 | Pending |
+| NOTIF-07 | Phase 5 | Pending |
+| NOTIF-08 | Phase 5 | Pending |
+| NOTIF-09 | Phase 5 | Pending |
+| NOTIF-10 | Phase 5 | Pending |
+| NOTIF-11 | Phase 5 | Pending |
+| INC-01 | Phase 6 | Pending |
+| INC-02 | Phase 6 | Pending |
+| INC-03 | Phase 6 | Pending |
+| INC-04 | Phase 6 | Pending |
+| INC-05 | Phase 6 | Pending |
+| INC-06 | Phase 6 | Pending |
+| INC-07 | Phase 6 | Pending |
+| MOBILE-01 | Phase 6 | Pending |
+| MOBILE-02 | Phase 6 | Pending |
+| MOBILE-03 | Phase 6 | Pending |
+| MOBILE-04 | Phase 6 | Pending |
+| MOBILE-05 | Phase 6 | Pending |
+| MOBILE-06 | Phase 6 | Pending |
+| INT-04 | Phase 7 | Pending |
+| INT-05 | Phase 7 | Pending |
+| INT-06 | Phase 7 | Pending |
+| INT-07 | Phase 7 | Pending |
+| AUTO-01 | Phase 8 | Pending |
+| AUTO-02 | Phase 8 | Pending |
+| AUTO-03 | Phase 8 | Pending |
+| AUTO-04 | Phase 8 | Pending |
+| AUTO-05 | Phase 8 | Pending |
+| AUTO-06 | Phase 8 | Pending |
+| AUTO-07 | Phase 8 | Pending |
+| STATUS-01 | Phase 9 | Pending |
+| STATUS-02 | Phase 9 | Pending |
+| STATUS-03 | Phase 9 | Pending |
+| STATUS-04 | Phase 9 | Pending |
+| POST-01 | Phase 10 | Pending |
+| POST-02 | Phase 10 | Pending |
+| POST-03 | Phase 10 | Pending |
+| POST-04 | Phase 10 | Pending |
+| POST-05 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 0 total
-- Mapped to phases: 0
-- Unmapped: 0 ⚠️
+- v1 requirements: 75 total
+- Mapped to phases: 75
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2025-02-06*
-*Last updated: 2025-02-06 after initial definition*
+*Last updated: 2026-02-06 with phase mappings*

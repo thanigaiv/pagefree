@@ -1,0 +1,206 @@
+# Roadmap: OnCall Platform
+
+## Overview
+
+This roadmap delivers a production-ready incident management platform to replace PagerDuty for 50+ on-call engineers. The journey progresses from foundation (authentication and user management) through alert ingestion and processing, to advanced features like workflow automation and status pages. Each phase builds on previous work, with early phases addressing critical pitfalls around delivery guarantees, timezone handling, and notification reliability identified in research.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Foundation & User Management** - Authentication, teams, and audit infrastructure
+- [ ] **Phase 2: Alert Ingestion & Webhooks** - Receive alerts from monitoring tools
+- [ ] **Phase 3: Scheduling System** - On-call schedules with rotations and timezone handling
+- [ ] **Phase 4: Alert Routing & Deduplication** - Process and route alerts to on-call engineers
+- [ ] **Phase 5: Multi-Channel Notifications** - Deliver alerts via email, SMS, push, phone, Slack
+- [ ] **Phase 6: Incident Management Dashboard** - Web and mobile UI for incident response
+- [ ] **Phase 7: External Integrations** - DataDog, New Relic, Slack bidirectional sync
+- [ ] **Phase 8: Automation & Workflows** - Response plays and runbook automation
+- [ ] **Phase 9: Status Pages** - Internal status pages with automatic updates
+- [ ] **Phase 10: Postmortems** - Timeline generation and documentation
+
+## Phase Details
+
+### Phase 1: Foundation & User Management
+**Goal**: Users can authenticate and platform has audit infrastructure for all critical operations
+**Depends on**: Nothing (first phase)
+**Requirements**: USER-01, USER-02, USER-03, USER-04, USER-05, USER-06, USER-07, USER-08
+**Success Criteria** (what must be TRUE):
+  1. User can create account with email/password authentication
+  2. User can manage profile with name, email, and contact methods
+  3. User can set notification preferences for email, push, and SMS
+  4. Admin can organize users into teams via web UI
+  5. System maintains audit log showing who performed what action when
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: TBD during phase planning
+
+### Phase 2: Alert Ingestion & Webhooks
+**Goal**: System reliably receives and stores alerts from external monitoring tools
+**Depends on**: Phase 1
+**Requirements**: ALERT-01, INT-01, INT-02, INT-03
+**Success Criteria** (what must be TRUE):
+  1. System receives alerts via webhook API from any monitoring tool
+  2. System validates webhook signatures for security
+  3. System processes webhooks idempotently (duplicate webhooks don't create duplicate incidents)
+  4. System stores all received alerts with complete audit trail
+  5. System handles webhook retries and out-of-order delivery correctly
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: TBD during phase planning
+
+### Phase 3: Scheduling System
+**Goal**: Users can create on-call schedules with correct timezone and DST handling
+**Depends on**: Phase 1
+**Requirements**: SCHED-01, SCHED-02, SCHED-03, SCHED-04, SCHED-05, SCHED-06, SCHED-07, SCHED-08, SCHED-09, SCHED-10
+**Success Criteria** (what must be TRUE):
+  1. User can create schedules with daily, weekly, or custom rotations
+  2. User can set schedule overrides for temporary changes (vacations)
+  3. User can swap shifts with another team member
+  4. System handles timezones correctly across distributed teams (UTC storage, local display)
+  5. System handles DST transitions without schedule gaps or wrong assignments
+  6. System integrates with Google Calendar and Outlook Calendar
+  7. User can view who is currently on-call for each service at any time
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: TBD during phase planning
+
+### Phase 4: Alert Routing & Deduplication
+**Goal**: Alerts route to correct on-call engineer with deduplication and escalation
+**Depends on**: Phase 2, Phase 3
+**Requirements**: ALERT-02, ALERT-03, ALERT-04, ALERT-05, ROUTE-01, ROUTE-02, ROUTE-03, ROUTE-04, ROUTE-05
+**Success Criteria** (what must be TRUE):
+  1. System deduplicates alerts automatically using fingerprinting
+  2. System routes alerts to appropriate on-call engineer based on service and schedule
+  3. System escalates to next person if incident not acknowledged within timeout
+  4. System supports multi-level escalation policies with configurable timeouts
+  5. User can search and filter alerts in dashboard
+  6. System maintains complete alert history with audit trail
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD during phase planning
+
+### Phase 5: Multi-Channel Notifications
+**Goal**: Critical alerts reach on-call engineers through multiple reliable channels
+**Depends on**: Phase 4
+**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, NOTIF-11
+**Success Criteria** (what must be TRUE):
+  1. System sends notifications via email, Slack, Teams, push, SMS, and phone call
+  2. System implements at-least-once delivery guarantee with retry logic
+  3. System tracks notification delivery success/failure with audit trail
+  4. System supports multi-provider failover (Twilio primary, AWS SNS fallback)
+  5. User can acknowledge incident from Slack (bidirectional sync)
+  6. User can resolve incident from Slack (bidirectional sync)
+  7. System escalates through different channels on delivery failure (push → SMS → voice)
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD during phase planning
+
+### Phase 6: Incident Management Dashboard
+**Goal**: Users can view, acknowledge, and manage incidents from web and mobile
+**Depends on**: Phase 4, Phase 5
+**Requirements**: INC-01, INC-02, INC-03, INC-04, INC-05, INC-06, INC-07, MOBILE-01, MOBILE-02, MOBILE-03, MOBILE-04, MOBILE-05, MOBILE-06
+**Success Criteria** (what must be TRUE):
+  1. User sees dashboard of all active incidents with real-time updates
+  2. User can acknowledge incident from web dashboard (stops escalation)
+  3. User can resolve incident with resolution notes from web dashboard
+  4. User can add notes to incident timeline
+  5. System displays complete incident timeline with all events
+  6. Mobile PWA works offline and sends push notifications
+  7. User can acknowledge and resolve incidents from mobile device
+  8. System tracks push token lifecycle and registration
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: TBD during phase planning
+
+### Phase 7: External Integrations
+**Goal**: Platform integrates seamlessly with DataDog, New Relic, and Slack
+**Depends on**: Phase 2, Phase 5
+**Requirements**: INT-04, INT-05, INT-06, INT-07
+**Success Criteria** (what must be TRUE):
+  1. System processes DataDog webhooks and creates incidents automatically
+  2. System processes New Relic webhooks and creates incidents automatically
+  3. User can configure integration settings via web UI
+  4. System maintains bidirectional sync with Slack (notifications and actions)
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: TBD during phase planning
+
+### Phase 8: Automation & Workflows
+**Goal**: Users can define automated response workflows triggered by incident conditions
+**Depends on**: Phase 6
+**Requirements**: AUTO-01, AUTO-02, AUTO-03, AUTO-04, AUTO-05, AUTO-06, AUTO-07
+**Success Criteria** (what must be TRUE):
+  1. User can define automated actions triggered by incident conditions (priority, service)
+  2. System executes basic actions (create ticket, post to Slack, call webhook)
+  3. User can define workflows with conditional logic (if priority = high, then...)
+  4. User can create workflows using visual workflow builder
+  5. System provides template library for common workflows
+  6. User can trigger runbook automation to execute scripts on incident
+  7. System logs all automated actions to incident timeline
+**Plans**: TBD
+
+Plans:
+- [ ] 08-01: TBD during phase planning
+
+### Phase 9: Status Pages
+**Goal**: Users can create status pages that automatically reflect incident state
+**Depends on**: Phase 6
+**Requirements**: STATUS-01, STATUS-02, STATUS-03, STATUS-04
+**Success Criteria** (what must be TRUE):
+  1. User can create private status pages for internal services
+  2. System automatically updates status based on active incidents
+  3. User can manually update status for maintenance windows
+  4. User can notify subscribers of status changes
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: TBD during phase planning
+
+### Phase 10: Postmortems
+**Goal**: Users can generate postmortems from incident data with action item tracking
+**Depends on**: Phase 6
+**Requirements**: POST-01, POST-02, POST-03, POST-04, POST-05
+**Success Criteria** (what must be TRUE):
+  1. System generates incident timeline automatically for postmortem
+  2. User can create postmortem document with editor
+  3. User can link incidents to postmortems
+  4. User can share postmortems with team
+  5. User can track action items from postmortems with completion status
+**Plans**: TBD
+
+Plans:
+- [ ] 10-01: TBD during phase planning
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Foundation & User Management | 0/TBD | Not started | - |
+| 2. Alert Ingestion & Webhooks | 0/TBD | Not started | - |
+| 3. Scheduling System | 0/TBD | Not started | - |
+| 4. Alert Routing & Deduplication | 0/TBD | Not started | - |
+| 5. Multi-Channel Notifications | 0/TBD | Not started | - |
+| 6. Incident Management Dashboard | 0/TBD | Not started | - |
+| 7. External Integrations | 0/TBD | Not started | - |
+| 8. Automation & Workflows | 0/TBD | Not started | - |
+| 9. Status Pages | 0/TBD | Not started | - |
+| 10. Postmortems | 0/TBD | Not started | - |
+
+---
+*Roadmap created: 2026-02-06*
+*Last updated: 2026-02-06*
