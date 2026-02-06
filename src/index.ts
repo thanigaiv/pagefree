@@ -6,20 +6,28 @@ import { prisma, disconnectDatabase } from './config/database.js';
 import { auditMiddleware } from './middleware/auditLogger.js';
 import { auditRouter } from './routes/audit.routes.js';
 import { authRouter } from './routes/auth.routes.js';
+import { apiKeyRouter } from './routes/apiKey.routes.js';
 import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
 import { auditService } from './services/audit.service.js';
 import { configureLocalStrategy } from './auth/strategies/local.js';
+import { sessionMiddleware } from './auth/session.js';
+import { configureOktaStrategy } from './auth/strategies/okta.js';
 
 const app = express();
 
-// Configure Passport strategies
-configureLocalStrategy();
+// Security headers
+app.use(helmet());
+
+// Session middleware (must be before Passport)
+app.use(sessionMiddleware);
 
 // Initialize Passport
 app.use(passport.initialize());
+app.use(passport.session());
 
-// Security headers
-app.use(helmet());
+// Configure Passport strategies
+configureLocalStrategy();
+configureOktaStrategy();
 
 // Parse JSON request bodies
 app.use(express.json());
@@ -61,6 +69,7 @@ app.get('/', (_req, res) => {
 // API routes
 app.use('/api/audit', auditRouter);
 app.use('/auth', authRouter);
+app.use('/api/keys', apiKeyRouter);
 
 // Start server
 const PORT = parseInt(env.PORT, 10);
