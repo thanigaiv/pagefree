@@ -1,4 +1,4 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { SESClient, SendEmailCommand, SESClientConfig } from '@aws-sdk/client-ses';
 import twilio from 'twilio';
 import { env } from '../config/env.js';
 
@@ -7,14 +7,20 @@ export class NotificationService {
   private twilioClient: any;
 
   constructor() {
-    // Initialize AWS SES
-    this.sesClient = new SESClient({
-      region: env.AWS_REGION,
-      credentials: {
+    // Initialize AWS SES - use default credential chain if explicit creds not provided
+    const sesConfig: SESClientConfig = {
+      region: env.AWS_REGION
+    };
+
+    // Only add explicit credentials if both are provided
+    if (env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY) {
+      sesConfig.credentials = {
         accessKeyId: env.AWS_ACCESS_KEY_ID,
         secretAccessKey: env.AWS_SECRET_ACCESS_KEY
-      }
-    });
+      };
+    }
+
+    this.sesClient = new SESClient(sesConfig);
 
     // Initialize Twilio
     this.twilioClient = twilio(
