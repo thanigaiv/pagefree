@@ -20,7 +20,7 @@ import { configureOktaStrategy } from './auth/strategies/okta.js';
 import { oktaWebhookRouter } from './webhooks/okta.js';
 import { scimRouter } from './auth/scim/routes.js';
 
-const app = express();
+export const app = express();
 
 // Security headers
 app.use(helmet());
