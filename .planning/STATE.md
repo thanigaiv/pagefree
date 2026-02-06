@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 1 of 10 (Foundation & User Management)
-Plan: 6 of 10 in current phase
+Plan: 7 of 10 in current phase
 Status: In progress
-Last activity: 2026-02-06 — Completed 01-06-PLAN.md (SCIM 2.0 provisioning)
+Last activity: 2026-02-06 — Completed 01-07-PLAN.md (User profiles & notification preferences)
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 4 min
-- Total execution time: 0.47 hours
+- Total execution time: 0.52 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Foundation & User Management | 7/10 | 28 min | 4 min |
+| 1. Foundation & User Management | 8/10 | 33 min | 4 min |
 
 **Recent Trend:**
-- Last 7 plans: 01-01 (5 min), 01-02 (3 min), 01-03 (4 min), 01-04 (5 min), 01-05 (3 min), 01-10 (5 min), 01-06 (3 min)
+- Last 7 plans: 01-02 (3 min), 01-03 (4 min), 01-04 (5 min), 01-05 (3 min), 01-10 (5 min), 01-06 (3 min), 01-07 (5 min)
 - Trend: Consistent velocity at 4min average
 
 *Updated after each plan completion*
@@ -77,6 +77,13 @@ Recent decisions affecting current work:
 | Default RESPONDER role for SCIM members | 01-06 | Safe default requiring manual elevation by team admins |
 | 1:1 Okta group to platform team mapping | 01-06 | Simplified provisioning with syncedFromOkta flag |
 | Idempotent SCIM provisioning | 01-06 | Return existing resources on duplicate for Okta retry safety |
+| Profile data read-only (synced from Okta) | 01-07 | Per user decision - contact info managed in Okta, platform is read-only |
+| Notification preferences managed in platform | 01-07 | Not synced to/from Okta, user controls channel preferences directly |
+| Independent contact verification required | 01-07 | Despite Okta data source, users must verify email/SMS/push independently |
+| All three channels required for on-call | 01-07 | Email, SMS, and push all verified before canBeOnCall flag is true |
+| 90-day mobile refresh tokens | 01-07 | Long-lived tokens for 24/7 on-call scenarios with quick mobile access |
+| SHA-256 refresh token hashing | 01-07 | Prevent plaintext token exposure in database breaches |
+| Dev mode verification code exposure | 01-07 | Include code in response for testing convenience (not in production) |
 
 ### Pending Todos
 
@@ -92,12 +99,12 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- None - 01-06 completed successfully with no blockers
+- None - 01-07 completed successfully with no blockers
 
 ## Session Continuity
 
-Last session: 2026-02-06 21:36:47 UTC
-Stopped at: Completed 01-06-PLAN.md - SCIM 2.0 provisioning
+Last session: 2026-02-06 21:44:10 UTC
+Stopped at: Completed 01-07-PLAN.md - User profiles & notification preferences
 Resume file: None
 
 ---
