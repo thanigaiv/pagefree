@@ -1,13 +1,22 @@
 import express from 'express';
 import helmet from 'helmet';
+import passport from 'passport';
 import { env } from './config/env.js';
 import { prisma, disconnectDatabase } from './config/database.js';
 import { auditMiddleware } from './middleware/auditLogger.js';
 import { auditRouter } from './routes/audit.routes.js';
+import { authRouter } from './routes/auth.routes.js';
 import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
 import { auditService } from './services/audit.service.js';
+import { configureLocalStrategy } from './auth/strategies/local.js';
 
 const app = express();
+
+// Configure Passport strategies
+configureLocalStrategy();
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // Security headers
 app.use(helmet());
@@ -51,6 +60,7 @@ app.get('/', (_req, res) => {
 
 // API routes
 app.use('/api/audit', auditRouter);
+app.use('/auth', authRouter);
 
 // Start server
 const PORT = parseInt(env.PORT, 10);
