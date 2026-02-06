@@ -16,7 +16,7 @@ export class AuditService {
         teamId: params.teamId,
         resourceType: params.resourceType,
         resourceId: params.resourceId,
-        metadata: (params.metadata || {}) as Prisma.InputJsonValue,
+        metadata: params.metadata as Prisma.InputJsonValue || Prisma.JsonNull,
         severity: params.severity || 'INFO',
         ipAddress: params.ipAddress,
         userAgent: params.userAgent,
