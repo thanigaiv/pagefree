@@ -12,6 +12,7 @@ import { auditService } from './services/audit.service.js';
 import { configureLocalStrategy } from './auth/strategies/local.js';
 import { sessionMiddleware } from './auth/session.js';
 import { configureOktaStrategy } from './auth/strategies/okta.js';
+import { oktaWebhookRouter } from './webhooks/okta.js';
 
 const app = express();
 
@@ -32,6 +33,9 @@ configureOktaStrategy();
 // Parse JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Okta webhooks (mount before auth middleware - uses its own auth)
+app.use('/webhooks/okta', oktaWebhookRouter);
 
 // Audit logging middleware (must be after body parsing)
 app.use(auditMiddleware);
