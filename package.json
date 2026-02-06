@@ -1,0 +1,48 @@
+{
+  "name": "oncall-platform",
+  "version": "1.0.0",
+  "description": "Digital Operations Reliability Platform for incident response orchestration",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": ["oncall", "incident-management", "alerting"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "bcrypt": "^5.1.0",
+    "connect-pg-simple": "^9.0.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "express-session": "^1.18.0",
+    "helmet": "^8.0.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "passport-openidconnect": "^0.1.0",
+    "pino": "^9.0.0",
+    "pino-http": "^10.0.0",
+    "rate-limiter-flexible": "^5.0.0",
+    "zod": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/express": "^4.17.0",
+    "@types/express-session": "^1.18.0",
+    "@types/node": "^20.0.0",
+    "@types/passport": "^1.0.0",
+    "@types/passport-local": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "prisma": "^6.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.3.0"
+  }
+}
