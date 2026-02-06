@@ -34,6 +34,7 @@
     "pino": "^9.0.0",
     "pino-http": "^10.0.0",
     "rate-limiter-flexible": "^5.0.0",
+    "scim2-parse-filter": "^0.2.10",
     "zod": "^4.3.0"
   },
   "devDependencies": {
