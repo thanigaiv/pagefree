@@ -2,6 +2,10 @@ import express from 'express';
 import helmet from 'helmet';
 import { env } from './config/env.js';
 import { prisma, disconnectDatabase } from './config/database.js';
+import { auditMiddleware } from './middleware/auditLogger.js';
+import { auditRouter } from './routes/audit.routes.js';
+import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
+import { auditService } from './services/audit.service.js';
 
 const app = express();
 
@@ -11,6 +15,9 @@ app.use(helmet());
 // Parse JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Audit logging middleware (must be after body parsing)
+app.use(auditMiddleware);
 
 // Health check endpoint
 app.get('/health', async (_req, res) => {
@@ -42,13 +49,30 @@ app.get('/', (_req, res) => {
   });
 });
 
+// API routes
+app.use('/api/audit', auditRouter);
+
 // Start server
 const PORT = parseInt(env.PORT, 10);
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔧 Environment: ${env.NODE_ENV}`);
+
+  // Log server startup event
+  await auditService.log({
+    action: 'system.startup',
+    metadata: { version: '1.0.0', port: PORT },
+    severity: 'INFO',
+  });
+
+  // Schedule audit cleanup in production
+  if (env.NODE_ENV === 'production') {
+    scheduleAuditCleanup();
+  } else {
+    console.log('📝 Audit cleanup scheduling skipped (development mode)');
+  }
 });
 
 // Graceful shutdown
