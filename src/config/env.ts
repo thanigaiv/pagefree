@@ -25,6 +25,17 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(32, 'Session secret must be at least 32 characters'),
   JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
 
+  // AWS SES for email
+  AWS_REGION: z.string().default('us-east-1'),
+  AWS_SES_FROM_EMAIL: z.string().email(),
+  AWS_ACCESS_KEY_ID: z.string(),
+  AWS_SECRET_ACCESS_KEY: z.string(),
+
+  // Twilio for SMS
+  TWILIO_ACCOUNT_SID: z.string(),
+  TWILIO_AUTH_TOKEN: z.string(),
+  TWILIO_PHONE_NUMBER: z.string(),
+
   // Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
