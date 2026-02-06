@@ -12,7 +12,7 @@ This roadmap delivers a production-ready incident management platform to replace
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & User Management** - Authentication, teams, and audit infrastructure
+- [x] **Phase 1: Foundation & User Management** - Authentication, teams, and audit infrastructure
 - [ ] **Phase 2: Alert Ingestion & Webhooks** - Receive alerts from monitoring tools
 - [ ] **Phase 3: Scheduling System** - On-call schedules with rotations and timezone handling
 - [ ] **Phase 4: Alert Routing & Deduplication** - Process and route alerts to on-call engineers

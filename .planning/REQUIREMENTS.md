@@ -171,14 +171,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| USER-01 | Phase 1 | Pending |
-| USER-02 | Phase 1 | Pending |
-| USER-03 | Phase 1 | Pending |
-| USER-04 | Phase 1 | Pending |
-| USER-05 | Phase 1 | Pending |
-| USER-06 | Phase 1 | Pending |
-| USER-07 | Phase 1 | Pending |
-| USER-08 | Phase 1 | Pending |
+| USER-01 | Phase 1 | Complete |
+| USER-02 | Phase 1 | Complete |
+| USER-03 | Phase 1 | Complete |
+| USER-04 | Phase 1 | Complete |
+| USER-05 | Phase 1 | Complete |
+| USER-06 | Phase 1 | Complete |
+| USER-07 | Phase 1 | Complete |
+| USER-08 | Phase 1 | Complete |
 | ALERT-01 | Phase 2 | Pending |
 | INT-01 | Phase 2 | Pending |
 | INT-02 | Phase 2 | Pending |
