@@ -1,6 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { auditService } from '../services/audit.service.js';
+import { requireAuth, requirePlatformAdmin } from '../middleware/auth.js';
+import { permissionService } from '../services/permission.service.js';
+import { getAdminTeamIds } from '../utils/permissions.js';
+import { AuthenticatedUser } from '../types/auth.js';
 
 export const auditRouter = Router();
 
@@ -20,12 +24,40 @@ const AuditQuerySchema = z.object({
 
 /**
  * GET /api/audit - Query audit logs (paginated)
- * TODO: Add access control in Plan 03 (RBAC) - platform admins see all, team admins see their team only
+ * Access control:
+ * - Platform admins: see all events
+ * - Team admins: see only their team's events
+ * - Regular users: no access
  */
-auditRouter.get('/', async (req: Request, res: Response) => {
+auditRouter.get('/', requireAuth, async (req: Request, res: Response) => {
+  const user = req.user as AuthenticatedUser;
   try {
     // Validate query parameters
     const queryParams = AuditQuerySchema.parse(req.query);
+
+    // Check permissions
+    const isPlatformAdmin = permissionService.isPlatformAdmin(user);
+    const requestedTeamId = queryParams.teamId;
+
+    if (!isPlatformAdmin) {
+      // If teamId is provided, check if user can view that team's audit logs
+      if (requestedTeamId) {
+        const canView = permissionService.canViewAuditLogs(user, requestedTeamId);
+        if (!canView.allowed) {
+          return res.status(403).json({ error: canView.reason });
+        }
+      } else {
+        // No teamId provided - return only teams where user is admin
+        const adminTeamIds = getAdminTeamIds(user);
+        if (adminTeamIds.length === 0) {
+          return res.status(403).json({
+            error: 'You must be a team admin to view audit logs'
+          });
+        }
+        // Filter to only show events from teams where user is admin
+        queryParams.teamId = undefined; // Clear any teamId filter
+      }
+    }
 
     // Parse date strings to Date objects
     const params: any = { ...queryParams };
@@ -36,7 +68,26 @@ auditRouter.get('/', async (req: Request, res: Response) => {
       params.endDate = new Date(queryParams.endDate);
     }
 
-    const result = await auditService.query(params);
+    // For non-platform-admins, filter to their admin teams only
+    let result;
+    if (!isPlatformAdmin && !requestedTeamId) {
+      const adminTeamIds = getAdminTeamIds(user);
+      // Query events for each admin team and combine
+      const teamResults = await Promise.all(
+        adminTeamIds.map(teamId =>
+          auditService.query({ ...params, teamId })
+        )
+      );
+      // Combine and sort by timestamp
+      const allEvents = teamResults.flatMap(r => r.events);
+      allEvents.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      result = {
+        events: allEvents.slice(params.offset || 0, (params.offset || 0) + (params.limit || 100)),
+        total: allEvents.length
+      };
+    } else {
+      result = await auditService.query(params);
+    }
 
     return res.json({
       events: result.events,
@@ -58,17 +109,28 @@ auditRouter.get('/', async (req: Request, res: Response) => {
 
 /**
  * GET /api/audit/:resourceType/:resourceId - Get audit trail for specific resource
- * TODO: Add access control in Plan 03 (RBAC)
+ * Access control: Same as main audit log endpoint
  */
-auditRouter.get('/:resourceType/:resourceId', async (req: Request, res: Response) => {
+auditRouter.get('/:resourceType/:resourceId', requireAuth, async (req: Request, res: Response) => {
+  const user = req.user as AuthenticatedUser;
   try {
     const { resourceType, resourceId } = req.params;
 
     const events = await auditService.getByResource(resourceType, resourceId);
 
+    // Filter events based on user permissions
+    const isPlatformAdmin = permissionService.isPlatformAdmin(user);
+    const filteredEvents = isPlatformAdmin
+      ? events
+      : events.filter(event => {
+          if (!event.teamId) return false;
+          const canView = permissionService.canViewAuditLogs(user, event.teamId);
+          return canView.allowed;
+        });
+
     return res.json({
-      events,
-      total: events.length,
+      events: filteredEvents,
+      total: filteredEvents.length,
     });
   } catch (error) {
     console.error('Error getting resource audit trail:', error);
@@ -77,10 +139,10 @@ auditRouter.get('/:resourceType/:resourceId', async (req: Request, res: Response
 });
 
 /**
- * POST /api/audit/cleanup - Trigger manual cleanup (admin only)
- * TODO: Add admin auth check in Plan 03 (RBAC)
+ * POST /api/audit/cleanup - Trigger manual cleanup (platform admin only)
+ * Access control: Only platform admins can manually trigger cleanup
  */
-auditRouter.post('/cleanup', async (req: Request, res: Response) => {
+auditRouter.post('/cleanup', requirePlatformAdmin, async (req: Request, res: Response) => {
   try {
     const retentionDays = req.body.retentionDays || 90;
 
