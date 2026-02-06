@@ -1,8 +1,92 @@
 import express from 'express';
 import passport from 'passport';
 import { loginRateLimiter } from '../middleware/rateLimiter.js';
+import { requireAuth } from '../middleware/auth.js';
+import { auditService } from '../services/audit.service.js';
 
 const authRouter = express.Router();
+
+// Initiate Okta login
+authRouter.get('/login', passport.authenticate('okta'));
+
+// Okta callback
+authRouter.get('/callback',
+  passport.authenticate('okta', {
+    failureRedirect: '/auth/login-failed',
+    failureMessage: true
+  }),
+  (req, res): void => {
+    // Successful authentication
+    // Redirect to frontend dashboard (or return JSON for API clients)
+    const returnTo = (req.session as any)?.returnTo || '/dashboard';
+    delete (req.session as any)?.returnTo;
+    res.redirect(returnTo);
+  }
+);
+
+// Login failed handler
+authRouter.get('/login-failed', (req, res): void => {
+  res.status(401).json({
+    error: 'Authentication failed',
+    message: (req.session as any)?.messages?.[0] || 'Unable to authenticate with Okta'
+  });
+});
+
+// Logout
+authRouter.post('/logout', requireAuth, async (req, res): Promise<void> => {
+  const userId = (req.user as any).id;
+
+  await auditService.log({
+    action: 'auth.logout',
+    userId,
+    ipAddress: req.ip,
+    userAgent: req.get('user-agent')
+  });
+
+  req.logout((err: any): void => {
+    if (err) {
+      res.status(500).json({ error: 'Logout failed' });
+      return;
+    }
+
+    req.session.destroy((err: any): void => {
+      if (err) {
+        res.status(500).json({ error: 'Session destruction failed' });
+        return;
+      }
+      res.clearCookie('oncall.sid');
+      res.json({ success: true });
+    });
+  });
+});
+
+// Get current user
+authRouter.get('/me', requireAuth, (req, res): void => {
+  const user = req.user as any;
+  res.json({
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    platformRole: user.platformRole,
+    teams: user.teamMembers.map((m: any) => ({
+      id: m.team.id,
+      name: m.team.name,
+      role: m.role
+    }))
+  });
+});
+
+// Check auth status (doesn't require auth)
+authRouter.get('/status', (req, res): void => {
+  res.json({
+    authenticated: req.isAuthenticated(),
+    user: req.isAuthenticated() ? {
+      id: (req.user as any).id,
+      email: (req.user as any).email
+    } : null
+  });
+});
 
 /**
  * Emergency login endpoint (break-glass only)
