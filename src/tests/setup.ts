@@ -1,5 +1,5 @@
 import { prisma } from '../config/database.js';
-import { beforeAll, afterAll, beforeEach } from 'vitest';
+import { beforeAll, afterAll } from 'vitest';
 
 // Test database cleanup
 beforeAll(async () => {

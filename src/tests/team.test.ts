@@ -4,7 +4,8 @@ import { app } from '../index.js';
 import { prisma } from '../config/database.js';
 import { createTestUser, createTestTeam, cleanupTestData } from './setup.js';
 
-// Helper to create authenticated agent
+// Helper to create authenticated agent (kept for future test implementation)
+// @ts-expect-error - Function reserved for future authenticated test cases
 async function authenticatedAgent(user: any) {
   // For tests, we'll mock the session
   // In a real test, you'd use a test authentication helper
@@ -41,7 +42,7 @@ describe('Team Management', () => {
 
   describe('Team RBAC', () => {
     it('platform admin can create teams', async () => {
-      const admin = await createTestUser({
+      await createTestUser({
         platformRole: 'PLATFORM_ADMIN'
       });
 

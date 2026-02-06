@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { app } from '../index.js';
 import { prisma } from '../config/database.js';
-import { createTestUser, createTestTeam, cleanupTestData } from './setup.js';
+import { createTestUser, cleanupTestData } from './setup.js';
 
 const SCIM_TOKEN = process.env.SCIM_BEARER_TOKEN || 'test-scim-token';
 
@@ -55,7 +55,7 @@ describe('SCIM API', () => {
         .set('Authorization', `Bearer ${SCIM_TOKEN}`);
 
       expect(res.body.totalResults).toBe(1);
-      expect(res.body.Resources.every(u => !u.externalId?.includes('breakglass'))).toBe(true);
+      expect(res.body.Resources.every((u: { externalId?: string }) => !u.externalId?.includes('breakglass'))).toBe(true);
     });
   });
 
