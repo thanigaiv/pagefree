@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import helmet from 'helmet';
 import passport from 'passport';
 import { env } from './config/env.js';
@@ -7,6 +8,10 @@ import { auditMiddleware } from './middleware/auditLogger.js';
 import { auditRouter } from './routes/audit.routes.js';
 import { authRouter } from './routes/auth.routes.js';
 import { apiKeyRouter } from './routes/apiKey.routes.js';
+import { teamRouter } from './routes/team.routes.js';
+import { userRouter } from './routes/user.routes.js';
+import { notificationRouter } from './routes/notification.routes.js';
+import { mobileRouter } from './routes/mobile.routes.js';
 import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
 import { auditService } from './services/audit.service.js';
 import { configureLocalStrategy } from './auth/strategies/local.js';
@@ -19,6 +24,12 @@ const app = express();
 
 // Security headers
 app.use(helmet());
+
+// CORS for frontend
+app.use(cors({
+  origin: env.FRONTEND_URL || 'http://localhost:3001',
+  credentials: true
+}));
 
 // Session middleware (must be before Passport)
 app.use(sessionMiddleware);
@@ -78,6 +89,21 @@ app.get('/', (_req, res) => {
 app.use('/api/audit', auditRouter);
 app.use('/auth', authRouter);
 app.use('/api/keys', apiKeyRouter);
+app.use('/api/teams', teamRouter);
+app.use('/api/users', userRouter);
+app.use('/api/notifications', notificationRouter);
+app.use('/api/mobile', mobileRouter);
+
+// Global error handler (last middleware)
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('Unhandled error:', err);
+
+  // Don't expose internal errors
+  res.status(500).json({
+    error: 'Internal server error',
+    ...(env.NODE_ENV === 'development' && { details: err.message })
+  });
+});
 
 // Start server
 const PORT = parseInt(env.PORT, 10);
