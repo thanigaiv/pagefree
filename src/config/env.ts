@@ -27,18 +27,19 @@ const envSchema = z.object({
 
   // AWS SES for email
   AWS_REGION: z.string().default('us-east-1'),
-  AWS_SES_FROM_EMAIL: z.string().email(),
-  AWS_ACCESS_KEY_ID: z.string(),
-  AWS_SECRET_ACCESS_KEY: z.string(),
+  AWS_SES_FROM_EMAIL: z.string().email().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
 
   // Twilio for SMS
-  TWILIO_ACCOUNT_SID: z.string(),
-  TWILIO_AUTH_TOKEN: z.string(),
-  TWILIO_PHONE_NUMBER: z.string(),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_PHONE_NUMBER: z.string().optional(),
 
   // Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
+  FRONTEND_URL: z.string().url().optional(),
 });
 
 // Parse and validate environment variables
