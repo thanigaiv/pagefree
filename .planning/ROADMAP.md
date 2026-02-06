@@ -26,19 +26,27 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Foundation & User Management
-**Goal**: Users can authenticate and platform has audit infrastructure for all critical operations
+**Goal**: Users can authenticate via Okta SSO, manage teams, and platform has audit infrastructure for all critical operations
 **Depends on**: Nothing (first phase)
 **Requirements**: USER-01, USER-02, USER-03, USER-04, USER-05, USER-06, USER-07, USER-08
 **Success Criteria** (what must be TRUE):
-  1. User can create account with email/password authentication
-  2. User can manage profile with name, email, and contact methods
+  1. User can authenticate via Okta SSO (break-glass local auth for emergencies)
+  2. User can view profile with name, email, and contact methods (read-only from Okta)
   3. User can set notification preferences for email, push, and SMS
-  4. Admin can organize users into teams via web UI
+  4. Admin can organize users into teams with flat structure and tags
   5. System maintains audit log showing who performed what action when
-**Plans**: TBD
+**Plans**: 9 plans
 
 Plans:
-- [ ] 01-01: TBD during phase planning
+- [ ] 01-01-PLAN.md - Project setup and database schema
+- [ ] 01-02-PLAN.md - Audit logging infrastructure
+- [ ] 01-03-PLAN.md - RBAC system (platform + team roles)
+- [ ] 01-04-PLAN.md - Okta SSO integration
+- [ ] 01-05-PLAN.md - Break-glass authentication
+- [ ] 01-06-PLAN.md - SCIM 2.0 user/group provisioning
+- [ ] 01-07-PLAN.md - User profiles and notification preferences
+- [ ] 01-08-PLAN.md - Team management
+- [ ] 01-09-PLAN.md - Integration testing and verification
 
 ### Phase 2: Alert Ingestion & Webhooks
 **Goal**: System reliably receives and stores alerts from external monitoring tools
@@ -99,7 +107,7 @@ Plans:
   4. System supports multi-provider failover (Twilio primary, AWS SNS fallback)
   5. User can acknowledge incident from Slack (bidirectional sync)
   6. User can resolve incident from Slack (bidirectional sync)
-  7. System escalates through different channels on delivery failure (push → SMS → voice)
+  7. System escalates through different channels on delivery failure (push - SMS - voice)
 **Plans**: TBD
 
 Plans:
@@ -186,11 +194,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & User Management | 0/TBD | Not started | - |
+| 1. Foundation & User Management | 0/9 | Planned | - |
 | 2. Alert Ingestion & Webhooks | 0/TBD | Not started | - |
 | 3. Scheduling System | 0/TBD | Not started | - |
 | 4. Alert Routing & Deduplication | 0/TBD | Not started | - |
