@@ -13,6 +13,7 @@ import { configureLocalStrategy } from './auth/strategies/local.js';
 import { sessionMiddleware } from './auth/session.js';
 import { configureOktaStrategy } from './auth/strategies/okta.js';
 import { oktaWebhookRouter } from './webhooks/okta.js';
+import { scimRouter } from './auth/scim/routes.js';
 
 const app = express();
 
@@ -36,6 +37,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Okta webhooks (mount before auth middleware - uses its own auth)
 app.use('/webhooks/okta', oktaWebhookRouter);
+
+// SCIM endpoints (mount before auth middleware - uses its own auth)
+app.use('/scim/v2', scimRouter);
 
 // Audit logging middleware (must be after body parsing)
 app.use(auditMiddleware);
