@@ -17,7 +17,7 @@ afterAll(async () => {
 export async function createTestUser(overrides: any = {}) {
   return prisma.user.create({
     data: {
-      email: `test-${Date.now()}@example.com`,
+      email: `test-${Date.now()}-${Math.random().toString(36).substring(7)}@example.com`,
       firstName: 'Test',
       lastName: 'User',
       platformRole: 'USER',
@@ -36,7 +36,7 @@ export async function createTestUser(overrides: any = {}) {
 export async function createTestTeam(overrides: any = {}) {
   return prisma.team.create({
     data: {
-      name: `Test Team ${Date.now()}`,
+      name: `Test Team ${Date.now()}-${Math.random().toString(36).substring(7)}`,
       isActive: true,
       ...overrides
     }
@@ -47,6 +47,7 @@ export async function createTestTeam(overrides: any = {}) {
 export async function cleanupTestData() {
   // Delete in correct order for foreign keys
   await prisma.auditEvent.deleteMany({});
+  await prisma.apiKey.deleteMany({});
   await prisma.teamMember.deleteMany({});
   await prisma.teamTag.deleteMany({});
   await prisma.contactVerification.deleteMany({});

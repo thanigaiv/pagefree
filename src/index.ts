@@ -105,46 +105,48 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Start server
-const PORT = parseInt(env.PORT, 10);
+// Start server only when not imported by tests
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = parseInt(env.PORT, 10);
 
-const server = app.listen(PORT, async () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔧 Environment: ${env.NODE_ENV}`);
+  const server = app.listen(PORT, async () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`🔧 Environment: ${env.NODE_ENV}`);
 
-  // Log server startup event
-  await auditService.log({
-    action: 'system.startup',
-    metadata: { version: '1.0.0', port: PORT },
-    severity: 'INFO',
+    // Log server startup event
+    await auditService.log({
+      action: 'system.startup',
+      metadata: { version: '1.0.0', port: PORT },
+      severity: 'INFO',
+    });
+
+    // Schedule audit cleanup in production
+    if (env.NODE_ENV === 'production') {
+      scheduleAuditCleanup();
+    } else {
+      console.log('📝 Audit cleanup scheduling skipped (development mode)');
+    }
   });
 
-  // Schedule audit cleanup in production
-  if (env.NODE_ENV === 'production') {
-    scheduleAuditCleanup();
-  } else {
-    console.log('📝 Audit cleanup scheduling skipped (development mode)');
-  }
-});
+  // Graceful shutdown
+  const shutdown = async () => {
+    console.log('\n🛑 Shutting down gracefully...');
 
-// Graceful shutdown
-const shutdown = async () => {
-  console.log('\n🛑 Shutting down gracefully...');
+    server.close(async () => {
+      console.log('✅ HTTP server closed');
+      await disconnectDatabase();
+      console.log('✅ Database disconnected');
+      process.exit(0);
+    });
 
-  server.close(async () => {
-    console.log('✅ HTTP server closed');
-    await disconnectDatabase();
-    console.log('✅ Database disconnected');
-    process.exit(0);
-  });
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+      console.error('⚠️  Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+  };
 
-  // Force shutdown after 10 seconds
-  setTimeout(() => {
-    console.error('⚠️  Forced shutdown after timeout');
-    process.exit(1);
-  }, 10000);
-};
-
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+}
