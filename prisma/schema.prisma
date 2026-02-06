@@ -68,6 +68,7 @@ model User {
   contactVerifications  ContactVerification[]
   refreshTokens         RefreshToken[]
   devices               UserDevice[]
+  apiKeysCreated        ApiKey[]
 
   @@index([email])
   @@index([oktaId])
@@ -233,4 +234,41 @@ model Session {
   expire                DateTime      @db.Timestamptz
 
   @@index([expire])
+}
+
+// ============================================================================
+// API KEY MODEL
+// ============================================================================
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  name        String   // Descriptive name (e.g., "DataDog Production")
+  keyHash     String   @unique  // SHA-256 hash of the API key
+  keyPrefix   String   // First 8 chars for identification (e.g., "sk_prod_")
+
+  // Service metadata
+  service     String   // Service name: datadog, newrelic, custom
+  description String?  // Optional description
+
+  // Scopes define what the key can access
+  scopes      String[] // e.g., ["webhooks:write", "alerts:write"]
+
+  // Ownership and lifecycle
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  isActive    Boolean  @default(true)
+
+  // Usage tracking
+  lastUsedAt  DateTime? @db.Timestamptz
+  usageCount  Int       @default(0)
+
+  // Expiry (optional)
+  expiresAt   DateTime? @db.Timestamptz
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @db.Timestamptz
+
+  @@index([keyHash])
+  @@index([keyPrefix])
+  @@index([service])
 }
