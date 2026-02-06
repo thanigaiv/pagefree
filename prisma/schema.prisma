@@ -1,0 +1,236 @@
+// OnCall Platform Database Schema
+// Phase 1: Foundation & User Management
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum PlatformRole {
+  PLATFORM_ADMIN  // Global admin with complete control
+  USER            // Regular user
+}
+
+enum TeamRole {
+  TEAM_ADMIN      // Full team control (manage users, configure settings)
+  RESPONDER       // Can acknowledge and resolve incidents
+  OBSERVER        // Read-only access
+}
+
+enum TagType {
+  ORGANIZATIONAL  // Engineering, Product, SRE, Security
+  TECHNICAL       // Backend, Frontend, Mobile, Payments, Auth
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  SLACK
+  VOICE
+}
+
+// ============================================================================
+// USER MODEL
+// ============================================================================
+
+model User {
+  id                    String        @id @default(cuid())
+  oktaId                String?       @unique // Null for break-glass accounts
+  email                 String        @unique
+  firstName             String
+  lastName              String
+  phone                 String?
+  isActive              Boolean       @default(true)
+  isBreakGlassAccount   Boolean       @default(false)
+  passwordHash          String?       // Only for break-glass accounts
+  platformRole          PlatformRole  @default(USER)
+  emailVerified         Boolean       @default(false)
+  phoneVerified         Boolean       @default(false)
+  pushEnabled           Boolean       @default(false)
+  syncedFromOkta        Boolean       @default(false)
+  deactivatedAt         DateTime?     @db.Timestamptz
+  createdAt             DateTime      @default(now()) @db.Timestamptz
+  updatedAt             DateTime      @updatedAt @db.Timestamptz
+
+  // Relations
+  teamMembers           TeamMember[]
+  auditEvents           AuditEvent[]
+  notificationPreferences NotificationPreference[]
+  contactVerifications  ContactVerification[]
+  refreshTokens         RefreshToken[]
+  devices               UserDevice[]
+
+  @@index([email])
+  @@index([oktaId])
+  @@index([isActive])
+}
+
+// ============================================================================
+// TEAM MODELS
+// ============================================================================
+
+model Team {
+  id                    String        @id @default(cuid())
+  name                  String        @unique
+  description           String?
+  isActive              Boolean       @default(true)
+  syncedFromOkta        Boolean       @default(false)
+  oktaGroupId           String?       @unique
+  slackChannel          String?
+  notificationDefaults  Json?         // Team-level notification settings
+  escalationDefaults    Json?         // Team-level escalation settings
+  maintenanceMode       Boolean       @default(false)
+  archivedAt            DateTime?     @db.Timestamptz
+  createdAt             DateTime      @default(now()) @db.Timestamptz
+  updatedAt             DateTime      @updatedAt @db.Timestamptz
+
+  // Relations
+  members               TeamMember[]
+  tags                  TeamTag[]
+  auditEvents           AuditEvent[]
+
+  @@index([name])
+  @@index([isActive])
+  @@index([oktaGroupId])
+}
+
+model TeamMember {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId                String
+  team                  Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role                  TeamRole
+  joinedAt              DateTime      @default(now()) @db.Timestamptz
+
+  @@unique([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+  @@index([role])
+}
+
+model TeamTag {
+  id                    String        @id @default(cuid())
+  teamId                String
+  team                  Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tagType               TagType
+  tagValue              String        // e.g., "Engineering", "Backend"
+
+  @@unique([teamId, tagType, tagValue])
+  @@index([tagType, tagValue])
+  @@index([teamId])
+}
+
+// ============================================================================
+// NOTIFICATION & CONTACT MODELS
+// ============================================================================
+
+model NotificationPreference {
+  id                    String               @id @default(cuid())
+  userId                String
+  user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel               NotificationChannel
+  enabled               Boolean              @default(true)
+  priority              Int                  // Order of preference (1 = highest)
+  createdAt             DateTime             @default(now()) @db.Timestamptz
+  updatedAt             DateTime             @updatedAt @db.Timestamptz
+
+  @@unique([userId, channel])
+  @@index([userId])
+  @@index([userId, priority])
+}
+
+model ContactVerification {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  method                String        // "email", "sms", "push"
+  value                 String        // Email address, phone number, or device token
+  code                  String        // 6-digit verification code
+  verified              Boolean       @default(false)
+  expiresAt             DateTime      @db.Timestamptz
+  verifiedAt            DateTime?     @db.Timestamptz
+  createdAt             DateTime      @default(now()) @db.Timestamptz
+
+  @@index([userId, method])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// MOBILE & AUTHENTICATION MODELS
+// ============================================================================
+
+model RefreshToken {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token                 String        @unique // Hashed token
+  deviceInfo            String        // Device information for tracking
+  expiresAt             DateTime      @db.Timestamptz
+  lastUsedAt            DateTime      @db.Timestamptz
+  createdAt             DateTime      @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model UserDevice {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform              String        // "ios", "android", "web"
+  deviceToken           String        // Push notification token
+  deviceName            String?       // User-friendly device name
+  lastSeenAt            DateTime      @db.Timestamptz
+  createdAt             DateTime      @default(now()) @db.Timestamptz
+
+  @@unique([userId, deviceToken])
+  @@index([userId])
+}
+
+// ============================================================================
+// AUDIT MODEL
+// ============================================================================
+
+model AuditEvent {
+  id                    String        @id @default(cuid())
+  action                String        // e.g., "user.login", "team.settings.updated"
+  userId                String?       // Null for system actions
+  user                  User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  teamId                String?       // If action is team-scoped
+  team                  Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  resourceType          String?       // e.g., "user", "team", "incident"
+  resourceId            String?       // ID of affected resource
+  metadata              Json          @default("{}")  // Flexible JSON for action-specific data
+  ipAddress             String?
+  userAgent             String?
+  severity              String        // "INFO", "WARN", "HIGH"
+  timestamp             DateTime      @default(now()) @db.Timestamptz
+
+  @@index([userId, timestamp])
+  @@index([teamId, timestamp])
+  @@index([action, timestamp])
+  @@index([timestamp])
+  @@index([severity, timestamp])
+}
+
+// ============================================================================
+// SESSION MODEL (for connect-pg-simple)
+// ============================================================================
+
+model Session {
+  sid                   String        @id
+  sess                  Json
+  expire                DateTime      @db.Timestamptz
+
+  @@index([expire])
+}
