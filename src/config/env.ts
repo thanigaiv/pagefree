@@ -31,10 +31,17 @@ const envSchema = z.object({
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
 
-  // Twilio for SMS
+  // Twilio for SMS and Voice
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
   TWILIO_PHONE_NUMBER: z.string().optional(),
+
+  // AWS SNS for Push Notifications
+  SNS_PLATFORM_APP_ARN_IOS: z.string().optional(),
+  SNS_PLATFORM_APP_ARN_ANDROID: z.string().optional(),
+
+  // API Base URL (for webhook callbacks)
+  API_BASE_URL: z.string().url().optional(),
 
   // Calendar Integration (optional)
   GOOGLE_CLIENT_ID: z.string().optional(),
@@ -42,6 +49,15 @@ const envSchema = z.object({
   MICROSOFT_CLIENT_ID: z.string().optional(),
   MICROSOFT_CLIENT_SECRET: z.string().optional(),
   MICROSOFT_TENANT_ID: z.string().optional(),
+
+  // Microsoft Teams (optional)
+  TEAMS_APP_ID: z.string().optional(),
+  TEAMS_APP_SECRET: z.string().optional(),
+  TEAMS_TENANT_ID: z.string().optional(),
+
+  // Slack (optional)
+  SLACK_BOT_TOKEN: z.string().optional(),
+  SLACK_SIGNING_SECRET: z.string().optional(),
 
   // Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
