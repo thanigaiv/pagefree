@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 2 of 10 (Alert Ingestion & Webhooks) — IN PROGRESS
-Plan: 3 of 7 complete
-Status: Hybrid idempotency detection complete
-Last activity: 2026-02-07 — Completed 02-03-PLAN.md (Hybrid Idempotency Detection)
+Plan: 4 of 7 complete
+Status: Webhook schema validation complete
+Last activity: 2026-02-07 — Completed 02-04-PLAN.md (Webhook Schema Validation)
 
-Progress: [████████████░░░░░░░░░░] 58%
+Progress: [████████████░░░░░░░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 3 min
-- Total execution time: 0.94 hours
+- Total execution time: 0.97 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
-| 2. Alert Ingestion & Webhooks | 3/7 | 5 min | 1.7 min |
+| 2. Alert Ingestion & Webhooks | 4/7 | 7 min | 1.8 min |
 
 **Recent Trend:**
-- Last 7 plans: 01-07 (5 min), 01-08 (5 min), 01-09 (8 min), 01-11 (2 min), 02-01 (2 min), 02-02 (2 min), 02-03 (1 min)
+- Last 7 plans: 01-08 (5 min), 01-09 (8 min), 01-11 (2 min), 02-01 (2 min), 02-02 (2 min), 02-03 (1 min), 02-04 (2 min)
 - Trend: Excellent velocity, Phase 2 progressing rapidly
 
 *Updated after each plan completion*
@@ -112,6 +112,11 @@ Recent decisions affecting current work:
 | Field normalization (snake_case, camelCase) | 02-03 | Handle multiple field name variations for broad integration compatibility |
 | Long message hashing (>100 chars to 16-char hash) | 02-03 | Keep fingerprints consistent while handling large payloads |
 | Header sanitization before storage | 02-03 | Prevent sensitive data (auth, signatures, tokens) from persisting in database |
+| RFC 7807 Problem Details for webhook errors | 02-04 | Standard machine-readable error format with field-level validation details |
+| Zod passthrough mode for unknown fields | 02-04 | Strict validation on required fields, lenient on extras for different monitoring tools |
+| Lenient severity parsing with default fallback | 02-04 | Unknown severity values default to MEDIUM instead of rejecting webhook |
+| Field name variation support | 02-04 | Handle snake_case/camelCase and common aliases (message/body → description) |
+| Timestamp fallback chain | 02-04 | Prioritize explicit timestamp field, fall back to triggered_at/event_time variants |
 
 ### Pending Todos
 
@@ -133,9 +138,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-07 00:25:22 UTC
-Stopped at: Completed 02-03-PLAN.md - Hybrid Idempotency Detection
+Last session: 2026-02-07 00:26:08 UTC
+Stopped at: Completed 02-04-PLAN.md - Webhook Schema Validation
 Resume file: None
 
 ---
-*Phase 2 In Progress: Alert Ingestion & Webhooks (3/7 plans complete)*
+*Phase 2 In Progress: Alert Ingestion & Webhooks (4/7 plans complete)*
