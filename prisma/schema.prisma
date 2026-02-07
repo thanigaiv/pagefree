@@ -88,6 +88,7 @@ model User {
   scheduleOverridesAsOriginal ScheduleOverride[] @relation("ScheduleOverrideOriginalUser")
   scheduleOverridesCreated    ScheduleOverride[] @relation("ScheduleOverrideCreatedBy")
   calendarSyncs         CalendarSync[]
+  incidentsAssigned     Incident[]
 
   @@index([email])
   @@index([oktaId])
@@ -118,6 +119,8 @@ model Team {
   tags                  TeamTag[]
   auditEvents           AuditEvent[]
   schedules             Schedule[]
+  escalationPolicies    EscalationPolicy[]
+  incidents             Incident[]
 
   @@index([name])
   @@index([isActive])
@@ -441,6 +444,8 @@ model Alert {
   integrationId     String
   integration       Integration   @relation(fields: [integrationId], references: [id])
   deliveries        WebhookDelivery[]
+  incidentId        String?
+  incident          Incident?     @relation(fields: [incidentId], references: [id])
 
   createdAt         DateTime      @default(now()) @db.Timestamptz
   updatedAt         DateTime      @updatedAt @db.Timestamptz
@@ -449,6 +454,7 @@ model Alert {
   @@index([status, triggeredAt])
   @@index([severity, triggeredAt])
   @@index([externalId])
+  @@index([incidentId])
 }
 
 model WebhookDelivery {
@@ -479,4 +485,99 @@ model WebhookDelivery {
   @@index([integrationId, contentFingerprint, createdAt])
   @@index([integrationId, createdAt])
   @@index([alertId])
+}
+
+// ============================================================================
+// INCIDENT & ESCALATION MODELS (Phase 4)
+// ============================================================================
+
+model EscalationPolicy {
+  id          String    @id @default(cuid())
+  teamId      String
+  team        Team      @relation(fields: [teamId], references: [id])
+  name        String
+  description String?
+  isDefault   Boolean   @default(false) // Default policy for team
+  repeatCount Int       @default(1)     // Repeat policy N times before stopping (max 9)
+  isActive    Boolean   @default(true)
+
+  // Relations
+  levels      EscalationLevel[]
+  incidents   Incident[]
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @db.Timestamptz
+
+  @@index([teamId])
+  @@index([teamId, isDefault])
+}
+
+model EscalationLevel {
+  id                 String           @id @default(cuid())
+  escalationPolicyId String
+  escalationPolicy   EscalationPolicy @relation(fields: [escalationPolicyId], references: [id], onDelete: Cascade)
+
+  levelNumber        Int       // Order of escalation (1, 2, 3...)
+  targetType         String    // 'user', 'schedule', 'entire_team'
+  targetId           String?   // User ID or Schedule ID, null for entire_team
+  timeoutMinutes     Int       @default(30) // Wait before escalating
+
+  createdAt          DateTime  @default(now()) @db.Timestamptz
+
+  @@unique([escalationPolicyId, levelNumber])
+  @@index([escalationPolicyId, levelNumber])
+}
+
+model Incident {
+  id                   String           @id @default(cuid())
+  fingerprint          String           // Deduplication key from alert
+
+  // Routing
+  teamId               String
+  team                 Team             @relation(fields: [teamId], references: [id])
+  escalationPolicyId   String
+  escalationPolicy     EscalationPolicy @relation(fields: [escalationPolicyId], references: [id])
+  currentLevel         Int              @default(1) // Current escalation level
+  currentRepeat        Int              @default(1) // Current repeat cycle
+
+  // Assignment
+  assignedUserId       String?
+  assignedUser         User?            @relation(fields: [assignedUserId], references: [id])
+
+  // Status
+  status               String           // OPEN, ACKNOWLEDGED, RESOLVED, CLOSED
+  priority             String           // From first alert severity
+  alertCount           Int              @default(1) // Count of grouped alerts
+
+  // Timestamps
+  createdAt            DateTime         @default(now()) @db.Timestamptz
+  acknowledgedAt       DateTime?        @db.Timestamptz
+  resolvedAt           DateTime?        @db.Timestamptz
+  closedAt             DateTime?        @db.Timestamptz
+  lastEscalatedAt      DateTime?        @db.Timestamptz
+
+  // Relations
+  alerts               Alert[]
+  escalationJobs       EscalationJob[]
+
+  @@index([teamId, status])
+  @@index([fingerprint, status, createdAt])
+  @@index([assignedUserId, status])
+  @@index([status, createdAt])
+}
+
+model EscalationJob {
+  id             String    @id @default(cuid())
+  incidentId     String
+  incident       Incident  @relation(fields: [incidentId], references: [id])
+  bullJobId      String    @unique // BullMQ job ID for cancellation
+  scheduledLevel Int       // Which level this escalates to
+  scheduledFor   DateTime  @db.Timestamptz
+  completed      Boolean   @default(false)
+  cancelledAt    DateTime? @db.Timestamptz
+  executedAt     DateTime? @db.Timestamptz
+
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+
+  @@index([incidentId, completed])
 }
