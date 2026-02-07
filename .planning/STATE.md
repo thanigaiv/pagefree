@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 8 of 10 (Automation & Workflows)
-Plan: 3 of ? in progress
-Status: Plan 08-03 complete - trigger, executor, queue & worker
-Last activity: 2026-02-07 — Completed 08-03-PLAN.md (Trigger, Executor, Queue & Worker)
-Progress: [██████████████████████████████████████████░░░░] 73% (7.3 of 10 phases)
+Plan: 4 of ? in progress
+Status: Plan 08-04 complete - workflow CRUD and template library
+Last activity: 2026-02-07 — Completed 08-04-PLAN.md (Workflow CRUD & Template Library)
+Progress: [████████████████████████████████████████████░░] 74% (7.4 of 10 phases)
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ Progress: [███████████████████████
 | 5. Multi-Channel Notifications | 11/11 | 50 min | 4.5 min |
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
-| 8. Automation & Workflows | 3/? | 10 min | 3.3 min |
+| 8. Automation & Workflows | 4/? | 17 min | 4.3 min |
 
 **Recent Trend:**
-- Last 7 plans: 07-04 (2.4 min), 07-05 (2.5 min), 07-06 (6 min), 08-01 (2 min), 08-02 (4 min), 08-03 (4 min), average 3.5 min
-- Trend: Phase 8 - trigger, executor, queue, and worker complete
+- Last 7 plans: 07-05 (2.5 min), 07-06 (6 min), 08-01 (2 min), 08-02 (4 min), 08-03 (4 min), 08-04 (7 min), average 4.3 min
+- Trend: Phase 8 - CRUD, routes, and template library complete
 
 *Updated after each plan completion*
 
@@ -294,6 +294,7 @@ Recent decisions affecting current work:
 | Per-action timeout calculation | 08-03 | min(30s, remainingTimeout * 0.8) per research pitfall #4 |
 | State persistence after each action | 08-03 | Execution state saved to database for crash recovery (pitfall #5) |
 | Best-effort failure notifications | 08-03 | Notify assignee, creator, team channel - don't fail job if send fails |
+| Prisma JSON field casting pattern | 08-04 | Use Prisma.InputJsonValue cast for JSON writes, unknown cast for reads |
 
 ### Pending Todos
 
@@ -324,9 +325,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 08-03-PLAN.md (Trigger, Executor, Queue & Worker)
+Stopped at: Completed 08-04-PLAN.md (Workflow CRUD & Template Library)
 Resume file: None
 
 ---
-*Phase 8 In Progress: Automation & Workflows (3/? plans complete)*
-*Current: Trigger matching, sequential executor, BullMQ queue and worker complete*
+*Phase 8 In Progress: Automation & Workflows (4/? plans complete)*
+*Current: Workflow CRUD service, REST API routes, and template library complete*
