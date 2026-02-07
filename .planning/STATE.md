@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 3 of 10 (Scheduling System)
-Plan: 5 of 7 complete
-Status: In progress - Who-is-on-call query service with precedence evaluation complete
-Last activity: 2026-02-07 — Completed 03-05-PLAN.md (Who-Is-On-Call Query Service)
+Plan: 6 of 7 complete
+Status: In progress - Calendar integration with Google and Outlook complete
+Last activity: 2026-02-07 — Completed 03-06-PLAN.md (Calendar Integration)
 
-Progress: [████████████████░░░░░░] 86%
+Progress: [████████████████░░░░░░] 89%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 3 min
-- Total execution time: 1.33 hours
+- Total execution time: 1.43 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [████████████████░░░░░░] 8
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
-| 3. Scheduling System | 5/7 | 15 min | 3 min |
+| 3. Scheduling System | 6/7 | 21 min | 3.5 min |
 
 **Recent Trend:**
-- Last 7 plans: 02-06 (4 min), 02-07 (3 min), 03-01 (2 min), 03-02 (3 min), 03-03 (5 min), 03-04 (2 min), 03-05 (3 min)
-- Trend: Phase 3 maintaining 2-5 min velocity, on-call query service delivered on schedule
+- Last 7 plans: 02-07 (3 min), 03-01 (2 min), 03-02 (3 min), 03-03 (5 min), 03-04 (2 min), 03-05 (3 min), 03-06 (6 min)
+- Trend: Phase 3 maintaining steady velocity, calendar integration delivered successfully
 
 *Updated after each plan completion*
 
@@ -142,6 +142,10 @@ Recent decisions affecting current work:
 | Shift calculation from RRULE occurrences | 03-05 | On-demand calculation handles infinite schedules and DST transitions |
 | Layer restrictions pre-filtering | 03-05 | Performance optimization - skip RRULE if day-of-week doesn't match |
 | Priority-descending layer evaluation | 03-05 | Stop at first matching layer for efficiency (higher priority = 100 -> 1) |
+| OAuth credentials optional for development | 03-06 | Enable development without requiring Google/Microsoft app registration |
+| One-way calendar sync (system to calendar) | 03-06 | Platform is source of truth, calendars are read-only views |
+| Delete and recreate calendar sync strategy | 03-06 | Simplicity over complexity - avoid update/merge logic |
+| Token refresh on expiry detection | 03-06 | Prevent sync failures due to expired OAuth tokens |
 
 ### Pending Todos
 
@@ -157,16 +161,16 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- Phase 3 in progress - who-is-on-call query service complete with precedence evaluation
-- Next: Schedule override management with conflict detection
+- Phase 3 in progress - calendar integration with Google and Outlook complete
+- Next: Phase 3 completion and testing (final plan)
 - DST transition test cases critical for spring-forward/fall-back scenarios (planned for testing phase)
 
 ## Session Continuity
 
-Last session: 2026-02-07 02:10:48 UTC
-Stopped at: Completed 03-05-PLAN.md - Who-Is-On-Call Query Service
+Last session: 2026-02-07 02:37:46 UTC
+Stopped at: Completed 03-06-PLAN.md - Calendar Integration
 Resume file: None
 
 ---
-*Phase 3 In Progress: Scheduling System (5/7 plans complete)*
-*Next: Schedule override management with conflict detection*
+*Phase 3 In Progress: Scheduling System (6/7 plans complete)*
+*Next: Phase 3 completion and testing*
