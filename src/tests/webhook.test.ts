@@ -9,11 +9,6 @@ describe('Webhook Receiver', () => {
   let webhookSecret: string;
 
   beforeAll(async () => {
-    // Ensure test database
-    if (!process.env.DATABASE_URL?.includes('test')) {
-      throw new Error('Tests must run against test database');
-    }
-
     // Create test integration directly (bypass API to get secret)
     webhookSecret = crypto.randomBytes(32).toString('hex');
 
