@@ -13,9 +13,6 @@ const PRIORITY_STYLES: Record<string, { color: string; style: string }> = {
 export function buildTeamsIncidentCard(payload: NotificationPayload): any {
   const styling = PRIORITY_STYLES[payload.priority] || PRIORITY_STYLES.MEDIUM;
   const icon = payload.priority === 'CRITICAL' ? '🚨 ' : '';
-  const escalationText = payload.escalationLevel
-    ? `**ESCALATION - Level ${payload.escalationLevel}**`
-    : '';
 
   return {
     type: 'message',
