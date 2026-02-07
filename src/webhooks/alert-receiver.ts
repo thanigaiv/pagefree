@@ -3,7 +3,7 @@ import { rawBodyCapture } from './middleware/raw-body-capture.js';
 import { createDynamicSignatureVerifier } from './middleware/signature-verification.js';
 import { idempotencyService } from '../services/idempotency.service.js';
 import { alertService } from '../services/alert.service.js';
-import { validateAlertPayload } from './schemas/alert.schema.js';
+import { getNormalizer, validateAlertPayload } from './schemas/index.js';
 import { formatValidationError, createProblemDetails } from '../utils/problem-details.js';
 import { auditService } from '../services/audit.service.js';
 import { logger } from '../config/logger.js';
@@ -84,44 +84,89 @@ alertWebhookRouter.post(
         return;
       }
 
-      // 2. Validate payload
-      const validation = validateAlertPayload(req.body, integration.name);
+      // 2. Validate and normalize payload
+      // Provider-specific types (datadog, newrelic) use direct normalization with Zod validation
+      // Generic type uses existing validation path for backward compatibility
+      let normalizedData;
 
-      if (!validation.success) {
-        // Record the delivery attempt (validation failure)
-        await alertService.recordDeliveryOnly({
-          integrationId: integration.id,
-          idempotencyKey,
-          contentFingerprint: fingerprint,
-          rawPayload: req.body,
-          headers: alertService.sanitizeHeaders(req.headers),
-          statusCode: 400,
-          errorMessage: validation.error.message
-        });
+      if (integration.type === 'datadog' || integration.type === 'newrelic') {
+        // Provider-specific normalization (includes Zod validation)
+        const normalizer = getNormalizer(integration.type);
 
-        await auditService.log({
-          action: 'webhook.validation_failed',
-          severity: 'WARN',
-          metadata: {
-            integration: integration.name,
-            errors: validation.error.issues.length
-          }
-        });
+        try {
+          normalizedData = normalizer(req.body, integration.name);
+        } catch (error) {
+          // Record validation failure
+          await alertService.recordDeliveryOnly({
+            integrationId: integration.id,
+            idempotencyKey,
+            contentFingerprint: fingerprint,
+            rawPayload: req.body,
+            headers: alertService.sanitizeHeaders(req.headers),
+            statusCode: 400,
+            errorMessage: error instanceof Error ? error.message : 'Validation failed'
+          });
 
-        res.status(400).json(formatValidationError(validation.error, req.path));
-        return;
+          await auditService.log({
+            action: 'webhook.validation_failed',
+            severity: 'WARN',
+            metadata: {
+              integration: integration.name,
+              type: integration.type,
+              error: error instanceof Error ? error.message : 'Validation failed'
+            }
+          });
+
+          res.status(400).json(createProblemDetails(
+            'validation-failed',
+            'Invalid webhook payload',
+            400,
+            { detail: error instanceof Error ? error.message : 'Validation failed' }
+          ));
+          return;
+        }
+      } else {
+        // Generic validation path (existing behavior)
+        const validation = validateAlertPayload(req.body, integration.name);
+
+        if (!validation.success) {
+          // Record the delivery attempt (validation failure)
+          await alertService.recordDeliveryOnly({
+            integrationId: integration.id,
+            idempotencyKey,
+            contentFingerprint: fingerprint,
+            rawPayload: req.body,
+            headers: alertService.sanitizeHeaders(req.headers),
+            statusCode: 400,
+            errorMessage: validation.error.message
+          });
+
+          await auditService.log({
+            action: 'webhook.validation_failed',
+            severity: 'WARN',
+            metadata: {
+              integration: integration.name,
+              errors: validation.error.issues.length
+            }
+          });
+
+          res.status(400).json(formatValidationError(validation.error, req.path));
+          return;
+        }
+
+        normalizedData = validation.data;
       }
 
       // 3. Create alert with delivery log
       const { alert } = await alertService.createWithDelivery(
         {
-          title: validation.data.title,
-          description: validation.data.description,
-          severity: validation.data.severity,
-          triggeredAt: validation.data.triggeredAt,
-          source: validation.data.source,
-          externalId: validation.data.externalId,
-          metadata: validation.data.metadata,
+          title: normalizedData.title,
+          description: normalizedData.description,
+          severity: normalizedData.severity,
+          triggeredAt: normalizedData.triggeredAt,
+          source: normalizedData.source,
+          externalId: normalizedData.externalId,
+          metadata: normalizedData.metadata,
           integrationId: integration.id
         },
         {
