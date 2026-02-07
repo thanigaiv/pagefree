@@ -194,15 +194,15 @@ Plans:
 ### Phase 8: Automation & Workflows
 **Goal**: Users can define automated response workflows triggered by incident conditions
 **Depends on**: Phase 6
-**Requirements**: AUTO-01, AUTO-02, AUTO-03, AUTO-04, AUTO-05, AUTO-06, AUTO-07
+**Requirements**: AUTO-01, AUTO-02, AUTO-03, AUTO-04, AUTO-05, AUTO-07
 **Success Criteria** (what must be TRUE):
   1. User can define automated actions triggered by incident conditions (priority, service)
   2. System executes basic actions (create ticket, post to Slack, call webhook)
   3. User can define workflows with conditional logic (if priority = high, then...)
   4. User can create workflows using visual workflow builder
   5. System provides template library for common workflows
-  6. User can trigger runbook automation to execute scripts on incident
-  7. System logs all automated actions to incident timeline
+  6. System logs all automated actions to incident timeline
+**Deferred**: AUTO-06 (runbook automation with script execution) - deferred to future phase for security review
 **Plans**: 8 plans
 
 Plans:
