@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 3 of 10 (Scheduling System)
-Plan: 3 of 7 complete
-Status: In progress - Schedule layer management with priority precedence complete
-Last activity: 2026-02-07 — Completed 03-03-PLAN.md (Schedule Layer Management)
+Plan: 5 of 7 complete
+Status: In progress - Who-is-on-call query service with precedence evaluation complete
+Last activity: 2026-02-07 — Completed 03-05-PLAN.md (Who-Is-On-Call Query Service)
 
-Progress: [████████████████░░░░░░] 84%
+Progress: [████████████████░░░░░░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 23
 - Average duration: 3 min
-- Total execution time: 1.25 hours
+- Total execution time: 1.33 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [████████████████░░░░░░] 8
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
-| 3. Scheduling System | 3/7 | 10 min | 3.3 min |
+| 3. Scheduling System | 5/7 | 15 min | 3 min |
 
 **Recent Trend:**
-- Last 7 plans: 02-04 (2 min), 02-05 (2 min), 02-06 (4 min), 02-07 (3 min), 03-01 (2 min), 03-02 (3 min), 03-03 (5 min)
-- Trend: Phase 3 progressing! 2-5 min velocity, layer management more complex
+- Last 7 plans: 02-06 (4 min), 02-07 (3 min), 03-01 (2 min), 03-02 (3 min), 03-03 (5 min), 03-04 (2 min), 03-05 (3 min)
+- Trend: Phase 3 maintaining 2-5 min velocity, on-call query service delivered on schedule
 
 *Updated after each plan completion*
 
@@ -134,6 +134,10 @@ Recent decisions affecting current work:
 | Restrictions stored as JSON: {daysOfWeek: [...]} | 03-03 | Flexible schema for time-based filtering (weekday/weekend) |
 | Team admin required for layer mutations | 03-03 | Elevated permissions for schedule configuration changes |
 | Hard delete for layers (no soft delete) | 03-03 | Layers are configuration, not audit-critical like alerts |
+| Override precedence over layers/schedules | 03-05 | Temporary coverage (vacation, emergencies) must override scheduled rotations |
+| Shift calculation from RRULE occurrences | 03-05 | On-demand calculation handles infinite schedules and DST transitions |
+| Layer restrictions pre-filtering | 03-05 | Performance optimization - skip RRULE if day-of-week doesn't match |
+| Priority-descending layer evaluation | 03-05 | Stop at first matching layer for efficiency (higher priority = 100 -> 1) |
 
 ### Pending Todos
 
@@ -149,16 +153,16 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- Phase 3 in progress - schedule layer management complete with priority precedence
-- Next: On-call computation with layer/override precedence evaluation
+- Phase 3 in progress - who-is-on-call query service complete with precedence evaluation
+- Next: Schedule override management with conflict detection
 - DST transition test cases critical for spring-forward/fall-back scenarios (planned for testing phase)
 
 ## Session Continuity
 
-Last session: 2026-02-07 02:05:31 UTC
-Stopped at: Completed 03-03-PLAN.md - Schedule Layer Management
+Last session: 2026-02-07 02:10:48 UTC
+Stopped at: Completed 03-05-PLAN.md - Who-Is-On-Call Query Service
 Resume file: None
 
 ---
-*Phase 3 In Progress: Scheduling System (3/7 plans complete)*
-*Next: On-call computation with layer precedence*
+*Phase 3 In Progress: Scheduling System (5/7 plans complete)*
+*Next: Schedule override management with conflict detection*
