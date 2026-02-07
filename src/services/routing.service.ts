@@ -87,53 +87,68 @@ class RoutingService {
     level: any,
     teamId: string
   ): Promise<string | null> {
-    if (level.targetType === 'user') {
-      // Direct user assignment
-      const user = await prisma.user.findUnique({
-        where: { id: level.targetId, isActive: true }
-      });
-      return user?.id || null;
+    switch (level.targetType) {
+      case 'user':
+        return this.resolveDirectUser(level.targetId);
+
+      case 'schedule':
+        return this.resolveScheduleUser(level.targetId, teamId);
+
+      case 'entire_team':
+        return this.resolveTeamUser(teamId);
+
+      default:
+        return null;
     }
+  }
 
-    if (level.targetType === 'schedule') {
-      // Use Phase 3 on-call lookup
-      const onCall = await onCallService.getCurrentOnCall({
-        scheduleId: level.targetId
-      });
+  /**
+   * Resolve direct user assignment.
+   */
+  private async resolveDirectUser(userId: string): Promise<string | null> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId, isActive: true }
+    });
+    return user?.id || null;
+  }
 
-      if (onCall?.user) {
-        // Verify user is still active team member
-        const membership = await prisma.teamMember.findFirst({
-          where: {
-            userId: onCall.user.id,
-            teamId,
-            role: { in: ['RESPONDER', 'TEAM_ADMIN'] }
-          }
-        });
+  /**
+   * Resolve on-call user from schedule.
+   */
+  private async resolveScheduleUser(scheduleId: string, teamId: string): Promise<string | null> {
+    const onCall = await onCallService.getCurrentOnCall({ scheduleId });
 
-        if (membership) {
-          return onCall.user.id;
-        }
-      }
+    if (!onCall?.user) {
       return null;
     }
 
-    if (level.targetType === 'entire_team') {
-      // Get all team responders, return first available
-      const members = await prisma.teamMember.findMany({
-        where: {
-          teamId,
-          role: { in: ['RESPONDER', 'TEAM_ADMIN'] },
-          user: { isActive: true }
-        },
-        include: { user: true },
-        orderBy: { joinedAt: 'asc' }
-      });
+    // Verify user is active team member with appropriate role
+    const membership = await prisma.teamMember.findFirst({
+      where: {
+        userId: onCall.user.id,
+        teamId,
+        role: { in: ['RESPONDER', 'TEAM_ADMIN'] }
+      }
+    });
 
-      return members[0]?.userId || null;
-    }
+    return membership ? onCall.user.id : null;
+  }
 
-    return null;
+  /**
+   * Resolve first available team member.
+   */
+  private async resolveTeamUser(teamId: string): Promise<string | null> {
+    const members = await prisma.teamMember.findMany({
+      where: {
+        teamId,
+        role: { in: ['RESPONDER', 'TEAM_ADMIN'] },
+        user: { isActive: true }
+      },
+      include: { user: true },
+      orderBy: { joinedAt: 'asc' }
+    });
+
+    return members[0]?.userId || null;
   }
 }
 
