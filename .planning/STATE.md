@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 2 of 10 (Alert Ingestion & Webhooks) — IN PROGRESS
-Plan: 2 of 7 complete
-Status: Webhook security middleware complete
-Last activity: 2026-02-07 — Completed 02-02-PLAN.md (Webhook Security Middleware)
+Plan: 3 of 7 complete
+Status: Hybrid idempotency detection complete
+Last activity: 2026-02-07 — Completed 02-03-PLAN.md (Hybrid Idempotency Detection)
 
-Progress: [███████████░░░░░░░░░░░] 54%
+Progress: [████████████░░░░░░░░░░] 58%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 4 min
-- Total execution time: 0.86 hours
+- Total plans completed: 14
+- Average duration: 3 min
+- Total execution time: 0.94 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
-| 2. Alert Ingestion & Webhooks | 2/7 | 4 min | 2 min |
+| 2. Alert Ingestion & Webhooks | 3/7 | 5 min | 1.7 min |
 
 **Recent Trend:**
-- Last 7 plans: 01-06 (3 min), 01-07 (5 min), 01-08 (5 min), 01-09 (8 min), 01-11 (2 min), 02-01 (2 min), 02-02 (2 min)
-- Trend: Excellent velocity, Phase 2 progressing
+- Last 7 plans: 01-07 (5 min), 01-08 (5 min), 01-09 (8 min), 01-11 (2 min), 02-01 (2 min), 02-02 (2 min), 02-03 (1 min)
+- Trend: Excellent velocity, Phase 2 progressing rapidly
 
 *Updated after each plan completion*
 
@@ -107,6 +107,11 @@ Recent decisions affecting current work:
 | Middleware factory pattern for signature verification | 02-02 | Enable per-integration signature configuration |
 | RFC 7807 Problem Details for webhook auth errors | 02-02 | Structured error responses for webhook authentication failures |
 | Integration object attached to request | 02-02 | Avoid duplicate database lookups in downstream handlers |
+| External idempotency key checked first | 02-03 | Most reliable deduplication when monitoring tools provide unique delivery IDs |
+| Content fingerprint fallback for deduplication | 02-03 | Ensures deduplication works even without idempotency headers |
+| Field normalization (snake_case, camelCase) | 02-03 | Handle multiple field name variations for broad integration compatibility |
+| Long message hashing (>100 chars to 16-char hash) | 02-03 | Keep fingerprints consistent while handling large payloads |
+| Header sanitization before storage | 02-03 | Prevent sensitive data (auth, signatures, tokens) from persisting in database |
 
 ### Pending Todos
 
@@ -116,21 +121,21 @@ None yet.
 
 **From research:**
 - ✅ Phase 1: Must store all timestamps in UTC to prevent timezone bugs (ADDRESSED: Used @db.Timestamptz in all models)
-- 🔄 Phase 2: Webhook idempotency and signature validation essential (IN PROGRESS: Signature validation complete in 02-02)
+- ✅ Phase 2: Webhook idempotency and signature validation essential (ADDRESSED: Signature validation in 02-02, hybrid idempotency in 02-03)
 - Phase 3: DST handling requires explicit test cases for spring-forward/fall-back scenarios (critical pitfall)
 - Phase 4: Alert deduplication needs database transactions to prevent race conditions (critical pitfall)
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
 - None - Phase 2 progressing smoothly
-- Webhook signature verification infrastructure complete (02-02)
+- Webhook security infrastructure complete (signature verification + idempotency)
 - All tests passing (46 tests)
 
 ## Session Continuity
 
-Last session: 2026-02-07 00:22:11 UTC
-Stopped at: Completed 02-02-PLAN.md - Webhook Security Middleware
+Last session: 2026-02-07 00:25:22 UTC
+Stopped at: Completed 02-03-PLAN.md - Hybrid Idempotency Detection
 Resume file: None
 
 ---
-*Phase 2 In Progress: Alert Ingestion & Webhooks (2/7 plans complete)*
+*Phase 2 In Progress: Alert Ingestion & Webhooks (3/7 plans complete)*
