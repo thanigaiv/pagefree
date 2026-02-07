@@ -17,16 +17,16 @@ Requirements for initial production deployment. Each maps to roadmap phases.
 
 ### On-Call Scheduling
 
-- [ ] **SCHED-01**: User can create on-call schedules with daily rotations
-- [ ] **SCHED-02**: User can create on-call schedules with weekly rotations
-- [ ] **SCHED-03**: User can create on-call schedules with custom rotations
-- [ ] **SCHED-04**: User can set schedule overrides for temporary changes
-- [ ] **SCHED-05**: User can swap shifts with another team member
-- [ ] **SCHED-06**: System handles timezones correctly for distributed teams (UTC-based storage)
-- [ ] **SCHED-07**: System handles DST transitions without schedule gaps
-- [ ] **SCHED-08**: System integrates with Google Calendar (sync schedules)
-- [ ] **SCHED-09**: System integrates with Outlook Calendar (sync schedules)
-- [ ] **SCHED-10**: User can view who is currently on-call for each service
+- [x] **SCHED-01**: User can create on-call schedules with daily rotations
+- [x] **SCHED-02**: User can create on-call schedules with weekly rotations
+- [x] **SCHED-03**: User can create on-call schedules with custom rotations
+- [x] **SCHED-04**: User can set schedule overrides for temporary changes
+- [x] **SCHED-05**: User can swap shifts with another team member
+- [x] **SCHED-06**: System handles timezones correctly for distributed teams (UTC-based storage)
+- [x] **SCHED-07**: System handles DST transitions without schedule gaps
+- [x] **SCHED-08**: System integrates with Google Calendar (sync schedules)
+- [x] **SCHED-09**: System integrates with Outlook Calendar (sync schedules)
+- [x] **SCHED-10**: User can view who is currently on-call for each service
 
 ### Routing & Escalation
 
@@ -183,16 +183,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INT-01 | Phase 2 | Complete |
 | INT-02 | Phase 2 | Complete |
 | INT-03 | Phase 2 | Complete |
-| SCHED-01 | Phase 3 | Pending |
-| SCHED-02 | Phase 3 | Pending |
-| SCHED-03 | Phase 3 | Pending |
-| SCHED-04 | Phase 3 | Pending |
-| SCHED-05 | Phase 3 | Pending |
-| SCHED-06 | Phase 3 | Pending |
-| SCHED-07 | Phase 3 | Pending |
-| SCHED-08 | Phase 3 | Pending |
-| SCHED-09 | Phase 3 | Pending |
-| SCHED-10 | Phase 3 | Pending |
+| SCHED-01 | Phase 3 | Complete |
+| SCHED-02 | Phase 3 | Complete |
+| SCHED-03 | Phase 3 | Complete |
+| SCHED-04 | Phase 3 | Complete |
+| SCHED-05 | Phase 3 | Complete |
+| SCHED-06 | Phase 3 | Complete |
+| SCHED-07 | Phase 3 | Complete |
+| SCHED-08 | Phase 3 | Complete |
+| SCHED-09 | Phase 3 | Complete |
+| SCHED-10 | Phase 3 | Complete |
 | ALERT-02 | Phase 4 | Pending |
 | ALERT-03 | Phase 2 | Complete |
 | ALERT-04 | Phase 4 | Pending |

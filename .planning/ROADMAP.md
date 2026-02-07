@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & User Management** - Authentication, teams, and audit infrastructure
 - [x] **Phase 2: Alert Ingestion & Webhooks** - Receive alerts from monitoring tools
-- [ ] **Phase 3: Scheduling System** - On-call schedules with rotations and timezone handling
+- [x] **Phase 3: Scheduling System** - On-call schedules with rotations and timezone handling
 - [ ] **Phase 4: Alert Routing & Deduplication** - Process and route alerts to on-call engineers
 - [ ] **Phase 5: Multi-Channel Notifications** - Deliver alerts via email, SMS, push, phone, Slack
 - [ ] **Phase 6: Incident Management Dashboard** - Web and mobile UI for incident response
@@ -86,13 +86,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 03-01-PLAN.md - Database schema for schedules (Schedule, ScheduleLayer, ScheduleOverride, CalendarSync)
-- [ ] 03-02-PLAN.md - Schedule CRUD service with RRULE generation (daily/weekly/custom rotations)
-- [ ] 03-03-PLAN.md - Schedule layers with priority precedence and restrictions
-- [ ] 03-04-PLAN.md - Schedule overrides and shift swaps with conflict detection
-- [ ] 03-05-PLAN.md - Who-is-on-call query service with timezone handling
-- [ ] 03-06-PLAN.md - Calendar sync (Google Calendar and Outlook)
-- [ ] 03-07-PLAN.md - DST test fixtures and integration tests
+- [x] 03-01-PLAN.md - Database schema for schedules (Schedule, ScheduleLayer, ScheduleOverride, CalendarSync)
+- [x] 03-02-PLAN.md - Schedule CRUD service with RRULE generation (daily/weekly/custom rotations)
+- [x] 03-03-PLAN.md - Schedule layers with priority precedence and restrictions
+- [x] 03-04-PLAN.md - Schedule overrides and shift swaps with conflict detection
+- [x] 03-05-PLAN.md - Who-is-on-call query service with timezone handling
+- [x] 03-06-PLAN.md - Calendar sync (Google Calendar and Outlook)
+- [x] 03-07-PLAN.md - DST test fixtures and integration tests
 
 ### Phase 4: Alert Routing & Deduplication
 **Goal**: Alerts route to correct on-call engineer with deduplication and escalation
@@ -213,8 +213,8 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & User Management | 11/11 | Complete | 2026-02-06 |
-| 2. Alert Ingestion & Webhooks | 0/7 | Planned | - |
-| 3. Scheduling System | 0/7 | Planned | - |
+| 2. Alert Ingestion & Webhooks | 7/7 | Complete | 2026-02-07 |
+| 3. Scheduling System | 7/7 | Complete | 2026-02-07 |
 | 4. Alert Routing & Deduplication | 0/TBD | Not started | - |
 | 5. Multi-Channel Notifications | 0/TBD | Not started | - |
 | 6. Incident Management Dashboard | 0/TBD | Not started | - |
