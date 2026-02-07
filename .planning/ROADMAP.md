@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & User Management** - Authentication, teams, and audit infrastructure
 - [x] **Phase 2: Alert Ingestion & Webhooks** - Receive alerts from monitoring tools
 - [x] **Phase 3: Scheduling System** - On-call schedules with rotations and timezone handling
-- [ ] **Phase 4: Alert Routing & Deduplication** - Process and route alerts to on-call engineers
+- [x] **Phase 4: Alert Routing & Deduplication** - Process and route alerts to on-call engineers
 - [ ] **Phase 5: Multi-Channel Notifications** - Deliver alerts via email, SMS, push, phone, Slack
 - [ ] **Phase 6: Incident Management Dashboard** - Web and mobile UI for incident response
 - [ ] **Phase 7: External Integrations** - DataDog, New Relic, Slack bidirectional sync
@@ -108,14 +108,14 @@ Plans:
 **Plans**: 8 plans
 
 Plans:
-- [ ] 04-01-PLAN.md - Database models for incidents and escalation policies
-- [ ] 04-02-PLAN.md - BullMQ queue infrastructure for escalation timers
-- [ ] 04-03-PLAN.md - Escalation policy management service and API
-- [ ] 04-04-PLAN.md - Alert deduplication and routing services (TDD)
-- [ ] 04-05-PLAN.md - Incident lifecycle management (acknowledge, resolve, reassign)
-- [ ] 04-06-PLAN.md - Escalation worker and orchestration service
-- [ ] 04-07-PLAN.md - Alert search API and webhook pipeline integration
-- [ ] 04-08-PLAN.md - Integration tests and verification
+- [x] 04-01-PLAN.md - Database models for incidents and escalation policies
+- [x] 04-02-PLAN.md - BullMQ queue infrastructure for escalation timers
+- [x] 04-03-PLAN.md - Escalation policy management service and API
+- [x] 04-04-PLAN.md - Alert deduplication and routing services (TDD)
+- [x] 04-05-PLAN.md - Incident lifecycle management (acknowledge, resolve, reassign)
+- [x] 04-06-PLAN.md - Escalation worker and orchestration service
+- [x] 04-07-PLAN.md - Alert search API and webhook pipeline integration
+- [x] 04-08-PLAN.md - Integration tests and verification
 
 ### Phase 5: Multi-Channel Notifications
 **Goal**: Critical alerts reach on-call engineers through multiple reliable channels
@@ -222,7 +222,7 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 1. Foundation & User Management | 11/11 | Complete | 2026-02-06 |
 | 2. Alert Ingestion & Webhooks | 7/7 | Complete | 2026-02-07 |
 | 3. Scheduling System | 7/7 | Complete | 2026-02-07 |
-| 4. Alert Routing & Deduplication | 0/8 | Planned | - |
+| 4. Alert Routing & Deduplication | 8/8 | Complete | 2026-02-08 |
 | 5. Multi-Channel Notifications | 0/TBD | Not started | - |
 | 6. Incident Management Dashboard | 0/TBD | Not started | - |
 | 7. External Integrations | 0/TBD | Not started | - |

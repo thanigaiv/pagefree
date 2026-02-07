@@ -10,10 +10,10 @@ Requirements for initial production deployment. Each maps to roadmap phases.
 ### Alert Management
 
 - [x] **ALERT-01**: System receives alerts via webhook API from external monitoring tools
-- [ ] **ALERT-02**: System deduplicates alerts automatically using fingerprinting/alias
+- [x] **ALERT-02**: System deduplicates alerts automatically using fingerprinting/alias
 - [x] **ALERT-03**: System supports alert priority levels (critical, high, medium, low)
-- [ ] **ALERT-04**: User can search and filter alerts in dashboard
-- [ ] **ALERT-05**: System maintains alert history and audit trail
+- [x] **ALERT-04**: User can search and filter alerts in dashboard
+- [x] **ALERT-05**: System maintains alert history and audit trail
 
 ### On-Call Scheduling
 
@@ -30,11 +30,11 @@ Requirements for initial production deployment. Each maps to roadmap phases.
 
 ### Routing & Escalation
 
-- [ ] **ROUTE-01**: System routes alerts to appropriate on-call engineer based on service and schedule
-- [ ] **ROUTE-02**: System supports escalation policies with configurable timeouts
-- [ ] **ROUTE-03**: System supports multi-level escalation (escalate to next level if not acknowledged)
-- [ ] **ROUTE-04**: User can manually reassign incident to different responder
-- [ ] **ROUTE-05**: System stops escalation when incident is acknowledged
+- [x] **ROUTE-01**: System routes alerts to appropriate on-call engineer based on service and schedule
+- [x] **ROUTE-02**: System supports escalation policies with configurable timeouts
+- [x] **ROUTE-03**: System supports multi-level escalation (escalate to next level if not acknowledged)
+- [x] **ROUTE-04**: User can manually reassign incident to different responder
+- [x] **ROUTE-05**: System stops escalation when incident is acknowledged
 
 ### Notifications
 
