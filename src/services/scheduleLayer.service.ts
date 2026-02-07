@@ -258,14 +258,26 @@ export class ScheduleLayerService {
     }
 
     // Check if RRULE needs regeneration
+    // Note: Layers don't store rotationType/rotationIntervalDays, but input may contain them
     let recurrenceRule = existing.recurrenceRule;
-    const needsRRuleRegeneration = false; // Layers don't have rotationType/rotationIntervalDays fields
+    const needsRRuleRegeneration =
+      input.rotationType ||
+      input.startDate ||
+      input.handoffTime ||
+      input.rotationIntervalDays !== undefined;
 
     if (needsRRuleRegeneration) {
-      // For layers, we need to use parent schedule's rotation settings if not updating recurrence directly
-      // Since layers don't store rotationType/rotationIntervalDays, we just keep existing RRULE
-      // Future implementation should handle RRULE regeneration differently for layers
-      recurrenceRule = existing.recurrenceRule; // Keep existing for now
+      // Regenerate RRULE using input values (required for layer update)
+      if (!input.rotationType) {
+        throw new Error('rotationType is required when updating rotation settings');
+      }
+      recurrenceRule = this.generateRRule({
+        rotationType: input.rotationType,
+        rotationIntervalDays: input.rotationIntervalDays,
+        startDate: input.startDate ? new Date(input.startDate) : existing.startDate,
+        timezone: input.timezone || existing.timezone,
+        handoffTime: input.handoffTime || existing.handoffTime
+      });
     }
 
     // Update layer
@@ -279,7 +291,8 @@ export class ScheduleLayerService {
         endDate: input.endDate ? new Date(input.endDate) : undefined,
         handoffTime: input.handoffTime,
         rotationUserIds: input.rotationUserIds,
-        restrictions: input.restrictions !== undefined ? (input.restrictions as any) : undefined
+        restrictions: input.restrictions !== undefined ? (input.restrictions as any) : undefined,
+        recurrenceRule
       },
       include: {
         schedule: {
