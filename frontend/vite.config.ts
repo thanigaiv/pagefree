@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
       manifest: {
@@ -39,72 +42,8 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
-        // Precache static assets
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-
-        // Runtime caching for API (per user decision: offline view cached)
-        runtimeCaching: [
-          {
-            // Cache incident list for offline viewing
-            urlPattern: /\/api\/incidents(\?.*)?$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'incidents-list-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60, // 5 minutes
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-              networkTimeoutSeconds: 3, // Fall back to cache if network slow
-            },
-          },
-          {
-            // Cache individual incidents
-            urlPattern: /\/api\/incidents\/[^/]+$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'incidents-detail-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 5 * 60,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-              networkTimeoutSeconds: 3,
-            },
-          },
-          {
-            // Cache timeline data
-            urlPattern: /\/api\/incidents\/[^/]+\/timeline$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'timeline-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            // Cache user/team data (changes less frequently)
-            urlPattern: /\/api\/(users|teams)/,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'users-teams-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 60, // 30 minutes
-              },
-            },
-          },
-        ],
       },
       devOptions: {
         enabled: true, // Enable in dev for testing
