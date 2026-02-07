@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import IncidentDetailPage from './pages/IncidentDetailPage';
 import SchedulePage from './pages/SchedulePage';
 import ProfilePage from './pages/ProfilePage';
+import IntegrationsPage from './pages/IntegrationsPage';
 
 export default function App() {
   const { isOnline } = usePWA();
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/incidents/:id" element={<IncidentDetailPage />} />
           <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/integrations" element={<IntegrationsPage />} />
         </Routes>
       </MobileLayout>
 

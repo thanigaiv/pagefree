@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { Integration } from '@/hooks/useIntegrations';
+import { IntegrationTestDialog } from './IntegrationTestDialog';
+import { WebhookAttempts } from './WebhookAttempts';
 
 interface IntegrationCardProps {
   integration: Integration;
@@ -113,21 +115,26 @@ export function IntegrationCard({
 
           {/* Actions per user decision: test button + view logs */}
           <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onTest}
-              disabled={!integration.isActive}
-            >
-              Test Webhook
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onViewLogs}
-            >
-              View Logs
-            </Button>
+            <IntegrationTestDialog
+              integration={integration}
+              trigger={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!integration.isActive}
+                >
+                  Test Webhook
+                </Button>
+              }
+            />
+            <WebhookAttempts
+              integration={integration}
+              trigger={
+                <Button variant="ghost" size="sm">
+                  View Logs
+                </Button>
+              }
+            />
           </div>
         </div>
       </CardContent>
