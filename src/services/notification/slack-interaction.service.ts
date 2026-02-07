@@ -267,12 +267,17 @@ class SlackInteractionService {
           await this.handleSlashList(slackConnection.userId, responseUrl);
           break;
 
+        case 'integrations':
+          await this.handleSlashIntegrations(slackConnection.userId, responseUrl);
+          break;
+
         default:
           await this.sendSlashResponse(responseUrl, 'ephemeral',
             'Usage:\n' +
             '`/oncall ack <id>` - Acknowledge incident\n' +
             '`/oncall resolve <id>` - Resolve incident\n' +
-            '`/oncall list` - List your open incidents'
+            '`/oncall list` - List your open incidents\n' +
+            '`/oncall integrations` - View integration status (admin only)'
           );
       }
     } catch (error) {
@@ -335,6 +340,98 @@ class SlackInteractionService {
 
     await this.sendSlashResponse(responseUrl, 'ephemeral',
       `*Your open incidents:*\n${lines.join('\n')}`
+    );
+  }
+
+  private async handleSlashIntegrations(
+    userId: string,
+    responseUrl: string
+  ): Promise<void> {
+    // Check if user is platform admin per user decision
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { platformRole: true }
+    });
+
+    if (user?.platformRole !== 'PLATFORM_ADMIN') {
+      await this.sendSlashResponse(
+        responseUrl,
+        'ephemeral',
+        ':lock: Only platform admins can view integration status'
+      );
+      return;
+    }
+
+    // Fetch integration health stats
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const integrations = await prisma.integration.findMany({
+      where: { isActive: true },
+      include: {
+        webhookDeliveries: {
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+          select: { createdAt: true }
+        }
+      }
+    });
+
+    // Get error counts per integration
+    const errorCounts = await prisma.webhookDelivery.groupBy({
+      by: ['integrationId'],
+      where: {
+        statusCode: { gte: 400 },
+        createdAt: { gte: twentyFourHoursAgo }
+      },
+      _count: true
+    });
+
+    const errorCountMap = Object.fromEntries(
+      errorCounts.map(e => [e.integrationId, e._count])
+    );
+
+    if (integrations.length === 0) {
+      await this.sendSlashResponse(
+        responseUrl,
+        'ephemeral',
+        'No active integrations configured'
+      );
+      return;
+    }
+
+    // Format integration status lines per user's specific idea
+    const { formatDistanceToNow } = await import('date-fns');
+
+    const lines = integrations.map(int => {
+      const lastWebhook = int.webhookDeliveries[0]?.createdAt;
+      const errorCount = errorCountMap[int.id] || 0;
+
+      // Health indicator: warning if errors, check if healthy
+      const status = errorCount > 0 ? ':warning:' : ':white_check_mark:';
+
+      // Format last webhook time
+      const lastWebhookText = lastWebhook
+        ? formatDistanceToNow(lastWebhook, { addSuffix: true })
+        : 'never';
+
+      // Format type for display
+      const typeDisplay = int.type === 'datadog' ? 'DataDog'
+        : int.type === 'newrelic' ? 'New Relic'
+        : int.type.charAt(0).toUpperCase() + int.type.slice(1);
+
+      // Build status line per specific idea format
+      let line = `${status} *${int.name}* (${typeDisplay}) - Last webhook: ${lastWebhookText}`;
+      if (errorCount > 0) {
+        line += ` - :x: ${errorCount} error${errorCount === 1 ? '' : 's'} (24h)`;
+      }
+
+      return line;
+    });
+
+    await this.sendSlashResponse(
+      responseUrl,
+      'ephemeral',
+      `*Active Integrations:*\n${lines.join('\n')}`
     );
   }
 
