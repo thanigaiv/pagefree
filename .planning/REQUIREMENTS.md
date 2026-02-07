@@ -72,13 +72,13 @@ Requirements for initial production deployment. Each maps to roadmap phases.
 
 ### Automation & Workflows
 
-- [ ] **AUTO-01**: User can define automated actions triggered by incident conditions
-- [ ] **AUTO-02**: System supports basic actions (create ticket, post to Slack, call webhook)
-- [ ] **AUTO-03**: User can define workflows with conditional logic (if priority = high, then...)
-- [ ] **AUTO-04**: User can create workflows using visual workflow builder (no-code)
-- [ ] **AUTO-05**: System provides template library for common workflows
-- [ ] **AUTO-06**: User can trigger runbook automation (execute scripts on incident)
-- [ ] **AUTO-07**: System logs all automated actions to incident timeline
+- [x] **AUTO-01**: User can define automated actions triggered by incident conditions
+- [x] **AUTO-02**: System supports basic actions (create ticket, post to Slack, call webhook)
+- [x] **AUTO-03**: User can define workflows with conditional logic (if priority = high, then...)
+- [x] **AUTO-04**: User can create workflows using visual workflow builder (no-code)
+- [x] **AUTO-05**: System provides template library for common workflows
+- [ ] **AUTO-06**: User can trigger runbook automation (execute scripts on incident) [DEFERRED]
+- [x] **AUTO-07**: System logs all automated actions to incident timeline
 
 ### Status Pages
 
@@ -230,13 +230,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INT-05 | Phase 7 | Complete |
 | INT-06 | Phase 7 | Complete |
 | INT-07 | Phase 7 | Complete |
-| AUTO-01 | Phase 8 | Pending |
-| AUTO-02 | Phase 8 | Pending |
-| AUTO-03 | Phase 8 | Pending |
-| AUTO-04 | Phase 8 | Pending |
-| AUTO-05 | Phase 8 | Pending |
-| AUTO-06 | Phase 8 | Pending |
-| AUTO-07 | Phase 8 | Pending |
+| AUTO-01 | Phase 8 | Complete |
+| AUTO-02 | Phase 8 | Complete |
+| AUTO-03 | Phase 8 | Complete |
+| AUTO-04 | Phase 8 | Complete |
+| AUTO-05 | Phase 8 | Complete |
+| AUTO-06 | Phase 8 | Deferred |
+| AUTO-07 | Phase 8 | Complete |
 | STATUS-01 | Phase 9 | Pending |
 | STATUS-02 | Phase 9 | Pending |
 | STATUS-03 | Phase 9 | Pending |

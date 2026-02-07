@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Multi-Channel Notifications** - Deliver alerts via email, SMS, push, phone, Slack
 - [x] **Phase 6: Incident Management Dashboard** - Web and mobile UI for incident response
 - [x] **Phase 7: External Integrations** - DataDog, New Relic, Slack bidirectional sync
-- [ ] **Phase 8: Automation & Workflows** - Response plays and runbook automation
+- [x] **Phase 8: Automation & Workflows** - Response plays and runbook automation
 - [ ] **Phase 9: Status Pages** - Internal status pages with automatic updates
 - [ ] **Phase 10: Postmortems** - Timeline generation and documentation
 
@@ -206,14 +206,14 @@ Plans:
 **Plans**: 8 plans
 
 Plans:
-- [ ] 08-01-PLAN.md - Database schema and TypeScript types for workflows
-- [ ] 08-02-PLAN.md - Template service and action executors (webhook, Jira, Linear)
-- [ ] 08-03-PLAN.md - Trigger service, workflow executor, and BullMQ queue
-- [ ] 08-04-PLAN.md - Workflow CRUD API and template library endpoints
-- [ ] 08-05-PLAN.md - React Flow setup and custom workflow nodes
-- [ ] 08-06-PLAN.md - Workflow builder page with sidebar, toolbar, test mode
-- [ ] 08-07-PLAN.md - Workflows list page, analytics, and timeline integration
-- [ ] 08-08-PLAN.md - Incident integration and tests
+- [x] 08-01-PLAN.md - Database schema and TypeScript types for workflows
+- [x] 08-02-PLAN.md - Template service and action executors (webhook, Jira, Linear)
+- [x] 08-03-PLAN.md - Trigger service, workflow executor, and BullMQ queue
+- [x] 08-04-PLAN.md - Workflow CRUD API and template library endpoints
+- [x] 08-05-PLAN.md - React Flow setup and custom workflow nodes
+- [x] 08-06-PLAN.md - Workflow builder page with sidebar, toolbar, test mode
+- [x] 08-07-PLAN.md - Workflows list page, analytics, and timeline integration
+- [x] 08-08-PLAN.md - Incident integration and tests
 
 ### Phase 9: Status Pages
 **Goal**: Users can create status pages that automatically reflect incident state
@@ -258,10 +258,10 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 5. Multi-Channel Notifications | 11/11 | Complete | 2026-02-08 |
 | 6. Incident Management Dashboard | 11/11 | Complete | 2026-02-07 |
 | 7. External Integrations | 6/6 | Complete | 2026-02-07 |
-| 8. Automation & Workflows | 0/8 | Planned | - |
+| 8. Automation & Workflows | 8/8 | Complete | 2026-02-07 |
 | 9. Status Pages | 0/TBD | Not started | - |
 | 10. Postmortems | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-06*
-*Last updated: 2026-02-07 (Phase 8 planned)*
+*Last updated: 2026-02-07 (Phase 8 complete)*
