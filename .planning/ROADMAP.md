@@ -129,10 +129,20 @@ Plans:
   5. User can acknowledge incident from Slack (bidirectional sync)
   6. User can resolve incident from Slack (bidirectional sync)
   7. System escalates through different channels on delivery failure (push -> SMS -> voice)
-**Plans**: TBD
+**Plans**: 11 plans
 
 Plans:
-- [ ] 05-01: TBD during phase planning
+- [ ] 05-01-PLAN.md - Database schema and type foundation (NotificationLog, MagicLinkToken, connections)
+- [ ] 05-02-PLAN.md - Email and SMS channel implementations
+- [ ] 05-03-PLAN.md - Slack channel with Block Kit messages
+- [ ] 05-04-PLAN.md - Microsoft Teams channel with Adaptive Cards
+- [ ] 05-05-PLAN.md - Push notifications and voice call channels
+- [ ] 05-06-PLAN.md - Notification dispatcher and delivery tracking
+- [ ] 05-07-PLAN.md - Slack bidirectional sync (button interactions and slash commands)
+- [ ] 05-08-PLAN.md - Magic links and Twilio webhooks (email/SMS/voice interactivity)
+- [ ] 05-09-PLAN.md - Integration with escalation engine and worker startup
+- [ ] 05-10-PLAN.md - Multi-provider failover (Twilio to AWS SNS)
+- [ ] 05-11-PLAN.md - Tests and verification
 
 ### Phase 6: Incident Management Dashboard
 **Goal**: Users can view, acknowledge, and manage incidents from web and mobile
@@ -223,7 +233,7 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 2. Alert Ingestion & Webhooks | 7/7 | Complete | 2026-02-07 |
 | 3. Scheduling System | 7/7 | Complete | 2026-02-07 |
 | 4. Alert Routing & Deduplication | 8/8 | Complete | 2026-02-08 |
-| 5. Multi-Channel Notifications | 0/TBD | Not started | - |
+| 5. Multi-Channel Notifications | 0/11 | Planned | - |
 | 6. Incident Management Dashboard | 0/TBD | Not started | - |
 | 7. External Integrations | 0/TBD | Not started | - |
 | 8. Automation & Workflows | 0/TBD | Not started | - |
@@ -232,4 +242,4 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 
 ---
 *Roadmap created: 2026-02-06*
-*Last updated: 2026-02-07*
+*Last updated: 2026-02-08*
