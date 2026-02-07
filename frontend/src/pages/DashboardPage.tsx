@@ -1,10 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useIncidents } from '@/hooks/useIncidents';
 import { useUrlState } from '@/hooks/useUrlState';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { usePWA } from '@/hooks/usePWA';
+import { useDefaultFilters } from '@/hooks/usePreferences';
 import { IncidentList } from '@/components/IncidentList';
 import { IncidentFilters } from '@/components/IncidentFilters';
+import { FilterPresets } from '@/components/FilterPresets';
 import { MetricsSummary } from '@/components/MetricsSummary';
 import { Pagination } from '@/components/Pagination';
 import { ConnectionStatus } from '@/components/ConnectionStatus';
@@ -18,9 +20,20 @@ export default function DashboardPage() {
   const { data, isLoading, error, refetch, isFetching } = useIncidents(filters);
   const { connectionState, reconnectAttempt } = useWebSocket();
   const { canInstall, showInstallPrompt } = usePWA();
+  const defaultFilters = useDefaultFilters();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Apply default filters on mount if URL has no filters
+  useEffect(() => {
+    // Apply default filters if URL has no filters and user has preferences
+    const hasUrlFilters = filters.status?.length || filters.priority?.length;
+
+    if (!hasUrlFilters && defaultFilters) {
+      updateFilters(defaultFilters);
+    }
+  }, [defaultFilters]); // Only run when default filters load
 
   // Calculate metrics from current data
   const metrics = useMemo(() => {
@@ -98,10 +111,15 @@ export default function DashboardPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-4">
+      <div className="flex items-center gap-2 mb-4">
         <IncidentFilters
           filters={filters}
           onUpdateFilters={updateFilters}
+          onClearFilters={clearFilters}
+        />
+        <FilterPresets
+          currentFilters={filters}
+          onApplyPreset={updateFilters}
           onClearFilters={clearFilters}
         />
       </div>
