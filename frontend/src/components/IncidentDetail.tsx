@@ -3,6 +3,10 @@ import { useTimeline } from '@/hooks/useTimeline';
 import { IncidentTimeline } from './IncidentTimeline';
 import { TechnicalDetails } from './TechnicalDetails';
 import { ExternalLinks } from './ExternalLinks';
+import { AddNoteForm } from './AddNoteForm';
+import { MetadataEditor } from './MetadataEditor';
+import { IncidentActions } from './IncidentActions';
+import { useUpdateMetadata } from '@/hooks/useUpdateMetadata';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 
@@ -14,6 +18,11 @@ interface IncidentDetailProps {
 export function IncidentDetail({ incident, isInline = false }: IncidentDetailProps) {
   const { data: timeline, isLoading: timelineLoading } = useTimeline(incident.id);
   const service = incident.metadata?.service as string || incident.team.name;
+  const updateMetadata = useUpdateMetadata(incident.id);
+
+  const handleMetadataUpdate = (newMetadata: Record<string, unknown>) => {
+    updateMetadata.mutate({ metadata: newMetadata });
+  };
 
   return (
     <div className={isInline ? 'p-4 bg-muted/50' : ''}>
@@ -62,6 +71,20 @@ export function IncidentDetail({ incident, isInline = false }: IncidentDetailPro
         </div>
       )}
 
+      {/* Actions */}
+      <div className="mb-4">
+        <IncidentActions incident={incident} variant={isInline ? 'inline' : 'full'} />
+      </div>
+
+      {/* Metadata editor (per user decision: inline editing) */}
+      <div className="mb-4">
+        <MetadataEditor
+          metadata={incident.metadata || {}}
+          onSave={handleMetadataUpdate}
+          disabled={updateMetadata.isPending}
+        />
+      </div>
+
       <Separator className="my-4" />
 
       {/* Timeline (per user decision: embedded inline) */}
@@ -71,6 +94,11 @@ export function IncidentDetail({ incident, isInline = false }: IncidentDetailPro
           events={timeline || []}
           isLoading={timelineLoading}
         />
+      </div>
+
+      {/* Add note form (per user decision: inline at bottom of timeline) */}
+      <div className="mb-4">
+        <AddNoteForm incidentId={incident.id} />
       </div>
 
       <Separator className="my-4" />
