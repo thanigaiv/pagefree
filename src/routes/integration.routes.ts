@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { integrationService } from '../services/integration.service.js';
 import { requireAuth, requirePlatformAdmin } from '../middleware/auth.js';
 import { formatValidationError, createProblemDetails } from '../utils/problem-details.js';
+import { logger } from '../config/logger.js';
 
 export const integrationRouter = Router();
 
@@ -174,4 +175,51 @@ integrationRouter.delete('/:id', async (req: Request, res: Response): Promise<vo
   }
 
   res.status(204).send();
+});
+
+/**
+ * POST /api/integrations/:id/test
+ * Test webhook (create test alert that auto-resolves).
+ */
+integrationRouter.post('/:id/test', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await integrationService.testWebhook(
+      req.params.id,
+      req.user!.id
+    );
+
+    res.json(result);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Integration not found') {
+      res.status(404).json({
+        type: 'not-found',
+        title: 'Integration not found',
+        status: 404
+      });
+      return;
+    }
+
+    logger.error({ error, integrationId: req.params.id }, 'Test webhook failed');
+    res.status(500).json({
+      type: 'internal-error',
+      title: 'Test webhook failed',
+      status: 500,
+      detail: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/integrations/:id/deliveries
+ * Get recent webhook deliveries for integration.
+ */
+integrationRouter.get('/:id/deliveries', async (req: Request, res: Response): Promise<void> => {
+  const limit = Math.min(parseInt(req.query.limit as string) || 10, 100);
+
+  const deliveries = await integrationService.getDeliveries(
+    req.params.id,
+    limit
+  );
+
+  res.json({ deliveries });
 });
