@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 2 of 10 (Alert Ingestion & Webhooks) — IN PROGRESS
-Plan: 1 of 4 complete
-Status: Database models established
-Last activity: 2026-02-07 — Completed 02-01-PLAN.md (Alert ingestion database models)
+Plan: 2 of 7 complete
+Status: Webhook security middleware complete
+Last activity: 2026-02-07 — Completed 02-02-PLAN.md (Webhook Security Middleware)
 
-Progress: [███████████░░░░░░░░░░░] 52%
+Progress: [███████████░░░░░░░░░░░] 54%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 4 min
-- Total execution time: 0.83 hours
+- Total execution time: 0.86 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
-| 2. Alert Ingestion & Webhooks | 1/4 | 2 min | 2 min |
+| 2. Alert Ingestion & Webhooks | 2/7 | 4 min | 2 min |
 
 **Recent Trend:**
-- Last 7 plans: 01-10 (5 min), 01-06 (3 min), 01-07 (5 min), 01-08 (5 min), 01-09 (8 min), 01-11 (2 min), 02-01 (2 min)
-- Trend: Strong velocity, Phase 2 started
+- Last 7 plans: 01-06 (3 min), 01-07 (5 min), 01-08 (5 min), 01-09 (8 min), 01-11 (2 min), 02-01 (2 min), 02-02 (2 min)
+- Trend: Excellent velocity, Phase 2 progressing
 
 *Updated after each plan completion*
 
@@ -102,6 +102,11 @@ Recent decisions affecting current work:
 | Hybrid idempotency (key + fingerprint) | 02-01 | External idempotency key preferred, content fingerprint as fallback |
 | Nullable alertId in WebhookDelivery | 02-01 | Track failed/duplicate webhook attempts without creating alerts |
 | Raw + normalized dual storage pattern | 02-01 | Preserve original webhook JSON + extract normalized Alert fields |
+| Raw body captured via express.json verify callback | 02-02 | Preserve original payload before JSON parsing for HMAC verification |
+| Timing-safe comparison using crypto.timingSafeEqual | 02-02 | Prevent timing attacks on signature verification |
+| Middleware factory pattern for signature verification | 02-02 | Enable per-integration signature configuration |
+| RFC 7807 Problem Details for webhook auth errors | 02-02 | Structured error responses for webhook authentication failures |
+| Integration object attached to request | 02-02 | Avoid duplicate database lookups in downstream handlers |
 
 ### Pending Todos
 
@@ -111,21 +116,21 @@ None yet.
 
 **From research:**
 - ✅ Phase 1: Must store all timestamps in UTC to prevent timezone bugs (ADDRESSED: Used @db.Timestamptz in all models)
-- Phase 2: Webhook idempotency and signature validation essential (critical pitfall)
+- 🔄 Phase 2: Webhook idempotency and signature validation essential (IN PROGRESS: Signature validation complete in 02-02)
 - Phase 3: DST handling requires explicit test cases for spring-forward/fall-back scenarios (critical pitfall)
 - Phase 4: Alert deduplication needs database transactions to prevent race conditions (critical pitfall)
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- None - Phase 2 Plan 1 complete
-- Database models ready for webhook implementation
-- Project builds cleanly with `npm run build`
+- None - Phase 2 progressing smoothly
+- Webhook signature verification infrastructure complete (02-02)
+- All tests passing (46 tests)
 
 ## Session Continuity
 
-Last session: 2026-02-07 00:21:18 UTC
-Stopped at: Completed 02-01-PLAN.md - Alert ingestion database models
+Last session: 2026-02-07 00:22:11 UTC
+Stopped at: Completed 02-02-PLAN.md - Webhook Security Middleware
 Resume file: None
 
 ---
-*Phase 2 In Progress: Alert Ingestion & Webhooks - Database foundation established*
+*Phase 2 In Progress: Alert Ingestion & Webhooks (2/7 plans complete)*
