@@ -1,127 +1,103 @@
-import { useRef, useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
-interface SwipeHandlers {
-  onSwipeRight?: () => void;
+interface SwipeGestureOptions {
   onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
+  threshold?: number; // Minimum distance to trigger swipe (default 80px)
 }
 
-interface SwipeGestureResult {
-  swipeHandlers: {
-    onTouchStart: (e: React.TouchEvent) => void;
-    onTouchMove: (e: React.TouchEvent) => void;
-    onTouchEnd: () => void;
-  };
+interface SwipeState {
   swipeOffset: number;
-  isSwipingRight: boolean;
   isSwipingLeft: boolean;
+  isSwipingRight: boolean;
   swipeDirection: 'left' | 'right' | null;
 }
 
-const MIN_SWIPE_DISTANCE = 80; // Minimum distance to trigger action
-const PREVIEW_THRESHOLD = 30; // Show preview after 30px
-const MAX_OFFSET = 100; // Maximum visual offset
-const MIN_ANGLE = 30; // Minimum angle from horizontal (degrees)
+interface SwipeHandlers {
+  onTouchStart: (e: React.TouchEvent) => void;
+  onTouchMove: (e: React.TouchEvent) => void;
+  onTouchEnd: () => void;
+}
 
-export function useSwipeGesture(handlers: SwipeHandlers): SwipeGestureResult {
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const touchEndY = useRef<number | null>(null);
-  const isHorizontalSwipe = useRef<boolean | null>(null);
+export function useSwipeGesture(options: SwipeGestureOptions): SwipeState & { swipeHandlers: SwipeHandlers } {
+  const { onSwipeLeft, onSwipeRight, threshold = 80 } = options;
 
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwipingLeft, setIsSwipingLeft] = useState(false);
+  const [isSwipingRight, setIsSwipingRight] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    touchEndX.current = null;
-    touchEndY.current = null;
-    isHorizontalSwipe.current = null;
-    touchStartX.current = e.targetTouches[0].clientX;
-    touchStartY.current = e.targetTouches[0].clientY;
+  // Use ref to track current offset for touchEnd handler
+  const swipeOffsetRef = useRef(0);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.targetTouches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    setSwipeOffset(0);
+    swipeOffsetRef.current = 0;
+    setIsSwipingLeft(false);
+    setIsSwipingRight(false);
+    setSwipeDirection(null);
   }, []);
 
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-    touchEndY.current = e.targetTouches[0].clientY;
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStart) return;
 
-    if (
-      touchStartX.current === null ||
-      touchStartY.current === null ||
-      touchEndX.current === null ||
-      touchEndY.current === null
-    ) {
+    const touch = e.targetTouches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+
+    // Only track horizontal swipes (ignore mostly vertical movements)
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
       return;
     }
 
-    const deltaX = touchEndX.current - touchStartX.current;
-    const deltaY = touchEndY.current - touchStartY.current;
+    setSwipeOffset(deltaX);
+    swipeOffsetRef.current = deltaX;
 
-    // Determine if this is a horizontal swipe on first significant movement
-    if (isHorizontalSwipe.current === null && (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10)) {
-      // Calculate angle from horizontal
-      const angle = Math.abs(Math.atan2(deltaY, deltaX) * (180 / Math.PI));
+    if (deltaX > 0) {
+      setIsSwipingRight(true);
+      setIsSwipingLeft(false);
+      setSwipeDirection('right');
+    } else if (deltaX < 0) {
+      setIsSwipingLeft(true);
+      setIsSwipingRight(false);
+      setSwipeDirection('left');
+    }
+  }, [touchStart]);
 
-      // If angle is within MIN_ANGLE degrees of horizontal (0 or 180), it's a horizontal swipe
-      isHorizontalSwipe.current = angle < MIN_ANGLE || angle > (180 - MIN_ANGLE);
+  const handleTouchEnd = useCallback(() => {
+    if (!touchStart) return;
 
-      // If it's a vertical scroll, don't interfere
-      if (!isHorizontalSwipe.current) {
-        return;
+    // Check if swipe threshold was met using ref value
+    const currentOffset = swipeOffsetRef.current;
+    if (Math.abs(currentOffset) >= threshold) {
+      if (currentOffset > 0 && onSwipeRight) {
+        onSwipeRight();
+      } else if (currentOffset < 0 && onSwipeLeft) {
+        onSwipeLeft();
       }
     }
 
-    // Only track horizontal swipes
-    if (isHorizontalSwipe.current) {
-      // Prevent scroll while swiping (per RESEARCH.md pitfall #6)
-      e.preventDefault();
-
-      // Clamp offset for visual preview
-      const clampedOffset = Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, deltaX));
-      setSwipeOffset(clampedOffset);
-    }
-  }, []);
-
-  const onTouchEnd = useCallback(() => {
-    if (
-      touchStartX.current === null ||
-      touchEndX.current === null ||
-      !isHorizontalSwipe.current
-    ) {
-      setSwipeOffset(0);
-      touchStartX.current = null;
-      touchStartY.current = null;
-      isHorizontalSwipe.current = null;
-      return;
-    }
-
-    const distance = touchEndX.current - touchStartX.current;
-
-    // Trigger action if swipe was long enough
-    if (distance > MIN_SWIPE_DISTANCE && handlers.onSwipeRight) {
-      handlers.onSwipeRight();
-    } else if (distance < -MIN_SWIPE_DISTANCE && handlers.onSwipeLeft) {
-      handlers.onSwipeLeft();
-    }
-
-    // Reset
+    // Reset state
+    setTouchStart(null);
     setSwipeOffset(0);
-    touchStartX.current = null;
-    touchStartY.current = null;
-    isHorizontalSwipe.current = null;
-  }, [handlers]);
-
-  const isSwipingRight = swipeOffset > PREVIEW_THRESHOLD;
-  const isSwipingLeft = swipeOffset < -PREVIEW_THRESHOLD;
-  const swipeDirection = isSwipingRight ? 'right' : isSwipingLeft ? 'left' : null;
+    swipeOffsetRef.current = 0;
+    setIsSwipingLeft(false);
+    setIsSwipingRight(false);
+    setSwipeDirection(null);
+  }, [touchStart, threshold, onSwipeLeft, onSwipeRight]);
 
   return {
-    swipeHandlers: {
-      onTouchStart,
-      onTouchMove,
-      onTouchEnd,
-    },
     swipeOffset,
-    isSwipingRight,
     isSwipingLeft,
+    isSwipingRight,
     swipeDirection,
+    swipeHandlers: {
+      onTouchStart: handleTouchStart,
+      onTouchMove: handleTouchMove,
+      onTouchEnd: handleTouchEnd,
+    },
   };
 }

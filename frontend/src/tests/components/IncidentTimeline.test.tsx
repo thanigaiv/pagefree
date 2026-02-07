@@ -31,8 +31,8 @@ describe('IncidentTimeline', () => {
   it('renders loading skeleton when loading', () => {
     render(<IncidentTimeline events={[]} isLoading={true} />);
 
-    // Should render skeleton elements
-    const skeletons = document.querySelectorAll('[class*="skeleton"]');
+    // Should render skeleton elements (checking for animate-pulse class from Skeleton component)
+    const skeletons = document.querySelectorAll('[class*="animate-pulse"]');
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
