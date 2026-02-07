@@ -21,6 +21,13 @@ export interface Incident {
   resolvedAt?: string;
   closedAt?: string;
   _count?: { alerts: number };
+  alerts?: Array<{
+    id: string;
+    title: string;
+    severity: string;
+    triggeredAt: string;
+    externalId?: string;
+  }>;
 }
 
 export interface TimelineEvent {
