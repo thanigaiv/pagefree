@@ -5,6 +5,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PriorityBadge, getPriorityBorderClass } from '@/components/ui/priority-badge';
 import { IncidentActions } from './IncidentActions';
 import { IncidentDetail } from './IncidentDetail';
+import { SwipeableRow } from './SwipeableRow';
+import { useAcknowledgeIncident } from '@/hooks/useIncidentMutations';
+import { usePWA } from '@/hooks/usePWA';
 import { cn } from '@/lib/utils';
 import { ChevronDown, User } from 'lucide-react';
 
@@ -14,6 +17,7 @@ interface IncidentRowProps {
   isExpanded: boolean;
   onSelect: (selected: boolean) => void;
   onToggleExpand: () => void;
+  onShowOptions?: () => void;
 }
 
 export function IncidentRow({
@@ -22,11 +26,39 @@ export function IncidentRow({
   isExpanded,
   onSelect,
   onToggleExpand,
+  onShowOptions,
 }: IncidentRowProps) {
+  const acknowledgeMutation = useAcknowledgeIncident();
+  const { promptAfterAcknowledge } = usePWA();
+
   const service = incident.metadata?.service as string || incident.team.name;
   const borderClass = getPriorityBorderClass(incident.priority);
 
-  return (
+  const handleSwipeAcknowledge = () => {
+    if (incident.status === 'OPEN') {
+      acknowledgeMutation.mutate(
+        { incidentId: incident.id },
+        {
+          onSuccess: () => {
+            // Per locked decision: "PWA: Install prompt after first ack"
+            // Trigger PWA install prompt after first successful acknowledgment
+            promptAfterAcknowledge();
+          },
+        }
+      );
+    }
+  };
+
+  const handleSwipeOptions = () => {
+    if (onShowOptions) {
+      onShowOptions();
+    } else {
+      // Fallback: just expand the row to show options
+      onToggleExpand();
+    }
+  };
+
+  const rowContent = (
     <Card
       className={cn(
         'border-l-4 transition-all',
@@ -117,5 +149,17 @@ export function IncidentRow({
         </div>
       )}
     </Card>
+  );
+
+  return (
+    <SwipeableRow
+      onSwipeRight={incident.status === 'OPEN' ? handleSwipeAcknowledge : undefined}
+      onSwipeLeft={handleSwipeOptions}
+      rightLabel="Acknowledge"
+      leftLabel="Options"
+      disabled={incident.status !== 'OPEN'}
+    >
+      {rowContent}
+    </SwipeableRow>
   );
 }
