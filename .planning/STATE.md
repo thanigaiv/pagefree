@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 8 of 10 (Automation & Workflows)
-Plan: 5 of ? in progress
-Status: Plan 08-05 complete - React Flow and visual workflow components
-Last activity: 2026-02-07 — Completed 08-05-PLAN.md (React Flow & Visual Workflow Components)
-Progress: [████████████████████████████████████████████░░] 75% (7.5 of 10 phases)
+Plan: 6 of ? in progress
+Status: Plan 08-06 complete - Workflow builder page with drag-drop UI
+Last activity: 2026-02-07 — Completed 08-06-PLAN.md (Workflow Builder Page)
+Progress: [████████████████████████████████████████████░░] 76% (7.6 of 10 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 66
+- Total plans completed: 67
 - Average duration: 3.5 min
-- Total execution time: 3.94 hours
+- Total execution time: 4.09 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [███████████████████████
 | 5. Multi-Channel Notifications | 11/11 | 50 min | 4.5 min |
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
-| 8. Automation & Workflows | 5/? | 21 min | 4.2 min |
+| 8. Automation & Workflows | 6/? | 30 min | 5.0 min |
 
 **Recent Trend:**
-- Last 7 plans: 07-06 (6 min), 08-01 (2 min), 08-02 (4 min), 08-03 (4 min), 08-04 (7 min), 08-05 (4 min), average 4.5 min
-- Trend: Phase 8 - React Flow canvas and custom nodes complete
+- Last 7 plans: 08-01 (2 min), 08-02 (4 min), 08-03 (4 min), 08-04 (7 min), 08-05 (4 min), 08-06 (9 min), average 5.0 min
+- Trend: Phase 8 - Visual workflow builder page complete with all user decisions
 
 *Updated after each plan completion*
 
@@ -299,6 +299,10 @@ Recent decisions affecting current work:
 | Performance warning at >20 nodes | 08-05 | Per research pitfall #6 - prevent UI performance degradation |
 | Condition node left/right handles | 08-05 | Left=false (red), right=true (green) for clear branching visualization |
 | Node color scheme by type | 08-05 | trigger=purple, action=blue/violet, condition=amber, delay=gray |
+| HTML5 drag API over react-dnd | 08-06 | Simpler implementation, no additional dependencies, native browser support |
+| Two test modes (dry-run + live) | 08-06 | Per research recommendation - safe preview vs actual execution |
+| Collapsible template variable helper | 08-06 | Keep UI clean while providing easy access to {{variable}} syntax |
+| Delay presets as badges | 08-06 | Quick selection for common delays while allowing custom input |
 
 ### Pending Todos
 
@@ -329,9 +333,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 08-05-PLAN.md (React Flow & Visual Workflow Components)
+Stopped at: Completed 08-06-PLAN.md (Workflow Builder Page)
 Resume file: None
 
 ---
-*Phase 8 In Progress: Automation & Workflows (5/? plans complete)*
-*Current: React Flow canvas with custom nodes and workflow API hooks complete*
+*Phase 8 In Progress: Automation & Workflows (6/? plans complete)*
+*Current: Visual workflow builder with drag-drop, config panel, test mode complete*
