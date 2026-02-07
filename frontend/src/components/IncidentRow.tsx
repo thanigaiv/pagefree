@@ -3,6 +3,8 @@ import type { Incident } from '@/types/incident';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PriorityBadge, getPriorityBorderClass } from '@/components/ui/priority-badge';
+import { IncidentActions } from './IncidentActions';
+import { IncidentDetail } from './IncidentDetail';
 import { cn } from '@/lib/utils';
 import { ChevronDown, User } from 'lucide-react';
 
@@ -94,6 +96,11 @@ export function IncidentRow({
           {incident.status}
         </span>
 
+        {/* Action buttons for inline operations (per user decision) */}
+        {!isExpanded && (
+          <IncidentActions incident={incident} variant="inline" />
+        )}
+
         {/* Expand indicator */}
         <ChevronDown
           className={cn(
@@ -102,6 +109,13 @@ export function IncidentRow({
           )}
         />
       </div>
+
+      {/* Expanded content with full details (per user decision: inline expansion) */}
+      {isExpanded && (
+        <div className="border-t">
+          <IncidentDetail incident={incident} isInline={true} />
+        </div>
+      )}
     </Card>
   );
 }

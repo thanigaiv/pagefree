@@ -1,16 +1,20 @@
 import { useState, useMemo } from 'react';
 import { useIncidents } from '@/hooks/useIncidents';
 import { useUrlState } from '@/hooks/useUrlState';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { IncidentList } from '@/components/IncidentList';
 import { IncidentFilters } from '@/components/IncidentFilters';
 import { MetricsSummary } from '@/components/MetricsSummary';
 import { Pagination } from '@/components/Pagination';
+import { ConnectionStatus } from '@/components/ConnectionStatus';
+import { BulkActions } from '@/components/BulkActions';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
 export default function DashboardPage() {
   const { filters, updateFilters, clearFilters } = useUrlState();
   const { data, isLoading, error, refetch, isFetching } = useIncidents(filters);
+  const { connectionState, reconnectAttempt } = useWebSocket();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -60,6 +64,9 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-7xl">
+      {/* Connection status banner */}
+      <ConnectionStatus state={connectionState} reconnectAttempt={reconnectAttempt} />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -90,6 +97,14 @@ export default function DashboardPage() {
           filters={filters}
           onUpdateFilters={updateFilters}
           onClearFilters={clearFilters}
+        />
+      </div>
+
+      {/* Bulk actions */}
+      <div className="mb-4">
+        <BulkActions
+          selectedIds={selectedIds}
+          onClearSelection={() => setSelectedIds(new Set())}
         />
       </div>
 
