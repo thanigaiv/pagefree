@@ -3,6 +3,7 @@ import { prisma } from '../config/database.js';
 import { routingService } from './routing.service.js';
 import { socketService } from './socket.service.js';
 import { logger } from '../config/logger.js';
+import { onIncidentCreated } from './workflow/workflow-integration.js';
 
 export interface DeduplicationResult {
   incident: any;
@@ -57,6 +58,23 @@ class DeduplicationService {
               assignedUser: fullIncident.assignedUser ?? undefined,
               createdAt: fullIncident.createdAt.toISOString(),
             });
+
+            // Trigger workflows for incident creation (don't fail incident creation on workflow error)
+            try {
+              await onIncidentCreated({
+                id: fullIncident.id,
+                priority: fullIncident.priority,
+                status: fullIncident.status,
+                teamId: fullIncident.teamId,
+                createdAt: fullIncident.createdAt,
+                metadata: alert.metadata
+              });
+            } catch (workflowError) {
+              logger.error(
+                { error: workflowError, incidentId: fullIncident.id },
+                'Failed to trigger workflows on incident creation'
+              );
+            }
           }
         }
 

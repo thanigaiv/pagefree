@@ -4,6 +4,7 @@ import { cancelEscalation } from '../queues/escalation.queue.js';
 import { auditService } from './audit.service.js';
 import { socketService } from './socket.service.js';
 import { logger } from '../config/logger.js';
+import { onIncidentStateChanged } from './workflow/workflow-integration.js';
 
 interface IncidentFilter {
   teamId?: string;
@@ -177,6 +178,26 @@ class IncidentService {
       'Incident acknowledged'
     );
 
+    // Trigger workflows for state change (don't fail acknowledge on workflow error)
+    try {
+      await onIncidentStateChanged(
+        {
+          id: updated.id,
+          priority: updated.priority,
+          status: updated.status,
+          teamId: updated.teamId,
+          createdAt: updated.createdAt
+        },
+        'OPEN',
+        'ACKNOWLEDGED'
+      );
+    } catch (workflowError) {
+      logger.error(
+        { error: workflowError, incidentId },
+        'Failed to trigger workflows on acknowledge'
+      );
+    }
+
     return updated;
   }
 
@@ -256,6 +277,26 @@ class IncidentService {
       'Incident resolved'
     );
 
+    // Trigger workflows for state change (don't fail resolve on workflow error)
+    try {
+      await onIncidentStateChanged(
+        {
+          id: updated.id,
+          priority: updated.priority,
+          status: updated.status,
+          teamId: updated.teamId,
+          createdAt: updated.createdAt
+        },
+        incident.status,
+        'RESOLVED'
+      );
+    } catch (workflowError) {
+      logger.error(
+        { error: workflowError, incidentId },
+        'Failed to trigger workflows on resolve'
+      );
+    }
+
     return updated;
   }
 
@@ -289,6 +330,26 @@ class IncidentService {
       resourceId: incidentId,
       severity: 'INFO'
     });
+
+    // Trigger workflows for state change (don't fail close on workflow error)
+    try {
+      await onIncidentStateChanged(
+        {
+          id: updated.id,
+          priority: updated.priority,
+          status: updated.status,
+          teamId: updated.teamId,
+          createdAt: updated.createdAt
+        },
+        'RESOLVED',
+        'CLOSED'
+      );
+    } catch (workflowError) {
+      logger.error(
+        { error: workflowError, incidentId },
+        'Failed to trigger workflows on close'
+      );
+    }
 
     return updated;
   }

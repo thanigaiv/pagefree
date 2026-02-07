@@ -36,7 +36,11 @@ import { magicLinksRouter } from './routes/magic-links.js';
 import { twilioWebhooksRouter } from './routes/webhooks/twilio-webhooks.js';
 import { startEscalationWorker, setupGracefulShutdown } from './workers/escalation.worker.js';
 import { startNotificationWorker, stopNotificationWorker } from './workers/notification.worker.js';
+import { startWorkflowWorker, stopWorkflowWorker } from './workers/workflow.worker.js';
+import { setupWorkflowTriggers, stopWorkflowTriggers } from './services/workflow/workflow-integration.js';
 import { initializeSocket } from './lib/socket.js';
+import { workflowRoutes } from './routes/workflow.routes.js';
+import { workflowTemplateRoutes } from './routes/workflow-template.routes.js';
 
 export const app = express();
 
@@ -143,6 +147,8 @@ app.use('/api/escalation-policies', escalationPolicyRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/preferences', preferencesRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/workflows', workflowRoutes);
+app.use('/api/workflow-templates', workflowTemplateRoutes);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -188,8 +194,10 @@ if (process.env.NODE_ENV !== 'test') {
     try {
       await startEscalationWorker();
       await startNotificationWorker();
+      await startWorkflowWorker();
+      setupWorkflowTriggers();
       setupGracefulShutdown();
-      console.log('⚙️  Background workers started (escalation + notification)');
+      console.log('⚙️  Background workers started (escalation + notification + workflow)');
     } catch (error) {
       console.error('❌ Failed to start background workers - continuing in degraded mode', error);
       // Don't crash server if Redis unavailable, just log
@@ -209,6 +217,14 @@ if (process.env.NODE_ENV !== 'test') {
         console.log('✅ Notification worker stopped');
       } catch (error) {
         console.error('⚠️  Error stopping notification worker:', error);
+      }
+
+      try {
+        await stopWorkflowWorker();
+        stopWorkflowTriggers();
+        console.log('✅ Workflow worker stopped');
+      } catch (error) {
+        console.error('⚠️  Error stopping workflow worker:', error);
       }
 
       await disconnectDatabase();

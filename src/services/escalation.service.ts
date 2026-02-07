@@ -4,6 +4,7 @@ import { dispatchNotification } from './notification/index.js';
 import { routingService } from './routing.service.js';
 import { auditService } from './audit.service.js';
 import { logger } from '../config/logger.js';
+import { onIncidentEscalated } from './workflow/workflow-integration.js';
 
 class EscalationService {
   // Start escalation for a new incident
@@ -200,6 +201,22 @@ class EscalationService {
       { incidentId: incident.id, level: level.levelNumber, repeatNumber, newAssignee },
       'Incident escalated'
     );
+
+    // Trigger workflows for escalation (don't fail escalation on workflow error)
+    try {
+      await onIncidentEscalated({
+        id: incident.id,
+        priority: incident.priority,
+        status: incident.status,
+        teamId: incident.teamId,
+        createdAt: incident.createdAt
+      });
+    } catch (workflowError) {
+      logger.error(
+        { error: workflowError, incidentId: incident.id },
+        'Failed to trigger workflows on escalation'
+      );
+    }
 
     // Schedule next escalation
     const policy = incident.escalationPolicy;
