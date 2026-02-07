@@ -16,9 +16,6 @@ export function buildSlackIncidentBlocks(payload: NotificationPayload): {
 } {
   const color = PRIORITY_COLORS[payload.priority] || PRIORITY_COLORS.MEDIUM;
   const icon = payload.priority === 'CRITICAL' ? ':rotating_light: ' : '';
-  const escalationText = payload.escalationLevel
-    ? `*ESCALATION - Level ${payload.escalationLevel}*\n`
-    : '';
 
   return {
     // Fallback text for notifications
