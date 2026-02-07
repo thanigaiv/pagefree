@@ -1,5 +1,6 @@
 import express from 'express';
 import passport from 'passport';
+import crypto from 'crypto';
 import { loginRateLimiter } from '../middleware/rateLimiter.js';
 import { requireAuth } from '../middleware/auth.js';
 import { auditService } from '../services/audit.service.js';
@@ -137,5 +138,40 @@ authRouter.post('/emergency',
     })(req, res, next);
   }
 );
+
+// WebAuthn placeholder endpoints (full implementation deferred)
+// These endpoints provide mock responses for biometric authentication UI
+authRouter.post('/webauthn/register-challenge', (_req, res) => {
+  // In production: Generate and store challenge
+  res.json({
+    challenge: Buffer.from(crypto.randomUUID()).toString('base64'),
+    rpId: process.env.WEBAUTHN_RP_ID || 'localhost',
+    rpName: 'OnCall Platform',
+  });
+});
+
+authRouter.post('/webauthn/register', (_req, res) => {
+  // In production: Verify and store credential
+  res.json({ success: true });
+});
+
+authRouter.get('/webauthn/login-challenge', (_req, res) => {
+  // In production: Generate challenge, look up user credentials
+  res.json({
+    challenge: Buffer.from(crypto.randomUUID()).toString('base64'),
+    rpId: process.env.WEBAUTHN_RP_ID || 'localhost',
+    allowCredentials: [],
+  });
+});
+
+authRouter.post('/webauthn/login', (_req, res) => {
+  // In production: Verify assertion
+  res.json({ success: true });
+});
+
+authRouter.get('/webauthn/credentials', (_req, res) => {
+  // In production: Return user's registered credentials
+  res.json({ credentials: [] });
+});
 
 export { authRouter };
