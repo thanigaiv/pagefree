@@ -157,10 +157,20 @@ Plans:
   6. Mobile PWA works offline and sends push notifications
   7. User can acknowledge and resolve incidents from mobile device
   8. System tracks push token lifecycle and registration
-**Plans**: TBD
+**Plans**: 11 plans
 
 Plans:
-- [ ] 06-01: TBD during phase planning
+- [ ] 06-01-PLAN.md - Frontend project setup (Vite + React + TypeScript + shadcn/ui + TanStack Query)
+- [ ] 06-02-PLAN.md - Socket.io server integration for real-time WebSocket
+- [ ] 06-03-PLAN.md - Incident list UI with filters, pagination, and metrics
+- [ ] 06-04-PLAN.md - Incident detail view with virtualized timeline
+- [ ] 06-05-PLAN.md - Real-time updates and optimistic mutations
+- [ ] 06-06-PLAN.md - Markdown notes editor and metadata editing
+- [ ] 06-07-PLAN.md - PWA setup with service worker and offline caching
+- [ ] 06-08-PLAN.md - Mobile swipe gestures and bottom navigation
+- [ ] 06-09-PLAN.md - Push notifications with deep linking
+- [ ] 06-10-PLAN.md - User preferences and biometric authentication
+- [ ] 06-11-PLAN.md - Frontend tests with Vitest
 
 ### Phase 7: External Integrations
 **Goal**: Platform integrates seamlessly with DataDog, New Relic, and Slack
@@ -234,7 +244,7 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 3. Scheduling System | 7/7 | Complete | 2026-02-07 |
 | 4. Alert Routing & Deduplication | 8/8 | Complete | 2026-02-08 |
 | 5. Multi-Channel Notifications | 11/11 | Complete | 2026-02-08 |
-| 6. Incident Management Dashboard | 0/TBD | Not started | - |
+| 6. Incident Management Dashboard | 0/11 | Planned | - |
 | 7. External Integrations | 0/TBD | Not started | - |
 | 8. Automation & Workflows | 0/TBD | Not started | - |
 | 9. Status Pages | 0/TBD | Not started | - |
@@ -242,4 +252,4 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 
 ---
 *Roadmap created: 2026-02-06*
-*Last updated: 2026-02-08 (Phase 5 complete)*
+*Last updated: 2026-02-08 (Phase 6 planned)*
