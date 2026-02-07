@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 4 of 10 (Alert Routing & Deduplication) — IN PROGRESS
-Plan: 1 of 8 complete
-Status: Database models complete, queue infrastructure next
-Last activity: 2026-02-07 — Completed 04-01-PLAN.md (Database Models for Incident Management)
+Plan: 4 of 8 complete
+Status: Deduplication and routing complete, incident lifecycle next
+Last activity: 2026-02-07 — Completed 04-04-PLAN.md (Alert Deduplication and Routing)
 
-Progress: [███████████████████░░░] 30% (3 phases complete, phase 4 in progress)
+Progress: [███████████████████░░░] 32% (3 phases complete, phase 4 in progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26
+- Total plans completed: 29
 - Average duration: 3 min
-- Total execution time: 1.57 hours
+- Total execution time: 1.62 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [███████████████████░░░] 3
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
 | 3. Scheduling System | 7/7 | 25 min | 3.6 min |
-| 4. Alert Routing & Deduplication | 1/8 | 4 min | 4 min |
+| 4. Alert Routing & Deduplication | 4/8 | 13 min | 3.3 min |
 
 **Recent Trend:**
-- Last 7 plans: 03-03 (5 min), 03-04 (2 min), 03-05 (3 min), 03-06 (6 min), 03-07 (4 min), 04-01 (4 min)
-- Trend: Phase 4 started, database models complete
+- Last 7 plans: 03-05 (3 min), 03-06 (6 min), 03-07 (4 min), 04-01 (4 min), 04-02 (2 min), 04-03 (3 min), 04-04 (3 min)
+- Trend: Phase 4 progressing well, TDD plan completed efficiently
 
 *Updated after each plan completion*
 
@@ -155,6 +155,10 @@ Recent decisions affecting current work:
 | EscalationJob tracks BullMQ job ID | 04-01 | Enable atomic cancellation on acknowledgment to prevent notification races |
 | Incident tracks currentLevel and currentRepeat | 04-01 | Enable escalation resume after server restart and provide audit trail |
 | Alert.incidentId nullable foreign key | 04-01 | Preserve Phase 2 webhook deduplication, alerts can exist before incident creation |
+| Serializable transaction isolation for deduplication | 04-04 | Prevent duplicate incidents during concurrent alert storms with same fingerprint |
+| P2034 retry with exponential backoff | 04-04 | Handle serialization conflicts gracefully, max 3 retries with 200/400/800ms delays |
+| Service tag-based alert routing | 04-04 | TeamTag.TECHNICAL matches alert metadata.service to route alerts to correct team |
+| Null assignedUserId allowed on incidents | 04-04 | Create incidents even when no on-call user available, prevents alert loss during gaps |
 
 ### Pending Todos
 
@@ -166,20 +170,19 @@ None yet.
 - ✅ Phase 1: Must store all timestamps in UTC to prevent timezone bugs (ADDRESSED: Used @db.Timestamptz in all models)
 - ✅ Phase 2: Webhook idempotency and signature validation essential (ADDRESSED: Signature validation in 02-02, hybrid idempotency in 02-03)
 - ✅ Phase 3: DST handling requires explicit test cases for spring-forward/fall-back scenarios (ADDRESSED: DST test fixtures in 03-07, spring-forward/fall-back verified)
-- Phase 4: Alert deduplication needs database transactions to prevent race conditions (critical pitfall)
+- ✅ Phase 4: Alert deduplication needs database transactions to prevent race conditions (ADDRESSED: Serializable isolation in 04-04, P2034 retry logic verified)
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- Phase 4 in progress - database models complete (04-01)
-- Next: Queue infrastructure (04-02) for BullMQ escalation timers
-- Deduplication race condition warning from research - must use Serializable isolation
+- Phase 4 in progress - deduplication and routing complete (04-04)
+- Next: Incident lifecycle service (04-05) for acknowledge/resolve/close operations
 
 ## Session Continuity
 
-Last session: 2026-02-07 04:06 UTC
-Stopped at: Completed 04-01-PLAN.md (Database Models for Incident Management)
+Last session: 2026-02-07 04:12 UTC
+Stopped at: Completed 04-04-PLAN.md (Alert Deduplication and Routing)
 Resume file: None
 
 ---
-*Phase 4 In Progress: Alert Routing & Deduplication (1/8 plans complete)*
-*Next: 04-02 - BullMQ Queue Infrastructure*
+*Phase 4 In Progress: Alert Routing & Deduplication (4/8 plans complete)*
+*Next: 04-05 - Incident Lifecycle Service*

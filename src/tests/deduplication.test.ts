@@ -31,7 +31,7 @@ describe('Alert Deduplication', () => {
     });
 
     // Create escalation policy
-    const policy = await prisma.escalationPolicy.create({
+    await prisma.escalationPolicy.create({
       data: {
         teamId: team.id,
         name: 'Default Policy',
@@ -110,7 +110,7 @@ describe('Alert Deduplication', () => {
       }
     });
 
-    const policy = await prisma.escalationPolicy.create({
+    await prisma.escalationPolicy.create({
       data: {
         teamId: team.id,
         name: 'Default Policy',
@@ -208,7 +208,7 @@ describe('Alert Deduplication', () => {
       }
     });
 
-    const policy = await prisma.escalationPolicy.create({
+    await prisma.escalationPolicy.create({
       data: {
         teamId: team.id,
         name: 'Default Policy',
