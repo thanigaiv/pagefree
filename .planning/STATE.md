@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 7 of 10 (External Integrations) — IN PROGRESS
-Plan: 4 of 11 complete
-Status: Building frontend UI components for integration management
-Last activity: 2026-02-07 — Completed 07-04-PLAN.md (Frontend hooks and IntegrationCard component)
-Progress: [████████████████████████████████████░░░░] 64% (6.4 of 10 phases)
+Plan: 5 of 11 complete
+Status: Building integration UI and provider-specific normalizers
+Last activity: 2026-02-07 — Completed 07-01-PLAN.md (DataDog and New Relic payload normalizers)
+Progress: [████████████████████████████████████░░░░] 65% (6.5 of 10 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 57
+- Total plans completed: 58
 - Average duration: 3.5 min
-- Total execution time: 3.49 hours
+- Total execution time: 3.52 hours
 
 **By Phase:**
 
@@ -32,11 +32,11 @@ Progress: [███████████████████████
 | 4. Alert Routing & Deduplication | 8/8 | 30 min | 3.8 min |
 | 5. Multi-Channel Notifications | 11/11 | 50 min | 4.5 min |
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
-| 7. External Integrations | 4/11 | 10 min | 2.5 min |
+| 7. External Integrations | 5/11 | 13 min | 2.6 min |
 
 **Recent Trend:**
-- Last 7 plans: 06-06 (4 min), 06-07 (6.8 min), 06-08 (3.5 min), 06-09 (4.3 min), 06-10 (4 min), 06-11 (5 min), 07-04 (2.4 min)
-- Trend: Phase 7 in progress - building integration UI components
+- Last 7 plans: 06-07 (6.8 min), 06-08 (3.5 min), 06-09 (4.3 min), 06-10 (4 min), 06-11 (5 min), 07-04 (2.4 min), 07-01 (2.9 min)
+- Trend: Phase 7 in progress - provider normalizers and integration UI
 
 *Updated after each plan completion*
 
@@ -260,6 +260,13 @@ Recent decisions affecting current work:
 | VAPID key distribution via backend API | 06-09 | Backend provides public key, stores subscriptions securely |
 | apiFetch pattern for frontend API calls | 07-04 | Use existing apiFetch<T>() pattern instead of api.get() for consistency |
 | IntegrationCard provider color coding | 07-04 | DataDog purple, New Relic green, PagerDuty emerald, Generic gray |
+| Provider-specific payload normalizers | 07-01 | DataDog and New Relic have dedicated normalizers with provider-specific field mapping |
+| DataDog P1-P5 severity mapping | 07-01 | P1→CRITICAL, P2→HIGH, P3→MEDIUM, P4→LOW, P5→INFO, unknown→MEDIUM fallback |
+| New Relic direct severity mapping | 07-01 | CRITICAL→CRITICAL, HIGH→HIGH, etc. with case-insensitive parsing |
+| Service extraction from tags/labels | 07-01 | DataDog: service: tag prefix, New Relic: labels.service field for Phase 4 routing |
+| Provider title prefixes | 07-01 | [DataDog] and [New Relic] prefixes for visual provider identification |
+| Normalizer registry pattern | 07-01 | Integration.type field selects normalizer via getNormalizer() function |
+| Metadata namespace per provider | 07-01 | Store provider fields in metadata.datadog or metadata.newrelic to prevent collisions |
 
 ### Pending Todos
 
@@ -290,9 +297,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07 19:04:00 UTC
-Stopped at: Completed 07-04-PLAN.md (Frontend hooks and IntegrationCard component)
+Stopped at: Completed 07-01-PLAN.md (DataDog and New Relic payload normalizers)
 Resume file: None
 
 ---
-*Phase 7 In Progress: External Integrations (4/11 plans complete)*
-*Next: Plan 07-05 - Integrations Admin Page*
+*Phase 7 In Progress: External Integrations (5/11 plans complete)*
+*Next: Plan 07-02 or 07-05 - Integration configuration or admin page*
