@@ -12,6 +12,7 @@ import { teamRouter } from './routes/team.routes.js';
 import { userRouter } from './routes/user.routes.js';
 import { notificationRouter } from './routes/notification.routes.js';
 import { mobileRouter } from './routes/mobile.routes.js';
+import { integrationRouter } from './routes/integration.routes.js';
 import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
 import { auditService } from './services/audit.service.js';
 import { configureLocalStrategy } from './auth/strategies/local.js';
@@ -93,6 +94,7 @@ app.use('/api/teams', teamRouter);
 app.use('/api/users', userRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/mobile', mobileRouter);
+app.use('/api/integrations', integrationRouter);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
