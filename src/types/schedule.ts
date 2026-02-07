@@ -85,6 +85,41 @@ export const ScheduleListQuerySchema = z.object({
 export type ScheduleListQuery = z.infer<typeof ScheduleListQuerySchema>;
 
 // ============================================================================
+// LAYER TYPES (Phase 3 Plan 03)
+// ============================================================================
+
+export const DayOfWeek = z.enum(['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']);
+export type DayOfWeek = z.infer<typeof DayOfWeek>;
+
+export const LayerRestrictionsSchema = z.object({
+  daysOfWeek: z.array(DayOfWeek).optional(),
+  // Future: startHour, endHour for time-of-day restrictions
+}).optional();
+
+export type LayerRestrictions = z.infer<typeof LayerRestrictionsSchema>;
+
+export const CreateLayerInputSchema = z.object({
+  scheduleId: z.string().cuid(),
+  name: z.string().min(1).max(50),
+  priority: z.number().int().min(1).max(100),
+  timezone: timezoneValidator,
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime().optional(),
+  handoffTime: z.string().regex(timeFormatRegex),
+  rotationType: z.enum(['daily', 'weekly', 'custom']),
+  rotationIntervalDays: z.number().int().min(1).max(365).optional(),
+  rotationUserIds: z.array(z.string().cuid()).min(1),
+  restrictions: LayerRestrictionsSchema,
+});
+
+export const UpdateLayerInputSchema = CreateLayerInputSchema
+  .omit({ scheduleId: true })
+  .partial();
+
+export type CreateLayerInput = z.infer<typeof CreateLayerInputSchema>;
+export type UpdateLayerInput = z.infer<typeof UpdateLayerInputSchema>;
+
+// ============================================================================
 // RESPONSE TYPES
 // ============================================================================
 
@@ -97,5 +132,25 @@ export interface ScheduleWithDetails extends Schedule {
   overrides?: ScheduleOverride[];
   _count?: {
     overrides: number;
+  };
+}
+
+export interface LayerWithSchedule {
+  id: string;
+  scheduleId: string;
+  name: string;
+  priority: number;
+  timezone: string;
+  startDate: Date;
+  endDate: Date | null;
+  handoffTime: string;
+  recurrenceRule: string;
+  rotationUserIds: string[];
+  restrictions: LayerRestrictions | null;
+  isActive: boolean;
+  schedule?: {
+    id: string;
+    name: string;
+    teamId: string;
   };
 }
