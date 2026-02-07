@@ -32,6 +32,7 @@ import { slackCommandsRouter } from './routes/webhooks/slack-commands.js';
 import { magicLinksRouter } from './routes/magic-links.js';
 import { twilioWebhooksRouter } from './routes/webhooks/twilio-webhooks.js';
 import { startEscalationWorker, setupGracefulShutdown } from './workers/escalation.worker.js';
+import { startNotificationWorker, stopNotificationWorker } from './workers/notification.worker.js';
 
 export const app = express();
 
@@ -174,10 +175,11 @@ if (process.env.NODE_ENV !== 'test') {
     // Start background workers
     try {
       await startEscalationWorker();
+      await startNotificationWorker();
       setupGracefulShutdown();
-      console.log('⚙️  Background workers started');
+      console.log('⚙️  Background workers started (escalation + notification)');
     } catch (error) {
-      console.error('❌ Failed to start background workers - continuing without escalation', error);
+      console.error('❌ Failed to start background workers - continuing in degraded mode', error);
       // Don't crash server if Redis unavailable, just log
     }
   });
@@ -188,6 +190,15 @@ if (process.env.NODE_ENV !== 'test') {
 
     server.close(async () => {
       console.log('✅ HTTP server closed');
+
+      // Stop background workers
+      try {
+        await stopNotificationWorker();
+        console.log('✅ Notification worker stopped');
+      } catch (error) {
+        console.error('⚠️  Error stopping notification worker:', error);
+      }
+
       await disconnectDatabase();
       console.log('✅ Database disconnected');
       process.exit(0);
