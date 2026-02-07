@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import passport from 'passport';
@@ -33,6 +34,7 @@ import { magicLinksRouter } from './routes/magic-links.js';
 import { twilioWebhooksRouter } from './routes/webhooks/twilio-webhooks.js';
 import { startEscalationWorker, setupGracefulShutdown } from './workers/escalation.worker.js';
 import { startNotificationWorker, stopNotificationWorker } from './workers/notification.worker.js';
+import { initializeSocket } from './lib/socket.js';
 
 export const app = express();
 
@@ -153,7 +155,13 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 if (process.env.NODE_ENV !== 'test') {
   const PORT = parseInt(env.PORT, 10);
 
-  const server = app.listen(PORT, async () => {
+  // Create HTTP server
+  const httpServer = createServer(app);
+
+  // Initialize Socket.io
+  initializeSocket(httpServer);
+
+  httpServer.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
     console.log(`🔧 Environment: ${env.NODE_ENV}`);
@@ -188,7 +196,7 @@ if (process.env.NODE_ENV !== 'test') {
   const shutdown = async () => {
     console.log('\n🛑 Shutting down gracefully...');
 
-    server.close(async () => {
+    httpServer.close(async () => {
       console.log('✅ HTTP server closed');
 
       // Stop background workers

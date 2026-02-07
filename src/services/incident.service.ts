@@ -1,6 +1,8 @@
+import crypto from 'crypto';
 import { prisma } from '../config/database.js';
 import { cancelEscalation } from '../queues/escalation.queue.js';
 import { auditService } from './audit.service.js';
+import { socketService } from './socket.service.js';
 import { logger } from '../config/logger.js';
 
 interface IncidentFilter {
@@ -152,6 +154,24 @@ class IncidentService {
       }
     });
 
+    // Broadcast acknowledgment via WebSocket
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, firstName: true, lastName: true }
+    });
+
+    if (user) {
+      socketService.broadcastIncidentAcknowledged(
+        {
+          incidentId,
+          userId,
+          user: { id: user.id, firstName: user.firstName, lastName: user.lastName },
+          acknowledgedAt: updated.acknowledgedAt!.toISOString(),
+        },
+        incident.teamId
+      );
+    }
+
     logger.info(
       { incidentId, userId, escalationsCancelled: incident.escalationJobs.length },
       'Incident acknowledged'
@@ -211,6 +231,25 @@ class IncidentService {
         durationMs: updated.resolvedAt!.getTime() - incident.createdAt.getTime()
       }
     });
+
+    // Broadcast resolution via WebSocket
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, firstName: true, lastName: true }
+    });
+
+    if (user) {
+      socketService.broadcastIncidentResolved(
+        {
+          incidentId,
+          userId,
+          user: { id: user.id, firstName: user.firstName, lastName: user.lastName },
+          resolvedAt: updated.resolvedAt!.toISOString(),
+          resolutionNote: metadata.resolutionNote,
+        },
+        incident.teamId
+      );
+    }
 
     logger.info(
       { incidentId, userId, durationMs: updated.resolvedAt!.getTime() - incident.createdAt.getTime() },
@@ -308,6 +347,25 @@ class IncidentService {
       }
     });
 
+    // Broadcast reassignment via WebSocket
+    const newUser = await prisma.user.findUnique({
+      where: { id: newUserId },
+      select: { id: true, firstName: true, lastName: true }
+    });
+
+    if (newUser) {
+      socketService.broadcastIncidentReassigned(
+        {
+          incidentId,
+          fromUserId: previousAssignee,
+          toUserId: newUserId,
+          toUser: newUser,
+          reason,
+        },
+        incident.teamId
+      );
+    }
+
     logger.info(
       { incidentId, previousAssignee, newAssignee: newUserId, byUserId },
       'Incident reassigned'
@@ -340,6 +398,28 @@ class IncidentService {
       severity: 'INFO',
       metadata: { note }
     });
+
+    // Broadcast note added via WebSocket
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true }
+    });
+
+    if (user) {
+      socketService.broadcastNoteAdded(
+        {
+          incidentId,
+          note: {
+            id: crypto.randomUUID(),
+            content: note,
+            userId,
+            user,
+            createdAt: new Date().toISOString(),
+          },
+        },
+        incident.teamId
+      );
+    }
 
     logger.debug({ incidentId, userId }, 'Note added to incident');
   }

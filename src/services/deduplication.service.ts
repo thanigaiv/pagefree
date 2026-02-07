@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database.js';
 import { routingService } from './routing.service.js';
+import { socketService } from './socket.service.js';
 import { logger } from '../config/logger.js';
 
 export interface DeduplicationResult {
@@ -30,7 +31,36 @@ class DeduplicationService {
     // Retry loop for serialization failures
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
-        return await this.executeTransaction(alertId, fingerprint, alert, windowMinutes);
+        const result = await this.executeTransaction(alertId, fingerprint, alert, windowMinutes);
+
+        // Broadcast new incident creation via WebSocket (only for new incidents, not duplicates)
+        if (!result.isDuplicate) {
+          // Fetch full incident data with relations for broadcast
+          const fullIncident = await prisma.incident.findUnique({
+            where: { id: result.incident.id },
+            include: {
+              team: { select: { id: true, name: true } },
+              assignedUser: { select: { id: true, firstName: true, lastName: true } }
+            }
+          });
+
+          if (fullIncident) {
+            socketService.broadcastIncidentCreated({
+              id: fullIncident.id,
+              fingerprint: fullIncident.fingerprint,
+              status: fullIncident.status,
+              priority: fullIncident.priority,
+              title: alert.title || alert.description || fullIncident.fingerprint,
+              teamId: fullIncident.teamId,
+              team: fullIncident.team,
+              assignedUserId: fullIncident.assignedUserId ?? undefined,
+              assignedUser: fullIncident.assignedUser ?? undefined,
+              createdAt: fullIncident.createdAt.toISOString(),
+            });
+          }
+        }
+
+        return result;
       } catch (error: any) {
         if (error.code === 'P2034' && attempt < this.MAX_RETRIES) {
           // Serialization failure, retry with exponential backoff
