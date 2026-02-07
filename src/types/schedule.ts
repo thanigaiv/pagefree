@@ -120,6 +120,47 @@ export type CreateLayerInput = z.infer<typeof CreateLayerInputSchema>;
 export type UpdateLayerInput = z.infer<typeof UpdateLayerInputSchema>;
 
 // ============================================================================
+// OVERRIDE TYPES (Phase 3 Plan 04)
+// ============================================================================
+
+export const CreateOverrideInputSchema = z.object({
+  scheduleId: z.string().cuid(),
+  userId: z.string().cuid(), // Who is covering
+  startTime: z.string().datetime(), // ISO timestamp
+  endTime: z.string().datetime(),
+  reason: z.string().max(200).optional(),
+}).refine(
+  (data) => new Date(data.endTime) > new Date(data.startTime),
+  { message: 'End time must be after start time' }
+);
+
+export const CreateSwapInputSchema = z.object({
+  scheduleId: z.string().cuid(),
+  originalUserId: z.string().cuid(), // Who originally has the shift
+  newUserId: z.string().cuid(), // Who is taking over
+  startTime: z.string().datetime(),
+  endTime: z.string().datetime(),
+  reason: z.string().max(200).optional(),
+}).refine(
+  (data) => new Date(data.endTime) > new Date(data.startTime),
+  { message: 'End time must be after start time' }
+).refine(
+  (data) => data.originalUserId !== data.newUserId,
+  { message: 'Cannot swap with yourself' }
+);
+
+export const OverrideListQuerySchema = z.object({
+  scheduleId: z.string().cuid().optional(),
+  userId: z.string().cuid().optional(),
+  startAfter: z.string().datetime().optional(),
+  endBefore: z.string().datetime().optional(),
+});
+
+export type CreateOverrideInput = z.infer<typeof CreateOverrideInputSchema>;
+export type CreateSwapInput = z.infer<typeof CreateSwapInputSchema>;
+export type OverrideListQuery = z.infer<typeof OverrideListQuerySchema>;
+
+// ============================================================================
 // RESPONSE TYPES
 // ============================================================================
 
@@ -153,4 +194,21 @@ export interface LayerWithSchedule {
     name: string;
     teamId: string;
   };
+}
+
+export interface OverrideWithUsers {
+  id: string;
+  scheduleId: string;
+  userId: string;
+  originalUserId: string | null;
+  startTime: Date;
+  endTime: Date;
+  reason: string | null;
+  overrideType: string;
+  createdById: string;
+  createdAt: Date;
+  user: { id: string; firstName: string; lastName: string; email: string };
+  originalUser?: { id: string; firstName: string; lastName: string; email: string } | null;
+  createdBy: { id: string; firstName: string; lastName: string };
+  schedule?: { id: string; name: string; teamId: string };
 }
