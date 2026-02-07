@@ -38,6 +38,21 @@ enum NotificationChannel {
   VOICE
 }
 
+enum AlertSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  CLOSED
+}
+
 // ============================================================================
 // USER MODEL
 // ============================================================================
@@ -271,4 +286,99 @@ model ApiKey {
   @@index([keyHash])
   @@index([keyPrefix])
   @@index([service])
+}
+
+// ============================================================================
+// ALERT INGESTION MODELS (Phase 2)
+// ============================================================================
+
+model Integration {
+  id                          String   @id @default(cuid())
+  name                        String   @unique  // e.g., "datadog-production"
+  type                        String   // datadog, newrelic, pagerduty, generic
+  webhookSecret               String   // HMAC secret for signature verification
+  isActive                    Boolean  @default(true)
+
+  // Signature configuration
+  signatureHeader             String   @default("X-Webhook-Signature")
+  signatureAlgorithm          String   @default("sha256")
+  signatureFormat             String   @default("hex") // hex, base64
+  signaturePrefix             String?  // e.g., "sha256="
+
+  // Idempotency configuration
+  deduplicationWindowMinutes  Int      @default(15)
+
+  // Relations
+  alerts                      Alert[]
+  webhookDeliveries           WebhookDelivery[]
+
+  createdAt                   DateTime @default(now()) @db.Timestamptz
+  updatedAt                   DateTime @updatedAt @db.Timestamptz
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model Alert {
+  id                String        @id @default(cuid())
+
+  // Normalized fields (extracted from payload)
+  title             String
+  description       String?
+  severity          AlertSeverity
+  status            AlertStatus   @default(OPEN)
+  source            String        // Integration name
+  externalId        String?       // ID from monitoring tool
+
+  // Timestamps (all UTC per Phase 1 decision)
+  triggeredAt       DateTime      @db.Timestamptz  // When alert fired (from payload)
+  acknowledgedAt    DateTime?     @db.Timestamptz
+  resolvedAt        DateTime?     @db.Timestamptz
+  closedAt          DateTime?     @db.Timestamptz
+
+  // Metadata (flexible JSON for integration-specific fields)
+  metadata          Json          @default("{}")
+
+  // Relations
+  integrationId     String
+  integration       Integration   @relation(fields: [integrationId], references: [id])
+  deliveries        WebhookDelivery[]
+
+  createdAt         DateTime      @default(now()) @db.Timestamptz
+  updatedAt         DateTime      @updatedAt @db.Timestamptz
+
+  @@index([integrationId, triggeredAt])
+  @@index([status, triggeredAt])
+  @@index([severity, triggeredAt])
+  @@index([externalId])
+}
+
+model WebhookDelivery {
+  id                  String    @id @default(cuid())
+
+  // Idempotency tracking
+  idempotencyKey      String?   // External key if provided (X-Request-ID, etc.)
+  contentFingerprint  String    // SHA-256 hash of normalized payload
+
+  // Raw data preservation
+  rawPayload          Json      // Original webhook body
+  headers             Json      // Sanitized headers (exclude secrets)
+
+  // Processing result
+  statusCode          Int       // HTTP status returned
+  errorMessage        String?   // If processing failed
+  processedAt         DateTime  @db.Timestamptz
+
+  // Relations
+  integrationId       String
+  integration         Integration @relation(fields: [integrationId], references: [id])
+  alertId             String?   // Null if duplicate or failed validation
+  alert               Alert?    @relation(fields: [alertId], references: [id])
+
+  createdAt           DateTime  @default(now()) @db.Timestamptz
+
+  @@index([integrationId, idempotencyKey])
+  @@index([integrationId, contentFingerprint, createdAt])
+  @@index([integrationId, createdAt])
+  @@index([alertId])
 }
