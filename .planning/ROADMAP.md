@@ -13,7 +13,7 @@ This roadmap delivers a production-ready incident management platform to replace
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & User Management** - Authentication, teams, and audit infrastructure
-- [ ] **Phase 2: Alert Ingestion & Webhooks** - Receive alerts from monitoring tools
+- [x] **Phase 2: Alert Ingestion & Webhooks** - Receive alerts from monitoring tools
 - [ ] **Phase 3: Scheduling System** - On-call schedules with rotations and timezone handling
 - [ ] **Phase 4: Alert Routing & Deduplication** - Process and route alerts to on-call engineers
 - [ ] **Phase 5: Multi-Channel Notifications** - Deliver alerts via email, SMS, push, phone, Slack
@@ -63,13 +63,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 02-01-PLAN.md - Database schema for alerts, integrations, and webhook delivery tracking
-- [ ] 02-02-PLAN.md - Signature verification middleware and raw body capture
-- [ ] 02-03-PLAN.md - Idempotency detection with hybrid duplicate detection
-- [ ] 02-04-PLAN.md - Alert schema validation and RFC 7807 error formatting
-- [ ] 02-05-PLAN.md - Integration management service and API
-- [ ] 02-06-PLAN.md - Generic webhook receiver endpoint
-- [ ] 02-07-PLAN.md - Integration tests and verification
+- [x] 02-01-PLAN.md - Database schema for alerts, integrations, and webhook delivery tracking
+- [x] 02-02-PLAN.md - Signature verification middleware and raw body capture
+- [x] 02-03-PLAN.md - Idempotency detection with hybrid duplicate detection
+- [x] 02-04-PLAN.md - Alert schema validation and RFC 7807 error formatting
+- [x] 02-05-PLAN.md - Integration management service and API
+- [x] 02-06-PLAN.md - Generic webhook receiver endpoint
+- [x] 02-07-PLAN.md - Integration tests and verification
 
 ### Phase 3: Scheduling System
 **Goal**: Users can create on-call schedules with correct timezone and DST handling
