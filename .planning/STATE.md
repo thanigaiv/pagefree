@@ -253,6 +253,10 @@ Recent decisions affecting current work:
 | WebAuthn placeholder endpoints | 06-10 | Full implementation deferred - mock responses for UI development |
 | Platform authenticator only for biometric | 06-10 | Focus on built-in biometrics (Face ID, Touch ID, Windows Hello) not cross-device |
 | Biometric requires active session | 06-10 | Registration only works for authenticated users, not for initial login |
+| Web push subscriptions in UserDevice with platform "web" | 06-09 | Reuse existing table from Phase 5, distinguish via platform field |
+| InjectManifest strategy for custom service worker | 06-09 | Full control over service worker enables both caching and push handlers |
+| Push notification deep linking to incident detail | 06-09 | Per user decision - tap notification goes directly to incident view |
+| VAPID key distribution via backend API | 06-09 | Backend provides public key, stores subscriptions securely |
 
 ### Pending Todos
 
@@ -283,9 +287,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07 17:25 UTC
-Stopped at: Completed 06-10-PLAN.md (User Preferences and Biometric Auth)
+Stopped at: Completed 06-09-PLAN.md (Push Notifications with Deep Linking)
 Resume file: None
 
 ---
-*Phase 6 In Progress: Incident Management Dashboard (8/11 plans complete)*
+*Phase 6 In Progress: Incident Management Dashboard (9/11 plans complete)*
 *Next: 06-09 - Incident Search and Advanced Filters*
