@@ -65,10 +65,10 @@ Requirements for initial production deployment. Each maps to roadmap phases.
 - [x] **INT-01**: System provides generic webhook receiver for any monitoring tool
 - [x] **INT-02**: System validates webhook signatures for security
 - [x] **INT-03**: System processes webhooks idempotently (duplicate webhooks don't create duplicate incidents)
-- [ ] **INT-04**: System provides DataDog-specific integration
-- [ ] **INT-05**: System provides New Relic-specific integration
-- [ ] **INT-06**: System provides Slack bidirectional integration (notifications + actions)
-- [ ] **INT-07**: User can configure integration settings via web UI
+- [x] **INT-04**: System provides DataDog-specific integration
+- [x] **INT-05**: System provides New Relic-specific integration
+- [x] **INT-06**: System provides Slack bidirectional integration (notifications + actions)
+- [x] **INT-07**: User can configure integration settings via web UI
 
 ### Automation & Workflows
 
@@ -226,10 +226,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOBILE-04 | Phase 6 | Complete |
 | MOBILE-05 | Phase 6 | Complete |
 | MOBILE-06 | Phase 6 | Complete |
-| INT-04 | Phase 7 | Pending |
-| INT-05 | Phase 7 | Pending |
-| INT-06 | Phase 7 | Pending |
-| INT-07 | Phase 7 | Pending |
+| INT-04 | Phase 7 | Complete |
+| INT-05 | Phase 7 | Complete |
+| INT-06 | Phase 7 | Complete |
+| INT-07 | Phase 7 | Complete |
 | AUTO-01 | Phase 8 | Pending |
 | AUTO-02 | Phase 8 | Pending |
 | AUTO-03 | Phase 8 | Pending |

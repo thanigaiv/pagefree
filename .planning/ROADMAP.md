@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Alert Routing & Deduplication** - Process and route alerts to on-call engineers
 - [x] **Phase 5: Multi-Channel Notifications** - Deliver alerts via email, SMS, push, phone, Slack
 - [x] **Phase 6: Incident Management Dashboard** - Web and mobile UI for incident response
-- [ ] **Phase 7: External Integrations** - DataDog, New Relic, Slack bidirectional sync
+- [x] **Phase 7: External Integrations** - DataDog, New Relic, Slack bidirectional sync
 - [ ] **Phase 8: Automation & Workflows** - Response plays and runbook automation
 - [ ] **Phase 9: Status Pages** - Internal status pages with automatic updates
 - [ ] **Phase 10: Postmortems** - Timeline generation and documentation
@@ -184,12 +184,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 07-01-PLAN.md - Provider-specific payload normalizers (DataDog, New Relic)
-- [ ] 07-02-PLAN.md - Test webhook and deliveries API endpoints
-- [ ] 07-03-PLAN.md - Slack command and title prefix
-- [ ] 07-04-PLAN.md - Frontend hooks and IntegrationCard component
-- [ ] 07-05-PLAN.md - Frontend test dialog and webhook log components
-- [ ] 07-06-PLAN.md - IntegrationsPage and integration tests
+- [x] 07-01-PLAN.md - Provider-specific payload normalizers (DataDog, New Relic)
+- [x] 07-02-PLAN.md - Test webhook and deliveries API endpoints
+- [x] 07-03-PLAN.md - Slack command and title prefix
+- [x] 07-04-PLAN.md - Frontend hooks and IntegrationCard component
+- [x] 07-05-PLAN.md - Frontend test dialog and webhook log components
+- [x] 07-06-PLAN.md - IntegrationsPage and integration tests
 
 ### Phase 8: Automation & Workflows
 **Goal**: Users can define automated response workflows triggered by incident conditions
@@ -250,11 +250,11 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 4. Alert Routing & Deduplication | 8/8 | Complete | 2026-02-08 |
 | 5. Multi-Channel Notifications | 11/11 | Complete | 2026-02-08 |
 | 6. Incident Management Dashboard | 11/11 | Complete | 2026-02-07 |
-| 7. External Integrations | 0/6 | Planned | - |
+| 7. External Integrations | 6/6 | Complete | 2026-02-07 |
 | 8. Automation & Workflows | 0/TBD | Not started | - |
 | 9. Status Pages | 0/TBD | Not started | - |
 | 10. Postmortems | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-06*
-*Last updated: 2026-02-07 (Phase 7 planned)*
+*Last updated: 2026-02-07 (Phase 7 complete)*
