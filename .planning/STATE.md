@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 3 of 10 (Scheduling System)
-Plan: 2 of 7 complete
-Status: In progress - Schedule CRUD service with RRULE generation complete
-Last activity: 2026-02-07 — Completed 03-02-PLAN.md (Schedule CRUD Service)
+Plan: 3 of 7 complete
+Status: In progress - Schedule layer management with priority precedence complete
+Last activity: 2026-02-07 — Completed 03-03-PLAN.md (Schedule Layer Management)
 
-Progress: [███████████████░░░░░░░] 80%
+Progress: [████████████████░░░░░░] 84%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 3 min
-- Total execution time: 1.20 hours
+- Total execution time: 1.25 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [███████████████░░░░░░░] 8
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
-| 3. Scheduling System | 2/7 | 5 min | 2.5 min |
+| 3. Scheduling System | 3/7 | 10 min | 3.3 min |
 
 **Recent Trend:**
-- Last 7 plans: 02-03 (1 min), 02-04 (2 min), 02-05 (2 min), 02-06 (4 min), 02-07 (3 min), 03-01 (2 min), 03-02 (3 min)
-- Trend: Phase 3 progressing! 2-3 min velocity maintained
+- Last 7 plans: 02-04 (2 min), 02-05 (2 min), 02-06 (4 min), 02-07 (3 min), 03-01 (2 min), 03-02 (3 min), 03-03 (5 min)
+- Trend: Phase 3 progressing! 2-5 min velocity, layer management more complex
 
 *Updated after each plan completion*
 
@@ -130,6 +130,10 @@ Recent decisions affecting current work:
 | Multi-layer schedule precedence via priority field | 03-01 | Support complex patterns (weekday primary + weekend backup + holiday) |
 | CalendarSync stores OAuth tokens, not events | 03-01 | Platform is source of truth, calendars are sync targets (one-way) |
 | ScheduleOverride for temporary coverage | 03-01 | Highest precedence - overrides all layers for specific time range |
+| Layer priorities: 100 to 1 with 10-point gaps | 03-03 | Enable easy insertion of new layers without reordering |
+| Restrictions stored as JSON: {daysOfWeek: [...]} | 03-03 | Flexible schema for time-based filtering (weekday/weekend) |
+| Team admin required for layer mutations | 03-03 | Elevated permissions for schedule configuration changes |
+| Hard delete for layers (no soft delete) | 03-03 | Layers are configuration, not audit-critical like alerts |
 
 ### Pending Todos
 
@@ -145,16 +149,16 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- Phase 3 in progress - schedule CRUD service with RRULE generation complete
-- Next: Schedule layer management for multi-layer precedence patterns
+- Phase 3 in progress - schedule layer management complete with priority precedence
+- Next: On-call computation with layer/override precedence evaluation
 - DST transition test cases critical for spring-forward/fall-back scenarios (planned for testing phase)
 
 ## Session Continuity
 
-Last session: 2026-02-07 02:04:12 UTC
-Stopped at: Completed 03-02-PLAN.md - Schedule CRUD Service
+Last session: 2026-02-07 02:05:31 UTC
+Stopped at: Completed 03-03-PLAN.md - Schedule Layer Management
 Resume file: None
 
 ---
-*Phase 3 In Progress: Scheduling System (2/7 plans complete)*
-*Next: Schedule layer management API*
+*Phase 3 In Progress: Scheduling System (3/7 plans complete)*
+*Next: On-call computation with layer precedence*
