@@ -201,6 +201,11 @@ Recent decisions affecting current work:
 | Critical failure defined as email + SMS both fail | 05-06 | Permanent notification failure when both critical channels fail |
 | Extended NotificationJobData with payload/logId/tier | 05-06 | Worker context includes full payload to avoid re-querying database |
 | Worker concurrency 10 with 100/min rate limit | 05-06 | Prevent provider throttling while maintaining parallelism |
+| Slack optimistic UI with rollback | 05-07 | Update message immediately, restore on failure for instant user feedback |
+| HMAC-SHA256 signature verification | 05-07 | Timing-safe comparison prevents timing attacks on webhook auth |
+| 5-minute timestamp window for Slack | 05-07 | Replay attack prevention for webhook requests |
+| Immediate webhook acknowledgment | 05-07 | Slack requires response within 3 seconds, process asynchronously |
+| Short ID suffix matching | 05-07 | /oncall commands accept last 6+ chars of incident ID for UX |
 
 ### Pending Todos
 
