@@ -52,13 +52,13 @@ Requirements for initial production deployment. Each maps to roadmap phases.
 
 ### Incident Management
 
-- [ ] **INC-01**: User sees dashboard of all active incidents
-- [ ] **INC-02**: User can acknowledge incident (stops escalation)
-- [ ] **INC-03**: User can resolve incident with resolution notes
-- [ ] **INC-04**: System displays incident timeline with all events (triggered, acknowledged, escalated, resolved)
-- [ ] **INC-05**: User can add notes to incident timeline
-- [ ] **INC-06**: System supports incident priority levels
-- [ ] **INC-07**: User can view incident history (resolved incidents)
+- [x] **INC-01**: User sees dashboard of all active incidents
+- [x] **INC-02**: User can acknowledge incident (stops escalation)
+- [x] **INC-03**: User can resolve incident with resolution notes
+- [x] **INC-04**: System displays incident timeline with all events (triggered, acknowledged, escalated, resolved)
+- [x] **INC-05**: User can add notes to incident timeline
+- [x] **INC-06**: System supports incident priority levels
+- [x] **INC-07**: User can view incident history (resolved incidents)
 
 ### Integrations
 
@@ -97,12 +97,12 @@ Requirements for initial production deployment. Each maps to roadmap phases.
 
 ### Mobile & Web
 
-- [ ] **MOBILE-01**: System provides Progressive Web App (PWA) with push notification support
-- [ ] **MOBILE-02**: User can acknowledge incidents from mobile PWA
-- [ ] **MOBILE-03**: User can resolve incidents from mobile PWA
-- [ ] **MOBILE-04**: User can view incident details and timeline on mobile PWA
-- [ ] **MOBILE-05**: User receives push notifications on mobile device
-- [ ] **MOBILE-06**: System tracks push token lifecycle and registration
+- [x] **MOBILE-01**: System provides Progressive Web App (PWA) with push notification support
+- [x] **MOBILE-02**: User can acknowledge incidents from mobile PWA
+- [x] **MOBILE-03**: User can resolve incidents from mobile PWA
+- [x] **MOBILE-04**: User can view incident details and timeline on mobile PWA
+- [x] **MOBILE-05**: User receives push notifications on mobile device
+- [x] **MOBILE-06**: System tracks push token lifecycle and registration
 
 ### User & Team Management
 
@@ -213,19 +213,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOTIF-09 | Phase 5 | Complete |
 | NOTIF-10 | Phase 5 | Complete |
 | NOTIF-11 | Phase 5 | Complete |
-| INC-01 | Phase 6 | Pending |
-| INC-02 | Phase 6 | Pending |
-| INC-03 | Phase 6 | Pending |
-| INC-04 | Phase 6 | Pending |
-| INC-05 | Phase 6 | Pending |
-| INC-06 | Phase 6 | Pending |
-| INC-07 | Phase 6 | Pending |
-| MOBILE-01 | Phase 6 | Pending |
-| MOBILE-02 | Phase 6 | Pending |
-| MOBILE-03 | Phase 6 | Pending |
-| MOBILE-04 | Phase 6 | Pending |
-| MOBILE-05 | Phase 6 | Pending |
-| MOBILE-06 | Phase 6 | Pending |
+| INC-01 | Phase 6 | Complete |
+| INC-02 | Phase 6 | Complete |
+| INC-03 | Phase 6 | Complete |
+| INC-04 | Phase 6 | Complete |
+| INC-05 | Phase 6 | Complete |
+| INC-06 | Phase 6 | Complete |
+| INC-07 | Phase 6 | Complete |
+| MOBILE-01 | Phase 6 | Complete |
+| MOBILE-02 | Phase 6 | Complete |
+| MOBILE-03 | Phase 6 | Complete |
+| MOBILE-04 | Phase 6 | Complete |
+| MOBILE-05 | Phase 6 | Complete |
+| MOBILE-06 | Phase 6 | Complete |
 | INT-04 | Phase 7 | Pending |
 | INT-05 | Phase 7 | Pending |
 | INT-06 | Phase 7 | Pending |
