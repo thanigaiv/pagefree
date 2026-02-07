@@ -29,6 +29,8 @@ import { scimRouter } from './auth/scim/routes.js';
 import { alertWebhookRouter } from './webhooks/alert-receiver.js';
 import { slackInteractionsRouter } from './routes/webhooks/slack-interactions.js';
 import { slackCommandsRouter } from './routes/webhooks/slack-commands.js';
+import { magicLinksRouter } from './routes/magic-links.js';
+import { twilioWebhooksRouter } from './routes/webhooks/twilio-webhooks.js';
 import { startEscalationWorker, setupGracefulShutdown } from './workers/escalation.worker.js';
 
 export const app = express();
@@ -76,6 +78,12 @@ app.use('/webhooks/okta', oktaWebhookRouter);
 // Slack webhooks (mount before auth middleware - uses signature-based auth)
 app.use('/webhooks/slack/interactions', slackInteractionsRouter);
 app.use('/webhooks/slack/commands', slackCommandsRouter);
+
+// Twilio webhooks (mount before auth middleware - uses signature-based auth)
+app.use('/webhooks/twilio', twilioWebhooksRouter);
+
+// Magic links (public routes - token is the authorization)
+app.use('/magic', magicLinksRouter);
 
 // SCIM endpoints (mount before auth middleware - uses its own auth)
 app.use('/scim/v2', scimRouter);
