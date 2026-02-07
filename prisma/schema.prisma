@@ -93,6 +93,7 @@ model User {
   notificationLogs      NotificationLog[]
   slackConnection       SlackConnection?
   teamsConnection       TeamsConnection?
+  preferences           Json?             // User preferences (dashboard filters, notifications, etc.)
 
   @@index([email])
   @@index([oktaId])
