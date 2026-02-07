@@ -7,6 +7,9 @@ import { validateAlertPayload } from './schemas/alert.schema.js';
 import { formatValidationError, createProblemDetails } from '../utils/problem-details.js';
 import { auditService } from '../services/audit.service.js';
 import { logger } from '../config/logger.js';
+import { deduplicationService } from '../services/deduplication.service.js';
+import { escalationService } from '../services/escalation.service.js';
+import { generateContentFingerprint } from '../utils/content-fingerprint.js';
 
 export const alertWebhookRouter = Router();
 
@@ -141,16 +144,42 @@ alertWebhookRouter.post(
         }
       });
 
+      // 4. Generate fingerprint for deduplication
+      const deduplicationFingerprint = generateContentFingerprint({
+        title: alert.title,
+        source: alert.source,
+        severity: alert.severity,
+        // Include service metadata if present
+        service: (alert.metadata as any)?.service || alert.source
+      });
+
+      // 5. Deduplicate and create/link incident
+      const { incident, isDuplicate } = await deduplicationService.deduplicateAndCreateIncident(
+        alert.id,
+        deduplicationFingerprint,
+        alert,
+        integration.deduplicationWindowMinutes
+      );
+
+      // 6. If new incident, start escalation
+      if (!isDuplicate) {
+        await escalationService.startEscalation(incident.id);
+      }
+
       logger.info({
-        msg: 'Alert created from webhook',
+        msg: isDuplicate ? 'Alert grouped to existing incident' : 'New incident created from alert',
         alertId: alert.id,
+        incidentId: incident.id,
+        isDuplicate,
         integration: integration.name,
-        severity: alert.severity
+        severity: alert.severity,
+        fingerprint: deduplicationFingerprint.substring(0, 16)
       });
 
       res.status(201).json({
         alert_id: alert.id,
-        status: 'created',
+        incident_id: incident.id,
+        status: isDuplicate ? 'grouped' : 'created',
         title: alert.title,
         severity: alert.severity,
         triggered_at: alert.triggeredAt.toISOString()
