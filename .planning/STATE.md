@@ -134,6 +134,10 @@ Recent decisions affecting current work:
 | Restrictions stored as JSON: {daysOfWeek: [...]} | 03-03 | Flexible schema for time-based filtering (weekday/weekend) |
 | Team admin required for layer mutations | 03-03 | Elevated permissions for schedule configuration changes |
 | Hard delete for layers (no soft delete) | 03-03 | Layers are configuration, not audit-critical like alerts |
+| Overlap conflict detection using OR conditions | 03-04 | Check for any time range overlap to prevent double-booking |
+| Hard delete for overrides (no soft delete) | 03-04 | Overrides are temporary and don't require long-term audit trail |
+| Responders can create overrides | 03-04 | Allow flexibility for on-call team members without admin intervention |
+| Swaps require original user or team admin | 03-04 | Only shift owner or admin can initiate swap for accountability |
 | Override precedence over layers/schedules | 03-05 | Temporary coverage (vacation, emergencies) must override scheduled rotations |
 | Shift calculation from RRULE occurrences | 03-05 | On-demand calculation handles infinite schedules and DST transitions |
 | Layer restrictions pre-filtering | 03-05 | Performance optimization - skip RRULE if day-of-week doesn't match |
