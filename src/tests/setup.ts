@@ -48,6 +48,9 @@ export async function cleanupTestData() {
   // Delete in correct order for foreign keys
   await prisma.auditEvent.deleteMany({});
   await prisma.apiKey.deleteMany({});
+  await prisma.scheduleOverride.deleteMany({});
+  await prisma.scheduleLayer.deleteMany({});
+  await prisma.schedule.deleteMany({});
   await prisma.teamMember.deleteMany({});
   await prisma.teamTag.deleteMany({});
   await prisma.contactVerification.deleteMany({});
