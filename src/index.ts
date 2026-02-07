@@ -20,6 +20,7 @@ import { sessionMiddleware } from './auth/session.js';
 import { configureOktaStrategy } from './auth/strategies/okta.js';
 import { oktaWebhookRouter } from './webhooks/okta.js';
 import { scimRouter } from './auth/scim/routes.js';
+import { alertWebhookRouter } from './webhooks/alert-receiver.js';
 
 export const app = express();
 
@@ -42,6 +43,10 @@ app.use(passport.session());
 // Configure Passport strategies
 configureLocalStrategy();
 configureOktaStrategy();
+
+// Alert webhooks (uses its own body parser for raw body capture)
+// MUST be before express.json() to capture raw body for signature verification
+app.use('/webhooks/alerts', alertWebhookRouter);
 
 // Parse JSON request bodies
 app.use(express.json());
