@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Phase 2 - Alert Ingestion & Webhooks
+**Current focus:** Phase 3 - Scheduling System
 
 ## Current Position
 
-Phase: 2 of 10 (Alert Ingestion & Webhooks) — COMPLETE
-Plan: 7 of 7 complete
-Status: Phase 2 complete - Integration tests passing
-Last activity: 2026-02-07 — Completed 02-07-PLAN.md (Integration Tests)
+Phase: 3 of 10 (Scheduling System)
+Plan: 1 of 7 complete
+Status: In progress - Database schema foundation established
+Last activity: 2026-02-07 — Completed 03-01-PLAN.md (Scheduling Database Models)
 
-Progress: [██████████████░░░░░░░░] 72%
+Progress: [███████████████░░░░░░░] 76%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 3 min
-- Total execution time: 1.12 hours
+- Total execution time: 1.15 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [██████████████░░░░░░░░] 7
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
+| 3. Scheduling System | 1/7 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 7 plans: 02-01 (2 min), 02-02 (2 min), 02-03 (1 min), 02-04 (2 min), 02-05 (2 min), 02-06 (4 min), 02-07 (3 min)
-- Trend: Phase 2 complete! Excellent velocity maintained (2.3 min avg)
+- Last 7 plans: 02-02 (2 min), 02-03 (1 min), 02-04 (2 min), 02-05 (2 min), 02-06 (4 min), 02-07 (3 min), 03-01 (2 min)
+- Trend: Phase 3 started! Consistent 2-min velocity for schema/model work
 
 *Updated after each plan completion*
 
@@ -124,6 +125,11 @@ Recent decisions affecting current work:
 | High severity audit logging for integration lifecycle | 02-05 | Create, rotate, and delete operations logged at HIGH severity |
 | Break-glass authentication for integration tests | 02-07 | Use /auth/emergency endpoint for authenticated test sessions |
 | Test database safety pattern: warning only | 02-07 | Phase 1 pattern - warn but don't throw for non-test DATABASE_URL |
+| Store schedules as RRULE strings, compute on-demand | 03-01 | Calendar standard - infinite schedules without pre-computing shifts |
+| IANA timezone names (America/New_York) not abbreviations | 03-01 | Offsets/abbreviations break during DST transitions |
+| Multi-layer schedule precedence via priority field | 03-01 | Support complex patterns (weekday primary + weekend backup + holiday) |
+| CalendarSync stores OAuth tokens, not events | 03-01 | Platform is source of truth, calendars are sync targets (one-way) |
+| ScheduleOverride for temporary coverage | 03-01 | Highest precedence - overrides all layers for specific time range |
 
 ### Pending Todos
 
@@ -139,16 +145,16 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- None - Phase 2 complete!
-- Webhook security infrastructure complete (signature verification + idempotency)
-- All tests passing (68 tests: 46 Phase 1 + 22 Phase 2)
+- Phase 3 in progress - database schema foundation established
+- Next: Install luxon and rrule libraries per research recommendations
+- DST transition test cases critical for spring-forward/fall-back scenarios
 
 ## Session Continuity
 
-Last session: 2026-02-07 00:41:25 UTC
-Stopped at: Completed 02-07-PLAN.md - Integration Tests (Phase 2 Complete)
+Last session: 2026-02-07 01:58:40 UTC
+Stopped at: Completed 03-01-PLAN.md - Scheduling Database Models
 Resume file: None
 
 ---
-*Phase 2 Complete: Alert Ingestion & Webhooks (7/7 plans complete)*
-*Ready for Phase 3: Scheduling & On-Call Rotations*
+*Phase 3 Started: Scheduling System (1/7 plans complete)*
+*Next: Schedule creation API with RRULE generation*
