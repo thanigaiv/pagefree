@@ -97,7 +97,7 @@ Plans:
 ### Phase 4: Alert Routing & Deduplication
 **Goal**: Alerts route to correct on-call engineer with deduplication and escalation
 **Depends on**: Phase 2, Phase 3
-**Requirements**: ALERT-02, ALERT-03, ALERT-04, ALERT-05, ROUTE-01, ROUTE-02, ROUTE-03, ROUTE-04, ROUTE-05
+**Requirements**: ALERT-02, ALERT-04, ALERT-05, ROUTE-01, ROUTE-02, ROUTE-03, ROUTE-04, ROUTE-05
 **Success Criteria** (what must be TRUE):
   1. System deduplicates alerts automatically using fingerprinting
   2. System routes alerts to appropriate on-call engineer based on service and schedule
@@ -105,10 +105,17 @@ Plans:
   4. System supports multi-level escalation policies with configurable timeouts
   5. User can search and filter alerts in dashboard
   6. System maintains complete alert history with audit trail
-**Plans**: TBD
+**Plans**: 8 plans
 
 Plans:
-- [ ] 04-01: TBD during phase planning
+- [ ] 04-01-PLAN.md - Database models for incidents and escalation policies
+- [ ] 04-02-PLAN.md - BullMQ queue infrastructure for escalation timers
+- [ ] 04-03-PLAN.md - Escalation policy management service and API
+- [ ] 04-04-PLAN.md - Alert deduplication and routing services (TDD)
+- [ ] 04-05-PLAN.md - Incident lifecycle management (acknowledge, resolve, reassign)
+- [ ] 04-06-PLAN.md - Escalation worker and orchestration service
+- [ ] 04-07-PLAN.md - Alert search API and webhook pipeline integration
+- [ ] 04-08-PLAN.md - Integration tests and verification
 
 ### Phase 5: Multi-Channel Notifications
 **Goal**: Critical alerts reach on-call engineers through multiple reliable channels
@@ -215,7 +222,7 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 1. Foundation & User Management | 11/11 | Complete | 2026-02-06 |
 | 2. Alert Ingestion & Webhooks | 7/7 | Complete | 2026-02-07 |
 | 3. Scheduling System | 7/7 | Complete | 2026-02-07 |
-| 4. Alert Routing & Deduplication | 0/TBD | Not started | - |
+| 4. Alert Routing & Deduplication | 0/8 | Planned | - |
 | 5. Multi-Channel Notifications | 0/TBD | Not started | - |
 | 6. Incident Management Dashboard | 0/TBD | Not started | - |
 | 7. External Integrations | 0/TBD | Not started | - |
