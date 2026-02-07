@@ -1,5 +1,7 @@
 import { User, Bell, Shield, Smartphone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BiometricSettings } from '@/components/BiometricSettings';
+import { PushSettings } from '@/components/PushSettings';
 
 export default function ProfilePage() {
   return (
@@ -42,10 +44,12 @@ export default function ProfilePage() {
               Mobile Settings
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Manage push notifications and biometric authentication.
-            </p>
+          <CardContent className="space-y-4">
+            <PushSettings />
+
+            <div className="border-t pt-4">
+              <BiometricSettings />
+            </div>
           </CardContent>
         </Card>
 
