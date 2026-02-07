@@ -84,6 +84,10 @@ model User {
   refreshTokens         RefreshToken[]
   devices               UserDevice[]
   apiKeysCreated        ApiKey[]
+  scheduleOverridesAsUser     ScheduleOverride[] @relation("ScheduleOverrideUser")
+  scheduleOverridesAsOriginal ScheduleOverride[] @relation("ScheduleOverrideOriginalUser")
+  scheduleOverridesCreated    ScheduleOverride[] @relation("ScheduleOverrideCreatedBy")
+  calendarSyncs         CalendarSync[]
 
   @@index([email])
   @@index([oktaId])
@@ -113,6 +117,7 @@ model Team {
   members               TeamMember[]
   tags                  TeamTag[]
   auditEvents           AuditEvent[]
+  schedules             Schedule[]
 
   @@index([name])
   @@index([isActive])
@@ -286,6 +291,99 @@ model ApiKey {
   @@index([keyHash])
   @@index([keyPrefix])
   @@index([service])
+}
+
+// ============================================================================
+// SCHEDULING MODELS (Phase 3)
+// ============================================================================
+
+model Schedule {
+  id                    String   @id @default(cuid())
+  teamId                String
+  team                  Team     @relation(fields: [teamId], references: [id])
+  name                  String
+  description           String?
+  timezone              String   // IANA timezone (e.g., "America/New_York")
+  startDate             DateTime @db.Timestamptz
+  endDate               DateTime? @db.Timestamptz
+  handoffTime           String   // HH:MM format (e.g., "09:00")
+  rotationType          String   // daily, weekly, custom
+  rotationIntervalDays  Int      @default(7)
+  recurrenceRule        String   // RRULE format from rrule library
+  rotationUserIds       String[] // Ordered list of users in rotation
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now()) @db.Timestamptz
+  updatedAt             DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  layers                ScheduleLayer[]
+  overrides             ScheduleOverride[]
+
+  @@index([teamId])
+  @@index([isActive])
+}
+
+model ScheduleLayer {
+  id                    String   @id @default(cuid())
+  scheduleId            String
+  schedule              Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  name                  String   // e.g., "Primary", "Backup", "Weekend"
+  priority              Int      // Higher number = higher precedence
+  timezone              String   // IANA timezone
+  startDate             DateTime @db.Timestamptz
+  endDate               DateTime? @db.Timestamptz
+  handoffTime           String   // HH:MM format
+  recurrenceRule        String   // RRULE format
+  rotationUserIds       String[] // Ordered list of users in rotation
+  restrictions          Json?    // e.g., {"daysOfWeek": ["SAT", "SUN"]}
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now()) @db.Timestamptz
+  updatedAt             DateTime @updatedAt @db.Timestamptz
+
+  @@index([scheduleId, priority])
+  @@index([scheduleId, isActive])
+}
+
+model ScheduleOverride {
+  id                    String   @id @default(cuid())
+  scheduleId            String
+  schedule              Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  userId                String   // Who is covering
+  user                  User     @relation("ScheduleOverrideUser", fields: [userId], references: [id])
+  originalUserId        String?  // Who was originally scheduled (for shift swaps)
+  originalUser          User?    @relation("ScheduleOverrideOriginalUser", fields: [originalUserId], references: [id])
+  startTime             DateTime @db.Timestamptz
+  endTime               DateTime @db.Timestamptz
+  reason                String?  // e.g., "Vacation coverage", "Shift swap with John"
+  overrideType          String   @default("manual") // manual, swap
+  createdById           String
+  createdBy             User     @relation("ScheduleOverrideCreatedBy", fields: [createdById], references: [id])
+  createdAt             DateTime @default(now()) @db.Timestamptz
+
+  @@index([scheduleId, startTime, endTime])
+  @@index([userId])
+  @@index([scheduleId])
+}
+
+model CalendarSync {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider              String   // google, microsoft
+  accessToken           String   // Encrypted in production
+  refreshToken          String   // Encrypted in production
+  tokenExpiresAt        DateTime @db.Timestamptz
+  calendarId            String   // External calendar ID to sync to
+  calendarName          String?
+  isActive              Boolean  @default(true)
+  syncedUntil           DateTime? @db.Timestamptz // Last synced shift end
+  lastSyncAt            DateTime? @db.Timestamptz
+  lastSyncError         String?
+  createdAt             DateTime @default(now()) @db.Timestamptz
+  updatedAt             DateTime @updatedAt @db.Timestamptz
+
+  @@unique([userId, provider])
+  @@index([isActive, syncedUntil])
 }
 
 // ============================================================================
