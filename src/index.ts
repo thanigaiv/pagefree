@@ -18,6 +18,7 @@ import { onCallRouter } from './routes/oncall.routes.js';
 import calendarSyncRouter from './routes/calendarSync.routes.js';
 import { incidentRoutes } from './routes/incident.routes.js';
 import { escalationPolicyRoutes } from './routes/escalation-policy.routes.js';
+import { alertRoutes } from './routes/alert.routes.js';
 import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
 import { auditService } from './services/audit.service.js';
 import { configureLocalStrategy } from './auth/strategies/local.js';
@@ -26,6 +27,7 @@ import { configureOktaStrategy } from './auth/strategies/okta.js';
 import { oktaWebhookRouter } from './webhooks/okta.js';
 import { scimRouter } from './auth/scim/routes.js';
 import { alertWebhookRouter } from './webhooks/alert-receiver.js';
+import { startEscalationWorker, setupGracefulShutdown } from './workers/escalation.worker.js';
 
 export const app = express();
 
@@ -110,6 +112,7 @@ app.use('/api/oncall', onCallRouter);
 app.use('/api/calendar', calendarSyncRouter);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/escalation-policies', escalationPolicyRoutes);
+app.use('/api/alerts', alertRoutes);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -143,6 +146,16 @@ if (process.env.NODE_ENV !== 'test') {
       scheduleAuditCleanup();
     } else {
       console.log('📝 Audit cleanup scheduling skipped (development mode)');
+    }
+
+    // Start background workers
+    try {
+      await startEscalationWorker();
+      setupGracefulShutdown();
+      console.log('⚙️  Background workers started');
+    } catch (error) {
+      console.error('❌ Failed to start background workers - continuing without escalation', error);
+      // Don't crash server if Redis unavailable, just log
     }
   });
 
