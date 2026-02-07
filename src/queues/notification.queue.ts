@@ -1,5 +1,6 @@
 import { Queue } from 'bullmq';
 import { getRedisConnectionOptions } from '../config/redis.js';
+import type { NotificationPayload } from '../services/notification/types.js';
 
 // Job data interfaces
 export interface NotificationJobData {
@@ -7,6 +8,10 @@ export interface NotificationJobData {
   incidentId: string;
   type: 'new_incident' | 'escalation' | 'acknowledgment' | 'resolution';
   channels?: string[]; // Override user preferences
+  // Extended fields for worker
+  payload?: NotificationPayload;
+  logId?: string;
+  tier?: 'primary' | 'secondary' | 'fallback';
 }
 
 // Create notification queue (used by Phase 5)
