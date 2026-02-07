@@ -1,13 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Calendar, User } from 'lucide-react';
+import { AlertCircle, Calendar, User, Workflow } from 'lucide-react';
 
 const navItems = [
   {
     to: '/incidents',
     icon: AlertCircle,
     label: 'Incidents',
+  },
+  {
+    to: '/workflows',
+    icon: Workflow,
+    label: 'Workflows',
   },
   {
     to: '/schedule',

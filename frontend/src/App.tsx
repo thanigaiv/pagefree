@@ -7,6 +7,8 @@ import IncidentDetailPage from './pages/IncidentDetailPage';
 import SchedulePage from './pages/SchedulePage';
 import ProfilePage from './pages/ProfilePage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import WorkflowsPage from './pages/WorkflowsPage';
+import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
 
 export default function App() {
   const { isOnline } = usePWA();
@@ -21,6 +23,11 @@ export default function App() {
           <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
+
+          {/* Workflow routes */}
+          <Route path="/workflows" element={<WorkflowsPage />} />
+          <Route path="/workflows/new" element={<WorkflowBuilderPage />} />
+          <Route path="/workflows/:id" element={<WorkflowBuilderPage />} />
         </Routes>
       </MobileLayout>
 
