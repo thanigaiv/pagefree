@@ -9,19 +9,17 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 
 ## Current Position
 
-Plan: 5 of 11 complete
-Status: Phase 5 in progress - foundation and core channels implemented (email, Slack, Teams, push, voice)
-Last activity: 2026-02-07 — Completed 05-01-PLAN.md (Notification Foundation)
-Last activity: 2026-02-07 — Completed 05-04-PLAN.md (Teams Channel with Adaptive Cards)
-Progress: [██████████████████████████░] 45% (4 phases complete + 5/11 plans of phase 5)
-Progress: [██████████████████████████] 43% (4 phases complete + 3/11 plans of phase 5)
+Plan: 7 of 11 complete
+Status: Phase 5 in progress - dispatcher, delivery tracking, and Slack bidirectional sync implemented
+Last activity: 2026-02-07 — Completed 05-07-PLAN.md (Slack Bidirectional Sync)
+Progress: [███████████████████████████░] 48% (4 phases complete + 7/11 plans of phase 5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 36
-- Average duration: 3.4 min
-- Total execution time: 2.33 hours
+- Total plans completed: 38
+- Average duration: 3.3 min
+- Total execution time: 2.43 hours
 
 **By Phase:**
 
@@ -31,11 +29,11 @@ Progress: [███████████████████████
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
 | 3. Scheduling System | 7/7 | 25 min | 3.6 min |
 | 4. Alert Routing & Deduplication | 8/8 | 30 min | 3.8 min |
-| 5. Multi-Channel Notifications | 4/11 | 32 min | 8 min |
+| 5. Multi-Channel Notifications | 7/11 | 38 min | 5.4 min |
 
 **Recent Trend:**
-- Last 7 plans: 04-05 (5 min), 04-06 (2 min), 04-07 (4 min), 04-08 (3 min), 05-05 (10 min), 05-02 (10 min)
-- Trend: Phase 5 notification channels being implemented
+- Last 7 plans: 04-07 (4 min), 04-08 (3 min), 05-05 (10 min), 05-02 (10 min), 05-06 (3 min), 05-07 (3 min)
+- Trend: Phase 5 notification channels and bidirectional sync being implemented
 
 *Updated after each plan completion*
 
@@ -196,6 +194,13 @@ Recent decisions affecting current work:
 | Channel interface abstraction | 05-01 | Polymorphic notification delivery - all channels implement send() contract |
 | Channel escalation config pattern | 05-01 | Primary (parallel), secondary (if primary fails), fallback (last resort) |
 | TEAMS added to NotificationChannel enum | 05-01 | Microsoft Teams as first-class channel alongside Slack |
+| Hybrid parallel/sequential delivery strategy | 05-06 | Primary channels (email/slack/push) parallel for speed, secondary/fallback sequential on failure |
+| 5 retry attempts with 30s exponential backoff | 05-06 | At-least-once delivery over ~10 minute window with exponential backoff (30s, 1m, 2m, 4m, 3m) |
+| Per-channel job queueing with tracking | 05-06 | Each channel gets own BullMQ job with individual NotificationLog tracking |
+| Channel tier escalation on failure | 05-06 | Primary fails (2+ channels) -> secondary (SMS) -> fallback (voice) |
+| Critical failure defined as email + SMS both fail | 05-06 | Permanent notification failure when both critical channels fail |
+| Extended NotificationJobData with payload/logId/tier | 05-06 | Worker context includes full payload to avoid re-querying database |
+| Worker concurrency 10 with 100/min rate limit | 05-06 | Prevent provider throttling while maintaining parallelism |
 
 ### Pending Todos
 
@@ -212,16 +217,19 @@ None yet.
 
 **Current concerns:**
 - ✅ Phase 4 complete - all functionality and tests implemented
-- Phase 5 in progress - email, SMS, push, voice, Slack, Teams channels implemented
-- Webhook handlers needed for voice IVR and Teams Action.Submit interactions (05-06 or 05-07)
+- Phase 5 in progress - dispatcher and delivery tracking implemented
+- ✅ Notification dispatcher with tier-based escalation complete (05-06)
+- ✅ At-least-once delivery guarantee via BullMQ retry complete (05-06)
+- TODO: Alert ops team when critical notification failure detected (email + SMS both fail)
+- Voice IVR and Teams webhook handlers needed for interactive action callbacks
 - Teams Graph API rate limits (1800 req/min) may need batching for high-traffic systems
 
 ## Session Continuity
 
-Last session: 2026-02-07 05:28 UTC
-Stopped at: Completed 05-01-PLAN.md (Notification Foundation)
+Last session: 2026-02-07 05:34 UTC
+Stopped at: Completed 05-06-PLAN.md (Notification Dispatcher & Delivery Tracking)
 Resume file: None
 
 ---
-*Phase 5 In Progress: Multi-Channel Notifications (5/11 plans complete)*
+*Phase 5 In Progress: Multi-Channel Notifications (6/11 plans complete)*
 *Next: Continue phase 5 execution*
