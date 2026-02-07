@@ -14,6 +14,7 @@ import { notificationRouter } from './routes/notification.routes.js';
 import { mobileRouter } from './routes/mobile.routes.js';
 import { integrationRouter } from './routes/integration.routes.js';
 import { scheduleRouter } from './routes/schedule.routes.js';
+import { onCallRouter } from './routes/oncall.routes.js';
 import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
 import { auditService } from './services/audit.service.js';
 import { configureLocalStrategy } from './auth/strategies/local.js';
@@ -102,6 +103,7 @@ app.use('/api/notifications', notificationRouter);
 app.use('/api/mobile', mobileRouter);
 app.use('/api/integrations', integrationRouter);
 app.use('/api/schedules', scheduleRouter);
+app.use('/api/oncall', onCallRouter);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
