@@ -9,29 +9,30 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 
 ## Current Position
 
-Phase: 1 of 10 (Foundation & User Management) — COMPLETE ✓
-Plan: 11/11 complete
-Status: Ready for Phase 2
-Last activity: 2026-02-06 — Phase 1 verified and complete (all gaps closed)
+Phase: 2 of 10 (Alert Ingestion & Webhooks) — IN PROGRESS
+Plan: 1 of 4 complete
+Status: Database models established
+Last activity: 2026-02-07 — Completed 02-01-PLAN.md (Alert ingestion database models)
 
-Progress: [██████████] 100%
+Progress: [███████████░░░░░░░░░░░] 52%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 4 min
-- Total execution time: 0.80 hours
+- Total execution time: 0.83 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
+| 2. Alert Ingestion & Webhooks | 1/4 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 7 plans: 01-05 (3 min), 01-10 (5 min), 01-06 (3 min), 01-07 (5 min), 01-08 (5 min), 01-09 (8 min), 01-11 (2 min)
-- Trend: Excellent velocity, Phase 1 complete
+- Last 7 plans: 01-10 (5 min), 01-06 (3 min), 01-07 (5 min), 01-08 (5 min), 01-09 (8 min), 01-11 (2 min), 02-01 (2 min)
+- Trend: Strong velocity, Phase 2 started
 
 *Updated after each plan completion*
 
@@ -94,6 +95,13 @@ Recent decisions affecting current work:
 | Conditional AWS SES credential initialization | 01-11 | Support both explicit env vars and IAM role-based auth |
 | AWS SDK default credential chain fallback | 01-11 | Enable IAM roles, EC2 instance profiles, ECS task roles |
 | @ts-expect-error for intentionally unused helpers | 01-11 | Mark test helpers reserved for future implementation |
+| AlertSeverity enum (CRITICAL/HIGH/MEDIUM/LOW/INFO) | 02-01 | Standard severity levels for alert normalization across integrations |
+| AlertStatus enum (OPEN/ACKNOWLEDGED/RESOLVED/CLOSED) | 02-01 | Alert lifecycle states for incident management |
+| Per-integration webhook secrets | 02-01 | Each monitoring tool integration has own HMAC secret for signature verification |
+| Configurable deduplication window per integration | 02-01 | Different tools have different retry patterns (default 15 min) |
+| Hybrid idempotency (key + fingerprint) | 02-01 | External idempotency key preferred, content fingerprint as fallback |
+| Nullable alertId in WebhookDelivery | 02-01 | Track failed/duplicate webhook attempts without creating alerts |
+| Raw + normalized dual storage pattern | 02-01 | Preserve original webhook JSON + extract normalized Alert fields |
 
 ### Pending Todos
 
@@ -109,15 +117,15 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- None - Phase 1 fully complete with all TypeScript compilation errors resolved
+- None - Phase 2 Plan 1 complete
+- Database models ready for webhook implementation
 - Project builds cleanly with `npm run build`
-- All 46 tests passing
 
 ## Session Continuity
 
-Last session: 2026-02-06 22:12:12 UTC
-Stopped at: Completed 01-11-PLAN.md - TypeScript compilation fixes (Phase 1 complete)
+Last session: 2026-02-07 00:21:18 UTC
+Stopped at: Completed 02-01-PLAN.md - Alert ingestion database models
 Resume file: None
 
 ---
-*Phase 1 Complete: Ready for Phase 2 - Alert Configuration & Escalation*
+*Phase 2 In Progress: Alert Ingestion & Webhooks - Database foundation established*
