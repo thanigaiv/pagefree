@@ -1,6 +1,6 @@
 import { prisma } from '../config/database.js';
 import { scheduleEscalation } from '../queues/escalation.queue.js';
-import { queueNotification } from '../queues/notification.queue.js';
+import { dispatchNotification } from './notification/index.js';
 import { routingService } from './routing.service.js';
 import { auditService } from './audit.service.js';
 import { logger } from '../config/logger.js';
@@ -46,13 +46,22 @@ class EscalationService {
       }
     });
 
-    // Queue initial notification to assigned user
+    // Dispatch initial notification to assigned user
     if (incident.assignedUserId) {
-      await queueNotification({
-        userId: incident.assignedUserId,
-        incidentId,
-        type: 'new_incident'
-      });
+      try {
+        await dispatchNotification(
+          incidentId,
+          incident.assignedUserId,
+          'new_incident',
+          { escalationLevel: 1 }
+        );
+      } catch (notificationError) {
+        // Log but don't fail escalation - notification is best-effort
+        logger.error(
+          { error: notificationError, incidentId, userId: incident.assignedUserId, escalationLevel: 1 },
+          'Failed to dispatch notification'
+        );
+      }
     }
 
     logger.info(
@@ -171,11 +180,20 @@ class EscalationService {
 
     // Notify new assignee
     if (newAssignee) {
-      await queueNotification({
-        userId: newAssignee,
-        incidentId: incident.id,
-        type: 'escalation'
-      });
+      try {
+        await dispatchNotification(
+          incident.id,
+          newAssignee,
+          'escalation',
+          { escalationLevel: level.levelNumber }
+        );
+      } catch (notificationError) {
+        // Log but don't fail escalation - notification is best-effort
+        logger.error(
+          { error: notificationError, incidentId: incident.id, userId: newAssignee, escalationLevel: level.levelNumber },
+          'Failed to dispatch escalation notification'
+        );
+      }
     }
 
     logger.info(
