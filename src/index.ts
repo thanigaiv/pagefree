@@ -27,6 +27,8 @@ import { configureOktaStrategy } from './auth/strategies/okta.js';
 import { oktaWebhookRouter } from './webhooks/okta.js';
 import { scimRouter } from './auth/scim/routes.js';
 import { alertWebhookRouter } from './webhooks/alert-receiver.js';
+import { slackInteractionsRouter } from './routes/webhooks/slack-interactions.js';
+import { slackCommandsRouter } from './routes/webhooks/slack-commands.js';
 import { startEscalationWorker, setupGracefulShutdown } from './workers/escalation.worker.js';
 
 export const app = express();
@@ -55,12 +57,25 @@ configureOktaStrategy();
 // MUST be before express.json() to capture raw body for signature verification
 app.use('/webhooks/alerts', alertWebhookRouter);
 
+// Slack webhooks with raw body capture for signature verification
+// MUST be before the main body parsers
+app.use('/webhooks/slack', express.urlencoded({
+  extended: true,
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
+
 // Parse JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Okta webhooks (mount before auth middleware - uses its own auth)
 app.use('/webhooks/okta', oktaWebhookRouter);
+
+// Slack webhooks (mount before auth middleware - uses signature-based auth)
+app.use('/webhooks/slack/interactions', slackInteractionsRouter);
+app.use('/webhooks/slack/commands', slackCommandsRouter);
 
 // SCIM endpoints (mount before auth middleware - uses its own auth)
 app.use('/scim/v2', scimRouter);
