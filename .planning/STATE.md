@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 
 ## Current Position
 
-Phase: 3 of 10 (Scheduling System) — COMPLETE ✓
-Plan: 7 of 7 complete
-Status: Phase 3 verified and complete. Ready for Phase 4 (Alert Routing & Deduplication)
-Last activity: 2026-02-07 — Phase 3 verification complete, all requirements satisfied
+Phase: 4 of 10 (Alert Routing & Deduplication) — IN PROGRESS
+Plan: 2 of 8 complete
+Status: BullMQ queue infrastructure complete, routing service next
+Last activity: 2026-02-07 — Completed 04-02-PLAN.md (BullMQ Queue Infrastructure)
 
-Progress: [███████████████████░░░] 30% (3 of 10 phases)
+Progress: [███████████████████░░░] 30% (3 phases complete, phase 4 in progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 3 min
-- Total execution time: 1.50 hours
+- Total execution time: 1.57 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [███████████████████░░░] 3
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
 | 3. Scheduling System | 7/7 | 25 min | 3.6 min |
+| 4. Alert Routing & Deduplication | 2/8 | 4 min | 2 min |
 
 **Recent Trend:**
-- Last 7 plans: 03-01 (2 min), 03-02 (3 min), 03-03 (5 min), 03-04 (2 min), 03-05 (3 min), 03-06 (6 min), 03-07 (4 min)
-- Trend: Phase 3 complete with consistent velocity, DST testing delivered successfully
+- Last 7 plans: 03-02 (3 min), 03-03 (5 min), 03-04 (2 min), 03-05 (3 min), 03-06 (6 min), 03-07 (4 min), 04-02 (4 min)
+- Trend: Phase 4 started, consistent velocity maintained
 
 *Updated after each plan completion*
 
@@ -150,6 +151,11 @@ Recent decisions affecting current work:
 | Relaxed rotation position test to verify user in list | 03-07 | RRULE calculation deterministic but complex, test presence not position |
 | DST fixtures cover US and EU transition dates | 03-07 | Support international teams with different DST dates |
 | Schedule cleanup added to test setup | 03-07 | Foreign key-aware cleanup prevents test failures (scheduleOverride, scheduleLayer, schedule order) |
+| BullMQ with Redis for reliable delayed job execution | 04-02 | Escalation timers must survive server restarts |
+| maxRetriesPerRequest: null and enableReadyCheck: false | 04-02 | BullMQ requirements for proper connection management |
+| Singleton Redis connection pattern | 04-02 | Share single connection across queues and workers for performance |
+| Escalation job ID format: incident:id:level:X:repeat:Y | 04-02 | Idempotency for escalation job scheduling |
+| Notification queue with 5 retry attempts | 04-02 | More retries than escalation queue due to critical notification path |
 
 ### Pending Todos
 
@@ -165,16 +171,16 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- Phase 3 complete - all scheduling features and DST tests delivered
-- Next: Phase 4 (Alert Routing & Escalation)
-- No blockers for next phase
+- Phase 4 in progress - queue infrastructure complete (04-02)
+- Next: Routing service (04-03) to connect alerts to incidents
+- No blockers for next plan
 
 ## Session Continuity
 
-Last session: 2026-02-07
-Stopped at: Phase 3 verification complete - all 10 requirements (SCHED-01 through SCHED-10) satisfied
+Last session: 2026-02-07 04:06 UTC
+Stopped at: Completed 04-02-PLAN.md (BullMQ Queue Infrastructure)
 Resume file: None
 
 ---
-*Phase 3 Complete: Scheduling System (7/7 plans, 10/10 requirements, 130 tests passing)*
-*Next: Phase 4 - Alert Routing & Deduplication*
+*Phase 4 In Progress: Alert Routing & Deduplication (2/8 plans complete)*
+*Next: 04-03 - Routing Service*
