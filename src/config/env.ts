@@ -40,6 +40,9 @@ const envSchema = z.object({
   SNS_PLATFORM_APP_ARN_IOS: z.string().optional(),
   SNS_PLATFORM_APP_ARN_ANDROID: z.string().optional(),
 
+  // AWS SNS SMS failover configuration
+  AWS_SNS_SMS_SENDER_ID: z.string().default('OnCall'),
+
   // API Base URL (for webhook callbacks)
   API_BASE_URL: z.string().url().optional(),
 
