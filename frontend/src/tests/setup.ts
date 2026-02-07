@@ -18,7 +18,7 @@ vi.mock('socket.io-client', () => ({
 }));
 
 // Mock fetch globally
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn() as any;
 
 // Mock navigator for PWA tests
 Object.defineProperty(navigator, 'serviceWorker', {
@@ -49,18 +49,18 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+globalThis.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}));
+})) as any;
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}));
+})) as any;
 
 // Reset all mocks between tests
 beforeEach(() => {
