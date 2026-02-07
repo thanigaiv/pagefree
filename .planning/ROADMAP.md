@@ -83,10 +83,16 @@ Plans:
   5. System handles DST transitions without schedule gaps or wrong assignments
   6. System integrates with Google Calendar and Outlook Calendar
   7. User can view who is currently on-call for each service at any time
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 03-01: TBD during phase planning
+- [ ] 03-01-PLAN.md - Database schema for schedules (Schedule, ScheduleLayer, ScheduleOverride, CalendarSync)
+- [ ] 03-02-PLAN.md - Schedule CRUD service with RRULE generation (daily/weekly/custom rotations)
+- [ ] 03-03-PLAN.md - Schedule layers with priority precedence and restrictions
+- [ ] 03-04-PLAN.md - Schedule overrides and shift swaps with conflict detection
+- [ ] 03-05-PLAN.md - Who-is-on-call query service with timezone handling
+- [ ] 03-06-PLAN.md - Calendar sync (Google Calendar and Outlook)
+- [ ] 03-07-PLAN.md - DST test fixtures and integration tests
 
 ### Phase 4: Alert Routing & Deduplication
 **Goal**: Alerts route to correct on-call engineer with deduplication and escalation
@@ -208,7 +214,7 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 |-------|----------------|--------|-----------|
 | 1. Foundation & User Management | 11/11 | Complete | 2026-02-06 |
 | 2. Alert Ingestion & Webhooks | 0/7 | Planned | - |
-| 3. Scheduling System | 0/TBD | Not started | - |
+| 3. Scheduling System | 0/7 | Planned | - |
 | 4. Alert Routing & Deduplication | 0/TBD | Not started | - |
 | 5. Multi-Channel Notifications | 0/TBD | Not started | - |
 | 6. Incident Management Dashboard | 0/TBD | Not started | - |
@@ -219,4 +225,4 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 
 ---
 *Roadmap created: 2026-02-06*
-*Last updated: 2026-02-06*
+*Last updated: 2026-02-07*
