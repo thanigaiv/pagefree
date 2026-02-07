@@ -190,6 +190,13 @@ Recent decisions affecting current work:
 | Teams Adaptive Cards v1.5 | 05-04 | Action.Submit buttons for acknowledge/resolve actions |
 | Teams chat creation pattern | 05-04 | Create 1:1 chat if doesnt exist for proactive messaging |
 | Teams priority styling mirrors Slack | 05-04 | Consistent visual language (CRITICAL=attention, HIGH=warning) |
+| NotificationLog per-channel tracking | 05-01 | Track delivery status per channel per incident for granular retry logic |
+| MagicLinkToken SHA-256 hashing | 05-01 | OWASP guidance - never store plaintext security tokens for email actions |
+| OAuth connection storage for Slack/Teams | 05-01 | Enable bidirectional integration with automatic token refresh support |
+| Channel interface abstraction | 05-01 | Polymorphic notification delivery - all channels implement send() contract |
+| Channel escalation config pattern | 05-01 | Primary (parallel), secondary (if primary fails), fallback (last resort) |
+| TEAMS added to NotificationChannel enum | 05-01 | Microsoft Teams as first-class channel alongside Slack |
+
 ### Pending Todos
 
 None yet.
@@ -211,10 +218,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-07 05:27 UTC
-Stopped at: Completed 05-02-PLAN.md (Email and SMS Channels)
+Last session: 2026-02-07 05:28 UTC
+Stopped at: Completed 05-01-PLAN.md (Notification Foundation)
 Resume file: None
 
 ---
-*Phase 5 In Progress: Multi-Channel Notifications (2/11 plans complete)*
+*Phase 5 In Progress: Multi-Channel Notifications (5/11 plans complete)*
 *Next: Continue phase 5 execution*
