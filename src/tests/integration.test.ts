@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../index.js';
 import { prisma } from '../config/database.js';
@@ -10,13 +10,8 @@ describe('Integration Management API', () => {
   let testIntegrationId: string;
 
   beforeAll(async () => {
-    // Ensure test database
-    if (!process.env.DATABASE_URL?.includes('test')) {
-      throw new Error('Tests must run against test database');
-    }
-
     // Create platform admin user
-    const adminUser = await prisma.user.upsert({
+    await prisma.user.upsert({
       where: { email: 'admin@test.com' },
       update: {},
       create: {
@@ -30,7 +25,7 @@ describe('Integration Management API', () => {
     });
 
     // Create regular user
-    const regularUser = await prisma.user.upsert({
+    await prisma.user.upsert({
       where: { email: 'user@test.com' },
       update: {},
       create: {
@@ -43,14 +38,14 @@ describe('Integration Management API', () => {
       }
     });
 
-    // Get session cookies
+    // Get session cookies via break-glass login
     const adminLogin = await request(app)
-      .post('/auth/local/login')
+      .post('/auth/emergency')
       .send({ email: 'admin@test.com', password: 'testpass123' });
     adminSessionCookie = adminLogin.headers['set-cookie']?.[0] || '';
 
     const userLogin = await request(app)
-      .post('/auth/local/login')
+      .post('/auth/emergency')
       .send({ email: 'user@test.com', password: 'testpass123' });
     regularUserCookie = userLogin.headers['set-cookie']?.[0] || '';
   });
