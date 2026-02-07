@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 4 of 10 (Alert Routing & Deduplication) — IN PROGRESS
-Plan: 2 of 8 complete
-Status: BullMQ queue infrastructure complete, routing service next
-Last activity: 2026-02-07 — Completed 04-02-PLAN.md (BullMQ Queue Infrastructure)
+Plan: 1 of 8 complete
+Status: Database models complete, queue infrastructure next
+Last activity: 2026-02-07 — Completed 04-01-PLAN.md (Database Models for Incident Management)
 
 Progress: [███████████████████░░░] 30% (3 phases complete, phase 4 in progress)
 
@@ -30,11 +30,11 @@ Progress: [███████████████████░░░] 3
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
 | 3. Scheduling System | 7/7 | 25 min | 3.6 min |
-| 4. Alert Routing & Deduplication | 2/8 | 4 min | 2 min |
+| 4. Alert Routing & Deduplication | 1/8 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 7 plans: 03-02 (3 min), 03-03 (5 min), 03-04 (2 min), 03-05 (3 min), 03-06 (6 min), 03-07 (4 min), 04-02 (4 min)
-- Trend: Phase 4 started, consistent velocity maintained
+- Last 7 plans: 03-03 (5 min), 03-04 (2 min), 03-05 (3 min), 03-06 (6 min), 03-07 (4 min), 04-01 (4 min)
+- Trend: Phase 4 started, database models complete
 
 *Updated after each plan completion*
 
@@ -151,11 +151,10 @@ Recent decisions affecting current work:
 | Relaxed rotation position test to verify user in list | 03-07 | RRULE calculation deterministic but complex, test presence not position |
 | DST fixtures cover US and EU transition dates | 03-07 | Support international teams with different DST dates |
 | Schedule cleanup added to test setup | 03-07 | Foreign key-aware cleanup prevents test failures (scheduleOverride, scheduleLayer, schedule order) |
-| BullMQ with Redis for reliable delayed job execution | 04-02 | Escalation timers must survive server restarts |
-| maxRetriesPerRequest: null and enableReadyCheck: false | 04-02 | BullMQ requirements for proper connection management |
-| Singleton Redis connection pattern | 04-02 | Share single connection across queues and workers for performance |
-| Escalation job ID format: incident:id:level:X:repeat:Y | 04-02 | Idempotency for escalation job scheduling |
-| Notification queue with 5 retry attempts | 04-02 | More retries than escalation queue due to critical notification path |
+| EscalationPolicy repeatCount for policy cycling | 04-01 | Repeat entire escalation chain N times to prevent missed alerts (PagerDuty pattern) |
+| EscalationJob tracks BullMQ job ID | 04-01 | Enable atomic cancellation on acknowledgment to prevent notification races |
+| Incident tracks currentLevel and currentRepeat | 04-01 | Enable escalation resume after server restart and provide audit trail |
+| Alert.incidentId nullable foreign key | 04-01 | Preserve Phase 2 webhook deduplication, alerts can exist before incident creation |
 
 ### Pending Todos
 
@@ -171,16 +170,16 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- Phase 4 in progress - queue infrastructure complete (04-02)
-- Next: Routing service (04-03) to connect alerts to incidents
-- No blockers for next plan
+- Phase 4 in progress - database models complete (04-01)
+- Next: Queue infrastructure (04-02) for BullMQ escalation timers
+- Deduplication race condition warning from research - must use Serializable isolation
 
 ## Session Continuity
 
 Last session: 2026-02-07 04:06 UTC
-Stopped at: Completed 04-02-PLAN.md (BullMQ Queue Infrastructure)
+Stopped at: Completed 04-01-PLAN.md (Database Models for Incident Management)
 Resume file: None
 
 ---
-*Phase 4 In Progress: Alert Routing & Deduplication (2/8 plans complete)*
-*Next: 04-03 - Routing Service*
+*Phase 4 In Progress: Alert Routing & Deduplication (1/8 plans complete)*
+*Next: 04-02 - BullMQ Queue Infrastructure*
