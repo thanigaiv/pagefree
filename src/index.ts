@@ -16,6 +16,8 @@ import { integrationRouter } from './routes/integration.routes.js';
 import { scheduleRouter } from './routes/schedule.routes.js';
 import { onCallRouter } from './routes/oncall.routes.js';
 import calendarSyncRouter from './routes/calendarSync.routes.js';
+import { incidentRoutes } from './routes/incident.routes.js';
+import { escalationPolicyRoutes } from './routes/escalation-policy.routes.js';
 import { scheduleAuditCleanup } from './jobs/auditCleanup.js';
 import { auditService } from './services/audit.service.js';
 import { configureLocalStrategy } from './auth/strategies/local.js';
@@ -106,6 +108,8 @@ app.use('/api/integrations', integrationRouter);
 app.use('/api/schedules', scheduleRouter);
 app.use('/api/oncall', onCallRouter);
 app.use('/api/calendar', calendarSyncRouter);
+app.use('/api/incidents', incidentRoutes);
+app.use('/api/escalation-policies', escalationPolicyRoutes);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
