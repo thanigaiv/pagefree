@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 4 of 10 (Alert Routing & Deduplication) — IN PROGRESS
-Plan: 4 of 8 complete
-Status: Escalation policy management complete, incident lifecycle next
-Last activity: 2026-02-07 — Completed 04-03-PLAN.md (Escalation Policy Management)
+Plan: 5 of 8 complete
+Status: Incident lifecycle management complete, alert creation & routing next
+Last activity: 2026-02-07 — Completed 04-05-PLAN.md (Incident Lifecycle Management)
 
-Progress: [███████████████████░░░] 32% (3 phases complete, phase 4 in progress)
+Progress: [████████████████████░░] 33% (3 phases complete, phase 4 in progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
-- Average duration: 3 min
-- Total execution time: 1.69 hours
+- Total plans completed: 30
+- Average duration: 3.3 min
+- Total execution time: 1.77 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [███████████████████░░░] 3
 | 1. Foundation & User Management | 11/11 | 48 min | 4 min |
 | 2. Alert Ingestion & Webhooks | 7/7 | 16 min | 2.3 min |
 | 3. Scheduling System | 7/7 | 25 min | 3.6 min |
-| 4. Alert Routing & Deduplication | 4/8 | 17 min | 4.3 min |
+| 4. Alert Routing & Deduplication | 5/8 | 22 min | 4.4 min |
 
 **Recent Trend:**
-- Last 7 plans: 03-06 (6 min), 03-07 (4 min), 04-01 (4 min), 04-02 (2 min), 04-03 (4 min), 04-04 (3 min), 04-03 (4 min)
-- Trend: Phase 4 progressing steadily, escalation policy management complete
+- Last 7 plans: 03-07 (4 min), 04-01 (4 min), 04-02 (2 min), 04-03 (4 min), 04-04 (3 min), 04-05 (5 min)
+- Trend: Phase 4 progressing steadily, incident lifecycle complete
 
 *Updated after each plan completion*
 
@@ -163,6 +163,10 @@ Recent decisions affecting current work:
 | P2034 retry with exponential backoff | 04-04 | Handle serialization conflicts gracefully, max 3 retries with 200/400/800ms delays |
 | Service tag-based alert routing | 04-04 | TeamTag.TECHNICAL matches alert metadata.service to route alerts to correct team |
 | Null assignedUserId allowed on incidents | 04-04 | Create incidents even when no on-call user available, prevents alert loss during gaps |
+| Acknowledge assigns incident to acknowledger | 04-05 | Common on-call pattern - whoever acks takes ownership |
+| Timeline built from audit events (no separate table) | 04-05 | Audit events are the source of truth for incident history |
+| Notes stored as audit events (incident.note.added) | 04-05 | Consistent with timeline approach, no separate notes table |
+| Close only works on RESOLVED incidents | 04-05 | Enforce state machine: OPEN → ACKNOWLEDGED → RESOLVED → CLOSED |
 
 ### Pending Todos
 
@@ -178,15 +182,15 @@ None yet.
 - Phase 5: Multi-provider notification failover must be built in from start (critical pitfall)
 
 **Current concerns:**
-- Phase 4 in progress - deduplication and routing complete (04-04)
-- Next: Incident lifecycle service (04-05) for acknowledge/resolve/close operations
+- Phase 4 in progress - incident lifecycle complete (04-05)
+- Next: Alert creation service (04-06) to trigger incidents from webhooks
 
 ## Session Continuity
 
-Last session: 2026-02-07 04:13 UTC
-Stopped at: Completed 04-03-PLAN.md (Escalation Policy Management)
+Last session: 2026-02-07 04:14 UTC
+Stopped at: Completed 04-05-PLAN.md (Incident Lifecycle Management)
 Resume file: None
 
 ---
-*Phase 4 In Progress: Alert Routing & Deduplication (4/8 plans complete)*
-*Next: 04-05 - Incident Lifecycle Service*
+*Phase 4 In Progress: Alert Routing & Deduplication (5/8 plans complete)*
+*Next: 04-06 - Alert Creation & Incident Triggering*
