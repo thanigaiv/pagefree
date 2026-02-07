@@ -1,17 +1,14 @@
-import twilio from 'twilio';
 import { BaseChannel } from './base.channel.js';
 import type { NotificationPayload, ChannelDeliveryResult } from '../types.js';
 import { prisma } from '../../../config/database.js';
-import { env } from '../../../config/env.js';
 import { logger } from '../../../config/logger.js';
+import { sendSMSWithFailover } from '../failover.service.js';
 
 export class SMSChannel extends BaseChannel {
   name = 'sms';
-  private twilioClient: ReturnType<typeof twilio>;
 
   constructor() {
     super();
-    this.twilioClient = twilio(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN);
   }
 
   supportsInteractivity(): boolean {
@@ -37,23 +34,17 @@ export class SMSChannel extends BaseChannel {
       // Build SMS message (160 char limit per user decision)
       const body = this.buildSMSMessage(payload);
 
-      const message = await this.twilioClient.messages.create({
-        from: env.TWILIO_PHONE_NUMBER,
-        to: user.phone,
-        body,
-        statusCallback: `${env.API_BASE_URL}/webhooks/twilio/sms/status`
-      });
+      // Use failover service (Twilio primary, AWS SNS fallback)
+      const result = await sendSMSWithFailover(user.phone, body);
 
-      logger.info(
-        { channel: 'sms', incidentId: payload.incidentId, userId: payload.userId, messageSid: message.sid },
-        'SMS notification sent'
-      );
+      if (result.success) {
+        logger.info(
+          { channel: 'sms', incidentId: payload.incidentId, userId: payload.userId, providerId: result.providerId },
+          'SMS notification sent'
+        );
+      }
 
-      return {
-        success: true,
-        providerId: message.sid,
-        deliveredAt: new Date()
-      };
+      return result;
     }, { incidentId: payload.incidentId, userId: payload.userId });
   }
 
