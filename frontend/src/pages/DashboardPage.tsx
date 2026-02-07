@@ -2,12 +2,14 @@ import { useState, useMemo } from 'react';
 import { useIncidents } from '@/hooks/useIncidents';
 import { useUrlState } from '@/hooks/useUrlState';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { usePWA } from '@/hooks/usePWA';
 import { IncidentList } from '@/components/IncidentList';
 import { IncidentFilters } from '@/components/IncidentFilters';
 import { MetricsSummary } from '@/components/MetricsSummary';
 import { Pagination } from '@/components/Pagination';
 import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { BulkActions } from '@/components/BulkActions';
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
@@ -15,6 +17,7 @@ export default function DashboardPage() {
   const { filters, updateFilters, clearFilters } = useUrlState();
   const { data, isLoading, error, refetch, isFetching } = useIncidents(filters);
   const { connectionState, reconnectAttempt } = useWebSocket();
+  const { canInstall, showInstallPrompt } = usePWA();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -75,15 +78,18 @@ export default function DashboardPage() {
             Manage and respond to active incidents
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <InstallPrompt canInstall={canInstall} onInstall={showInstallPrompt} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Metrics summary (per user decision) */}

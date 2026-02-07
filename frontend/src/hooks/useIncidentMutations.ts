@@ -12,7 +12,7 @@ interface ResolveResponse {
 }
 
 // Optimistic acknowledge mutation (per user decision)
-export function useAcknowledgeIncident() {
+export function useAcknowledgeIncident(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -59,6 +59,10 @@ export function useAcknowledgeIncident() {
       toast.success('Incident acknowledged');
 
       return { previousIncident, previousList, incidentId };
+    },
+    onSuccess: () => {
+      // Call optional callback (for PWA install prompt)
+      options?.onSuccess?.();
     },
     onError: (error, _variables, context) => {
       // Rollback on error

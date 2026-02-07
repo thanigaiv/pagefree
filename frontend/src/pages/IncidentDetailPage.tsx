@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useIncidentById } from '@/hooks/useIncidents';
+import { usePWA } from '@/hooks/usePWA';
 import { IncidentDetail } from '@/components/IncidentDetail';
 import { PriorityBadge } from '@/components/ui/priority-badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { ArrowLeft, AlertCircle } from 'lucide-react';
 export default function IncidentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: incident, isLoading, error } = useIncidentById(id);
+  const { promptAfterAcknowledge } = usePWA();
 
   if (isLoading) {
     return (
@@ -84,7 +86,7 @@ export default function IncidentDetailPage() {
       </div>
 
       {/* Detail content */}
-      <IncidentDetail incident={incident} />
+      <IncidentDetail incident={incident} onAcknowledgeSuccess={promptAfterAcknowledge} />
     </div>
   );
 }

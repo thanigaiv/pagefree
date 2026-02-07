@@ -12,12 +12,19 @@ import { Check, CheckCheck, XCircle, Loader2 } from 'lucide-react';
 interface IncidentActionsProps {
   incident: Incident;
   variant?: 'inline' | 'full';
+  onAcknowledgeSuccess?: () => void;
 }
 
-export function IncidentActions({ incident, variant = 'inline' }: IncidentActionsProps) {
+export function IncidentActions({
+  incident,
+  variant = 'inline',
+  onAcknowledgeSuccess
+}: IncidentActionsProps) {
   const [showResolveDialog, setShowResolveDialog] = useState(false);
 
-  const acknowledgeMutation = useAcknowledgeIncident();
+  const acknowledgeMutation = useAcknowledgeIncident({
+    onSuccess: onAcknowledgeSuccess
+  });
   const resolveMutation = useResolveIncident();
   const closeMutation = useCloseIncident();
 

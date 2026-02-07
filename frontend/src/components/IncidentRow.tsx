@@ -145,7 +145,11 @@ export function IncidentRow({
       {/* Expanded content with full details (per user decision: inline expansion) */}
       {isExpanded && (
         <div className="border-t">
-          <IncidentDetail incident={incident} isInline={true} />
+          <IncidentDetail
+            incident={incident}
+            isInline={true}
+            onAcknowledgeSuccess={promptAfterAcknowledge}
+          />
         </div>
       )}
     </Card>

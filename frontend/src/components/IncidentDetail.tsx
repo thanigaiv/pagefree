@@ -13,9 +13,14 @@ import { format } from 'date-fns';
 interface IncidentDetailProps {
   incident: Incident;
   isInline?: boolean; // For expanded row vs full page
+  onAcknowledgeSuccess?: () => void;
 }
 
-export function IncidentDetail({ incident, isInline = false }: IncidentDetailProps) {
+export function IncidentDetail({
+  incident,
+  isInline = false,
+  onAcknowledgeSuccess
+}: IncidentDetailProps) {
   const { data: timeline, isLoading: timelineLoading } = useTimeline(incident.id);
   const service = incident.metadata?.service as string || incident.team.name;
   const updateMetadata = useUpdateMetadata(incident.id);
@@ -73,7 +78,11 @@ export function IncidentDetail({ incident, isInline = false }: IncidentDetailPro
 
       {/* Actions */}
       <div className="mb-4">
-        <IncidentActions incident={incident} variant={isInline ? 'inline' : 'full'} />
+        <IncidentActions
+          incident={incident}
+          variant={isInline ? 'inline' : 'full'}
+          onAcknowledgeSuccess={onAcknowledgeSuccess}
+        />
       </div>
 
       {/* Metadata editor (per user decision: inline editing) */}
