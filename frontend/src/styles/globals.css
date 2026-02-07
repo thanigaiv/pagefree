@@ -57,3 +57,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Safe area padding for bottom nav on devices with notch */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Adjust main content for bottom nav on mobile */
+@media (max-width: 768px) {
+  main {
+    padding-bottom: 5rem; /* 4rem nav + 1rem buffer */
+  }
+}
