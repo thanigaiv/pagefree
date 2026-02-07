@@ -48,9 +48,22 @@ export async function cleanupTestData() {
   // Delete in correct order for foreign keys
   await prisma.auditEvent.deleteMany({});
   await prisma.apiKey.deleteMany({});
+
+  // Phase 4: Incident and escalation cleanup
+  await prisma.escalationJob.deleteMany({});
+  await prisma.alert.deleteMany({});
+  await prisma.webhookDelivery.deleteMany({});
+  await prisma.incident.deleteMany({});
+  await prisma.escalationLevel.deleteMany({});
+  await prisma.escalationPolicy.deleteMany({});
+  await prisma.integration.deleteMany({});
+
+  // Phase 3: Schedule cleanup
   await prisma.scheduleOverride.deleteMany({});
   await prisma.scheduleLayer.deleteMany({});
   await prisma.schedule.deleteMany({});
+
+  // Phase 1: User and team cleanup
   await prisma.teamMember.deleteMany({});
   await prisma.teamTag.deleteMany({});
   await prisma.contactVerification.deleteMany({});
