@@ -170,6 +170,9 @@ Recent decisions affecting current work:
 | Worker status check before escalating | 04-06 | Re-check incident.status in worker to prevent race with acknowledgment |
 | Stale escalation reconciliation on startup | 04-06 | Reschedule OPEN incidents with no active jobs (>1hr stale) prevents missed escalations |
 | Degraded mode if Redis unavailable | 04-06 | Server starts without workers if Redis fails, logs error instead of crashing |
+| Cursor-based pagination for alert search | 04-07 | Scalable for large result sets, prevents performance degradation as dataset grows |
+| Content fingerprint includes service metadata | 04-07 | Service field from metadata enables better grouping for microservice architectures |
+| Return incident_id in webhook response | 04-07 | Monitoring tools can track incident lifecycle from initial alert |
 
 ### Pending Todos
 
@@ -190,8 +193,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-07 04:20 UTC
-Stopped at: Completed 04-08-PLAN.md (Integration Testing)
+Last session: 2026-02-07 04:22 UTC
+Stopped at: Completed 04-07-PLAN.md (Alert Search & Routing Pipeline)
 Resume file: None
 
 ---
