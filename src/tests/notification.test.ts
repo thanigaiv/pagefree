@@ -53,7 +53,8 @@ import {
 import { buildSlackIncidentBlocks } from '../services/notification/templates/slack.templates.js';
 import type { NotificationPayload } from '../services/notification/types.js';
 
-// Test fixtures
+// Test fixtures (reserved for future tests)
+// @ts-expect-error - Reserved for future implementation
 const testUser = {
   id: 'user-test-1',
   email: 'test@example.com',
@@ -65,6 +66,7 @@ const testUser = {
   emailVerified: true
 };
 
+// @ts-expect-error - Reserved for future implementation
 const testIncident = {
   id: 'incident-test-1',
   priority: 'CRITICAL',

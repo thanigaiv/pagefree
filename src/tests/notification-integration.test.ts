@@ -142,8 +142,8 @@ describe('Notification Integration', () => {
       const { deliveryTracker } = await import('../services/notification/delivery-tracker.js');
 
       // Track notifications for user's enabled channels
-      const emailLogId = await deliveryTracker.trackQueued(testIncident.id, testUser.id, 'email');
-      const smsLogId = await deliveryTracker.trackQueued(testIncident.id, testUser.id, 'sms');
+      await deliveryTracker.trackQueued(testIncident.id, testUser.id, 'email');
+      await deliveryTracker.trackQueued(testIncident.id, testUser.id, 'sms');
 
       // Verify logs created
       const logs = await prisma.notificationLog.findMany({

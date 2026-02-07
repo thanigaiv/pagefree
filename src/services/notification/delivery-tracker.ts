@@ -1,7 +1,6 @@
 import { prisma } from '../../config/database.js';
 import { auditService } from '../audit.service.js';
 import { logger } from '../../config/logger.js';
-import type { DeliveryStatus } from './types.js';
 
 class DeliveryTracker {
   // Create initial notification log entry when job is queued

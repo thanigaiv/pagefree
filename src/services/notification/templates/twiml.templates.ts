@@ -3,7 +3,6 @@ import type { NotificationPayload } from '../types.js';
 // Build initial call TwiML (per user decision: TTS with keypress menu)
 // Press 1 to acknowledge, press 2 for details, press 9 to escalate
 export function buildIncidentCallTwiml(payload: NotificationPayload, baseUrl: string): string {
-  const shortId = payload.incidentId.slice(-6);
   const escalationText = payload.escalationLevel
     ? `This is escalation level ${payload.escalationLevel}. `
     : '';

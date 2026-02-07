@@ -1,7 +1,6 @@
 import twilio from 'twilio';
 import { BaseChannel } from './base.channel.js';
 import type { NotificationPayload, ChannelDeliveryResult } from '../types.js';
-import { buildIncidentCallTwiml } from '../templates/twiml.templates.js';
 import { prisma } from '../../../config/database.js';
 import { env } from '../../../config/env.js';
 import { logger } from '../../../config/logger.js';
@@ -44,7 +43,7 @@ export class VoiceChannel extends BaseChannel {
       // Initiate call with TwiML URL
       const call = await this.twilioClient.calls.create({
         to: user.phone,
-        from: env.TWILIO_PHONE_NUMBER,
+        from: env.TWILIO_PHONE_NUMBER!,
         url: `${baseUrl}/webhooks/twilio/voice/incident/${payload.incidentId}`,
         statusCallback: `${baseUrl}/webhooks/twilio/voice/status`,
         statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
@@ -69,7 +68,7 @@ export class VoiceChannel extends BaseChannel {
   async getProviderStatus(): Promise<{ healthy: boolean; latencyMs?: number }> {
     const start = Date.now();
     try {
-      await this.twilioClient.api.accounts(env.TWILIO_ACCOUNT_SID).fetch();
+      await this.twilioClient.api.accounts(env.TWILIO_ACCOUNT_SID!).fetch();
       return {
         healthy: true,
         latencyMs: Date.now() - start

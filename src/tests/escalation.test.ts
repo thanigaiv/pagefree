@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '../config/database.js';
 import { escalationPolicyService } from '../services/escalation-policy.service.js';
 import { escalationService } from '../services/escalation.service.js';

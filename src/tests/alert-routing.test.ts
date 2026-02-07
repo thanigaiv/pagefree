@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '../config/database.js';
 import { deduplicationService } from '../services/deduplication.service.js';
 import { alertService } from '../services/alert.service.js';
