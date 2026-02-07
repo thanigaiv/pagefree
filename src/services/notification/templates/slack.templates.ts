@@ -9,6 +9,27 @@ const PRIORITY_COLORS: Record<string, string> = {
   INFO: '#0066cc'       // Blue
 };
 
+// Helper function to get provider prefix
+function getProviderPrefix(title: string, service: string): string {
+  // Check if title already has prefix (from normalizer in 07-01)
+  if (title.startsWith('[DataDog]') || title.startsWith('[New Relic]')) {
+    return ''; // Already prefixed by normalizer
+  }
+
+  // Fallback: check if service name suggests provider
+  // This handles cases where title wasn't prefixed by normalizer
+  const serviceLower = service.toLowerCase();
+  if (serviceLower.includes('datadog') || serviceLower.includes('dd')) {
+    return '[DataDog] ';
+  }
+  if (serviceLower.includes('newrelic') || serviceLower.includes('new relic')) {
+    return '[New Relic] ';
+  }
+
+  // No provider detected, return empty prefix
+  return '';
+}
+
 // Build Slack Block Kit message for incident notification
 export function buildSlackIncidentBlocks(payload: NotificationPayload): {
   text: string;
@@ -17,9 +38,13 @@ export function buildSlackIncidentBlocks(payload: NotificationPayload): {
   const color = PRIORITY_COLORS[payload.priority] || PRIORITY_COLORS.MEDIUM;
   const icon = payload.priority === 'CRITICAL' ? ':rotating_light: ' : '';
 
+  // Add provider prefix if not already present
+  const providerPrefix = getProviderPrefix(payload.title, payload.service);
+  const displayTitle = providerPrefix + payload.title;
+
   return {
     // Fallback text for notifications
-    text: `${icon}[${payload.priority}] ${payload.service}: ${payload.title}`,
+    text: `${icon}[${payload.priority}] ${payload.service}: ${displayTitle}`,
     attachments: [{
       color: color,
       blocks: [
@@ -28,7 +53,7 @@ export function buildSlackIncidentBlocks(payload: NotificationPayload): {
           type: 'header',
           text: {
             type: 'plain_text',
-            text: `${icon}${payload.title}`.substring(0, 150),
+            text: `${icon}${displayTitle}`.substring(0, 150),
             emoji: true
           }
         },
