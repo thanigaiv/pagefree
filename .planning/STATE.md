@@ -9,18 +9,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 
 ## Current Position
 
-Phase: 7 of 10 (External Integrations) — COMPLETE
-Plan: 6 of 6 complete
-Status: Phase 7 complete - DataDog, New Relic, and Slack integrations verified
-Last activity: 2026-02-07 — Completed Phase 7 (External Integrations)
-Progress: [██████████████████████████████████████████] 70% (7.0 of 10 phases)
+Phase: 8 of 10 (Automation & Workflows)
+Plan: 1 of ? in progress
+Status: Plan 08-01 complete - workflow schema and types foundation
+Last activity: 2026-02-07 — Completed 08-01-PLAN.md (Workflow Schema and Types)
+Progress: [██████████████████████████████████████████░░░░] 71% (7.1 of 10 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 62
+- Total plans completed: 63
 - Average duration: 3.5 min
-- Total execution time: 3.78 hours
+- Total execution time: 3.81 hours
 
 **By Phase:**
 
@@ -33,10 +33,11 @@ Progress: [███████████████████████
 | 5. Multi-Channel Notifications | 11/11 | 50 min | 4.5 min |
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
+| 8. Automation & Workflows | 1/? | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 7 plans: 07-01 (2.9 min), 07-02 (4.9 min), 07-03 (2.3 min), 07-04 (2.4 min), 07-05 (2.5 min), 07-06 (6 min), average 3.5 min
-- Trend: Phase 7 complete - external integrations with DataDog, New Relic, and Slack
+- Last 7 plans: 07-02 (4.9 min), 07-03 (2.3 min), 07-04 (2.4 min), 07-05 (2.5 min), 07-06 (6 min), 08-01 (2 min), average 3.4 min
+- Trend: Phase 8 started - workflow schema and types foundation
 
 *Updated after each plan completion*
 
@@ -278,6 +279,10 @@ Recent decisions affecting current work:
 | Emoji health indicators in Slack | 07-03 | Clear visual distinction, Slack-native formatting, no color dependency |
 | Provider prefix double-check logic | 07-03 | Normalizer already adds prefix, fallback prevents [DataDog] [DataDog] duplicates |
 | date-fns for human-readable time | 07-03 | Human-readable relative time ('3 minutes ago') better UX than timestamps |
+| Workflow definition as JSON blob | 08-01 | Store WorkflowDefinition in Prisma Json field with typed TypeScript interface |
+| definitionSnapshot in execution | 08-01 | In-flight workflows use frozen definition snapshot for version isolation |
+| WorkflowActionSecret separate table | 08-01 | Encrypted credentials stored separate from workflow for security |
+| ActionData discriminated union | 08-01 | Type-safe action handling via actionType discriminator (webhook, jira, linear) |
 
 ### Pending Todos
 
@@ -308,9 +313,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed Phase 7 (External Integrations)
+Stopped at: Completed 08-01-PLAN.md (Workflow Schema and Types)
 Resume file: None
 
 ---
-*Phase 7 Complete: External Integrations (6/6 plans complete)*
-*Next: Phase 8 - Automation & Workflows*
+*Phase 8 In Progress: Automation & Workflows (1/? plans complete)*
+*Current: Workflow foundation - schema and types complete*
