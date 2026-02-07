@@ -7,11 +7,15 @@ import {
   ScheduleListQuerySchema
 } from '../types/schedule.js';
 import { AuthenticatedUser } from '../types/auth.js';
+import { scheduleLayerRouter } from './scheduleLayer.routes.js';
 
 export const scheduleRouter = Router();
 
 // All schedule routes require authentication
 scheduleRouter.use(requireAuth);
+
+// Mount layer routes (nested under schedules)
+scheduleRouter.use('/', scheduleLayerRouter);
 
 // ============================================================================
 // POST /api/schedules - Create schedule
