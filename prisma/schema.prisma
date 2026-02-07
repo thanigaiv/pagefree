@@ -35,6 +35,7 @@ enum NotificationChannel {
   SMS
   PUSH
   SLACK
+  TEAMS
   VOICE
 }
 
@@ -89,6 +90,9 @@ model User {
   scheduleOverridesCreated    ScheduleOverride[] @relation("ScheduleOverrideCreatedBy")
   calendarSyncs         CalendarSync[]
   incidentsAssigned     Incident[]
+  notificationLogs      NotificationLog[]
+  slackConnection       SlackConnection?
+  teamsConnection       TeamsConnection?
 
   @@index([email])
   @@index([oktaId])
@@ -559,6 +563,8 @@ model Incident {
   // Relations
   alerts               Alert[]
   escalationJobs       EscalationJob[]
+  notificationLogs     NotificationLog[]
+  magicLinkTokens      MagicLinkToken[]
 
   @@index([teamId, status])
   @@index([fingerprint, status, createdAt])
@@ -580,4 +586,102 @@ model EscalationJob {
   createdAt      DateTime  @default(now()) @db.Timestamptz
 
   @@index([incidentId, completed])
+}
+
+// ============================================================================
+// NOTIFICATION DELIVERY MODELS (Phase 5)
+// ============================================================================
+
+model NotificationLog {
+  id             String   @id @default(cuid())
+  incidentId     String
+  incident       Incident @relation(fields: [incidentId], references: [id])
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  channel        NotificationChannel
+
+  // Delivery tracking
+  status         String   // QUEUED, SENDING, SENT, DELIVERED, FAILED
+  providerId     String?  // External message ID from provider
+  error          String?  // Error message if failed
+  attemptCount   Int      @default(0)
+
+  // Escalation context
+  escalationLevel Int?    // Which escalation level triggered this
+
+  // Timestamps
+  queuedAt       DateTime @db.Timestamptz
+  sentAt         DateTime? @db.Timestamptz
+  deliveredAt    DateTime? @db.Timestamptz
+  lastAttemptAt  DateTime? @db.Timestamptz
+
+  createdAt      DateTime @default(now()) @db.Timestamptz
+
+  @@index([incidentId, channel])
+  @@index([userId, status])
+  @@index([incidentId, userId, channel])
+}
+
+model MagicLinkToken {
+  id          String   @id @default(cuid())
+  tokenHash   String   @unique  // SHA-256 hash (never store plaintext)
+  incidentId  String
+  incident    Incident @relation(fields: [incidentId], references: [id])
+  action      String   // 'acknowledge' or 'resolve'
+  used        Boolean  @default(false)
+  usedAt      DateTime? @db.Timestamptz
+  expiresAt   DateTime @db.Timestamptz
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  @@index([tokenHash])
+  @@index([incidentId, action])
+  @@index([expiresAt])
+}
+
+model SlackConnection {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // OAuth tokens (encrypted in production)
+  accessToken    String
+  refreshToken   String?
+  tokenExpiresAt DateTime? @db.Timestamptz
+
+  // User's Slack identity
+  slackUserId    String   @unique
+  slackTeamId    String
+  slackEmail     String?
+
+  isActive       Boolean  @default(true)
+  lastUsedAt     DateTime? @db.Timestamptz
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
+
+  @@unique([userId])
+  @@index([slackUserId])
+}
+
+model TeamsConnection {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // OAuth tokens (encrypted in production)
+  accessToken    String
+  refreshToken   String?
+  tokenExpiresAt DateTime? @db.Timestamptz
+
+  // User's Teams identity
+  teamsUserId    String   @unique
+  teamsTenantId  String
+  teamsEmail     String?
+
+  isActive       Boolean  @default(true)
+  lastUsedAt     DateTime? @db.Timestamptz
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
+
+  @@unique([userId])
+  @@index([teamsUserId])
 }
