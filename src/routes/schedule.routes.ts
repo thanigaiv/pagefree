@@ -8,6 +8,7 @@ import {
 } from '../types/schedule.js';
 import { AuthenticatedUser } from '../types/auth.js';
 import { scheduleLayerRouter } from './scheduleLayer.routes.js';
+import { scheduleOverrideRouter } from './scheduleOverride.routes.js';
 
 export const scheduleRouter = Router();
 
@@ -16,6 +17,9 @@ scheduleRouter.use(requireAuth);
 
 // Mount layer routes (nested under schedules)
 scheduleRouter.use('/', scheduleLayerRouter);
+
+// Mount override routes (nested under schedules)
+scheduleRouter.use('/', scheduleOverrideRouter);
 
 // ============================================================================
 // POST /api/schedules - Create schedule

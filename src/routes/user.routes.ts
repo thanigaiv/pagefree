@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth, requirePlatformAdmin } from '../middleware/auth.js';
 import { userService } from '../services/user.service.js';
+import { scheduleOverrideService } from '../services/scheduleOverride.service.js';
 
 export const userRouter = Router();
 
@@ -18,6 +19,16 @@ userRouter.get('/me', async (req, res) => {
     return res.json(profile);
   } catch (error) {
     return res.status(500).json({ error: 'Failed to get profile' });
+  }
+});
+
+// GET /api/users/me/overrides/upcoming - Get current user's upcoming overrides
+userRouter.get('/me/overrides/upcoming', async (req, res) => {
+  try {
+    const overrides = await scheduleOverrideService.findUpcoming((req.user as any).id);
+    return res.json(overrides);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to get upcoming overrides' });
   }
 });
 
