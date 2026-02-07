@@ -269,3 +269,7 @@ Resume file: None
 ---
 *Phase 6 In Progress: Incident Management Dashboard (5/11 plans complete)*
 *Next: 06-06 - Mobile PWA with Push Notifications*
+| Inline note-adding UI below timeline (not modal) | 06-06 | Per user decision for contextual note-adding |
+| Markdown support with Write/Preview tabs | 06-06 | Rich formatting for detailed incident notes |
+| Safe URL handling in markdown (http/https only) | 06-06 | Security measure to prevent XSS via javascript: or data: schemes |
+| Metadata badge display with inline editing | 06-06 | Read mode shows badges, write mode shows inline form for editing |
