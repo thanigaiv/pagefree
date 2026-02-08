@@ -12,6 +12,7 @@ import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
 import { PublicStatusPage } from './pages/PublicStatusPage';
 import { StatusPagesPage } from './pages/StatusPagesPage';
 import { StatusPageDetailPage } from './pages/StatusPageDetailPage';
+import PostmortemsPage from './pages/PostmortemsPage';
 
 export default function App() {
   const { isOnline } = usePWA();
@@ -43,6 +44,9 @@ export default function App() {
                 {/* Status page admin routes */}
                 <Route path="/status-pages" element={<StatusPagesPage />} />
                 <Route path="/status-pages/:id" element={<StatusPageDetailPage />} />
+
+                {/* Postmortem routes */}
+                <Route path="/postmortems" element={<PostmortemsPage />} />
               </Routes>
             </MobileLayout>
           }
