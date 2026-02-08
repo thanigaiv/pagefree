@@ -41,8 +41,8 @@ Built as a mobile-first Progressive Web App (PWA), PageFree can be installed on 
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd pd
+git clone <repository-url> pagefree
+cd pagefree
 
 # Install backend dependencies
 npm install
