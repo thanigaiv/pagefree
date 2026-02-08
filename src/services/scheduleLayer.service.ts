@@ -1,6 +1,7 @@
 import { prisma } from '../config/database.js';
 import { auditService } from './audit.service.js';
-import { RRule } from 'rrule';
+import * as rruleModule from 'rrule';
+const { RRule } = rruleModule;
 import { DateTime, IANAZone } from 'luxon';
 import {
   CreateLayerInput,

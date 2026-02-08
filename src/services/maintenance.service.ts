@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
-import { RRule } from 'rrule';
+import * as rruleModule from 'rrule';
+const { RRule } = rruleModule;
 import {
   scheduleMaintenanceJobs,
   cancelMaintenanceJobs
