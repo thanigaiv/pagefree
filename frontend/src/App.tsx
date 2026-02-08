@@ -9,27 +9,39 @@ import ProfilePage from './pages/ProfilePage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
+import { PublicStatusPage } from './pages/PublicStatusPage';
 
 export default function App() {
   const { isOnline } = usePWA();
 
   return (
     <>
-      <MobileLayout>
-        <Routes>
-          <Route path="/" element={<Navigate to="/incidents" replace />} />
-          <Route path="/incidents" element={<DashboardPage />} />
-          <Route path="/incidents/:id" element={<IncidentDetailPage />} />
-          <Route path="/schedule" element={<SchedulePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/integrations" element={<IntegrationsPage />} />
+      <Routes>
+        {/* Public status page (no auth required, outside MobileLayout) */}
+        <Route path="/status/:slug" element={<PublicStatusPage />} />
 
-          {/* Workflow routes */}
-          <Route path="/workflows" element={<WorkflowsPage />} />
-          <Route path="/workflows/new" element={<WorkflowBuilderPage />} />
-          <Route path="/workflows/:id" element={<WorkflowBuilderPage />} />
-        </Routes>
-      </MobileLayout>
+        {/* Authenticated routes with mobile navigation */}
+        <Route
+          path="/*"
+          element={
+            <MobileLayout>
+              <Routes>
+                <Route path="/" element={<Navigate to="/incidents" replace />} />
+                <Route path="/incidents" element={<DashboardPage />} />
+                <Route path="/incidents/:id" element={<IncidentDetailPage />} />
+                <Route path="/schedule" element={<SchedulePage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/integrations" element={<IntegrationsPage />} />
+
+                {/* Workflow routes */}
+                <Route path="/workflows" element={<WorkflowsPage />} />
+                <Route path="/workflows/new" element={<WorkflowBuilderPage />} />
+                <Route path="/workflows/:id" element={<WorkflowBuilderPage />} />
+              </Routes>
+            </MobileLayout>
+          }
+        />
+      </Routes>
 
       {/* Offline indicator (per user decision) */}
       <OfflineIndicator isOnline={isOnline} />
