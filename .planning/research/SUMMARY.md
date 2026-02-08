@@ -1,389 +1,224 @@
 # Project Research Summary
 
-**Project:** Service Catalog for OnCall Platform
-**Domain:** Incident Management / Service Catalog Integration
+**Project:** PageFree OnCall Platform v1.2 - Production Readiness
+**Domain:** Incident Management Platform (PagerDuty Alternative)
 **Researched:** 2026-02-08
-**Confidence:** HIGH
+**Confidence:** MEDIUM-HIGH
 
 ## Executive Summary
 
-Service Catalog transforms PageFree from team-centric to service-centric incident management. Research shows this is a well-established pattern in incident management platforms (PagerDuty, Opsgenie, Backstage), with clear best practices and known pitfalls. The existing PageFree stack is remarkably well-suited for this addition: React Flow and dagre are already installed for dependency visualization, PostgreSQL with Prisma handles graph relations efficiently via self-referential models and recursive CTEs, and Zod provides schema validation for compliance standards.
+PageFree is a production incident management platform approaching v1.2, which focuses on three key capabilities: runbook automation for pre-approved remediation scripts, partner/contractor status page access, and production hardening (VAPID keys, PWA icons, Socket.IO auth, webhook fixes, rate limiting). The platform has existing infrastructure (v1.0/v1.1) with alert routing, escalation, notifications, and workflows already built.
 
-The critical architectural shift is moving from "Alert → Team → Escalation Policy" to "Alert → Service (via routing_key) → Team → Escalation Policy." This change must be implemented with backward compatibility as the top priority—forcing all alerts to require a Service will break existing integrations during production emergencies. The biggest risks are the big bang migration trap (addressed by maintaining fallback routing), circular dependency graphs (addressed by cycle detection on creation), and N+1 query performance (addressed by batch loading and caching strategies).
+The recommended approach leverages webhook-based runbook execution (avoiding agent complexity), partner accounts with magic link authentication (simpler than full SSO), and completing existing infrastructure rather than building new systems. The tech stack is modern and appropriate: Node.js 24.x LTS, TypeScript 5.x, Express 5.x, Prisma ORM, PostgreSQL 18.x, Redis 8.x, Socket.IO 4.x, React 19.x with Vite 7.x. All v1.2 features extend existing patterns—runbooks extend workflows, partner pages extend status pages, hardening completes half-implemented services.
 
-The recommended approach is incremental: build the Service model with optional ownership first, add service-based routing as an enhancement layer over existing team routing, implement dependency tracking with cycle detection from day one, and progressively add advanced features like compliance scorecards and cascade notifications. This approach delivers value quickly while avoiding the common pitfall of breaking existing functionality during migration.
+The key risks center on backward compatibility during production hardening. Socket.IO auth must validate sessions without breaking existing clients. Rate limiting must protect APIs without disrupting legitimate webhooks. VAPID key implementation must replace placeholders without invalidating existing push subscriptions. Runbook automation must enforce pre-approval security model while integrating seamlessly with existing workflow triggers. All changes must maintain zero-downtime for a platform handling 24/7 incident response.
 
 ## Key Findings
 
 ### Recommended Stack
 
-**No major additions needed** — the existing PageFree stack already includes the critical technologies for Service Catalog. The only change required is upgrading `dagre@0.8.5` to the actively maintained `@dagrejs/dagre@2.0.0` fork.
+The existing stack is production-ready and appropriate for scale. Node.js 24.x LTS provides stability through 2027. Express 5.x is now production-ready with official LTS. Prisma ORM offers excellent TypeScript integration crucial for maintaining type safety across 50+ engineers. Socket.IO 4.x with Redis adapter enables horizontal scaling. BullMQ 5.x provides exactly-once job semantics essential for reliable notification delivery.
 
-**Core technologies:**
-- **React Flow (@xyflow/react 12.10.0)**: Already installed — industry standard for dependency graph visualization (4.1M weekly downloads, used by Stripe/Zapier)
-- **@dagrejs/dagre 2.0.0**: Upgrade from dagre 0.8.5 — provides hierarchical graph layout with active maintenance
-- **PostgreSQL + Prisma 6.0**: Already installed — self-referential relations handle service dependencies without requiring a graph database; recursive CTEs efficiently traverse graphs up to ~10k services
-- **Zod 4.3.0**: Already installed — TypeScript-first validation framework ideal for composable service compliance standards
-- **BullMQ 5.67.3**: Already installed — background job processing for cascade status calculations when dependencies change
-- **Socket.io 4.8.3**: Already installed — real-time status propagation for dependency graph updates
+**Core technologies already in use:**
+- **Node.js 24.x LTS + TypeScript 5.x**: Active LTS, type safety for large teams
+- **Express 5.x + Prisma ORM**: Production-ready web framework with type-safe database access
+- **PostgreSQL 18.x + Redis 8.x**: ACID compliance for incident data, caching for schedules/sessions
+- **Socket.IO 4.x + BullMQ 5.x**: Real-time updates and reliable job processing with retries
+- **React 19.x + Vite 7.x**: Modern frontend with fast HMR, TanStack Query for server state
+- **Workbox 7.x**: PWA support for offline functionality and push notifications
 
-**Critical decision: No graph database needed.** Research confirms PostgreSQL handles service catalog scale efficiently. Neo4j or graph extensions would add operational complexity without meaningful benefit at expected scale (100s to low 1000s of services). Recursive CTEs provide sub-200ms graph traversal for 1000+ service graphs with proper indexing.
-
-**What to avoid:**
-- Neo4j / Graph databases (operational overhead, not needed at this scale)
-- D3-Force layouts (unpredictable positioning confuses users)
-- ELK.js for initial implementation (800kb bundle, dagre sufficient)
-- Separate graph database (creates dual source-of-truth problem)
+**Critical additions for v1.2:**
+- **web-push library**: Complete VAPID implementation (infrastructure exists, needs proper key usage)
+- **Redis-backed rate limiter**: Upgrade from memory-based to distributed (express-rate-limit + ioredis)
+- **Session validation**: Connect existing Socket.IO to connect-pg-simple session store
 
 ### Expected Features
 
-Research shows clear feature tiers based on PagerDuty, Opsgenie, Backstage, and Atlassian Compass patterns.
+v1.2 focuses on production readiness, not net-new capabilities. Existing v1.0/v1.1 features (alerts, routing, escalation, notifications, workflows, internal status pages) are out of scope.
 
-**Must have (table stakes):**
-- Service CRUD with team ownership — users expect basic service registry
-- Service directory with search/filter — users need to discover services
-- Technical service dependencies (manual) — users expect "depends on" modeling
-- Dependency visualization (basic tree/graph) — users expect to see upstream/downstream
-- Service-level incident routing — alerts route via service to team's policy
-- Service status indicator — show if service has active incidents
-- Runbook + communication links — essential context for responders (Slack channels, docs URLs)
-- Basic metadata storage — description, tags, external IDs
+**Must have (table stakes for production):**
+- **VAPID key configuration**: Web push requires proper keys; current implementation has placeholder
+- **PWA manifest icons**: Mobile home screen needs branded 192x192 and 512x512 PNG icons
+- **Socket.IO session auth**: Production needs session validation, not token pass-through
+- **Webhook signature fixes**: Edge case handling for all supported monitoring integrations
+- **API rate limiting**: Production APIs need Redis-backed limits across all endpoints
 
-**Should have (competitive advantage):**
-- Business services with status rollup — non-technical users need "Checkout" not "cart-api + payments-api"
-- Service standards/compliance dashboard — define "good service" criteria, track conformance (PagerDuty charges extra for this)
-- Cascade impact analysis — "If service X fails, these 15 services are affected"
-- Cascade notifications — auto-notify owners of dependent services when upstream fails
-- Context hub (unified view) — one page with runbooks, channels, recent incidents, on-call
-- Service health score — composite metric: incidents/week, MTTR, compliance score
+**Should have (competitive differentiators):**
+- **Runbook automation**: Execute pre-approved scripts on incident triggers—PagerDuty requires separate Runner agent
+- **Partner status pages**: Authenticated external access—Statuspage charges $300+/month for this
+- **Integrated script library**: Curated, versioned runbook scripts with approval workflow
+- **Incident-triggered automation**: Workflow executor already handles webhooks/Jira; extend with runbook action
 
-**Defer (v2+):**
-- Automated dependency suggestions — ML-based "services that alert together are likely related" (high complexity)
-- Auto-populate from integrations — create services from DataDog/NewRelic service names
-- Deep status page integration — bidirectional sync between services and status pages
-- Service templates — pre-configured types (API, Database, Frontend)
-
-**Anti-features (commonly requested but problematic):**
-- Automatic dependency discovery — requires distributed tracing, often inaccurate
-- Real-time graph updates — WebSocket complexity for rarely-changing data
-- Full CMDB capabilities — scope creep into infrastructure management
-- Service versioning — most services don't version this way, adds confusion
+**Defer to v1.3+ (not essential for v1.2):**
+- Script approval workflow (admin review before activation)
+- Runbook execution callbacks (receive status from external systems)
+- Partner invitation flow (email invite with setup wizard)
+- Component-level partner access (fine-grained visibility)
+- Sandbox script execution (isolated environment—major infrastructure)
 
 ### Architecture Approach
 
-Service Catalog is an **additive layer** over existing architecture, not a replacement. The core pattern is service-based routing with team-based fallback.
+Incident management platforms share an event-driven architecture with clear component boundaries: ingestion layer (webhooks, API), processing layer (alert deduplication, routing, escalation), notification layer (job queue with provider adapters), and real-time layer (WebSocket + event bus). PageFree follows this pattern correctly.
 
-**Current flow:** Webhook → Integration → Alert → Deduplication → Team (via TeamTag) → Escalation Policy → Incident
+**Major components (existing):**
+1. **Alert Processing Engine**: De-duplication by fingerprint, enrichment with metadata, routing to on-call teams
+2. **Routing & Escalation Engine**: Schedule resolution with caching, multi-level escalation with timeouts, BullMQ-backed state tracking
+3. **Notification Dispatcher**: Job queue with retry policies, multiple channels (push, SMS, email, voice), AWS SNS/Twilio integration
+4. **Workflow System**: Trigger-based automation (webhooks, Jira, Linear), Handlebars templating, execution audit trail
+5. **Real-time Event Bus**: Redis Pub/Sub for state changes, Socket.IO for WebSocket connections, horizontal scaling support
+6. **Status Page System**: Public/private pages with single access tokens, component status computation, subscriber notifications
 
-**New flow:** Webhook → Integration → Service (via routing_key) → Team → Escalation Policy → Incident (with fallback to TeamTag if no Service match)
-
-**Major components:**
-
-1. **Service Model** — Technical service entity with unique `routingKey`, `owningTeamId`, optional `escalationPolicyId` override. Uses self-referential `ServiceDependency` for graph edges.
-
-2. **BusinessService Model** — Aggregation of technical services for executive view. Status computed from supporting service states.
-
-3. **ServiceRoutingService** — Routes alerts by extracting `routing_key` from payload, matching to Service, falling back to existing TeamTag routing if no match. Ensures backward compatibility.
-
-4. **DependencyGraphService** — Graph traversal using in-memory DFS with visited set for small-scale (100-500 services), recursive CTEs for larger scale. Computes cascade status by checking incidents on critical dependencies.
-
-5. **CascadeNotificationService** — When service has incident, finds all dependent services (max depth 2, critical only), notifies owning teams of potential impact.
-
-**Integration points with existing features:**
-- Incidents gain optional `serviceId` FK (nullable for migration)
-- Alerts gain optional `serviceId` FK linked during routing
-- StatusPageComponent gains `serviceId` FK (keeps legacy `serviceIdentifier` for migration)
-- EscalationPolicy gains `services` relation (Service can override Team default)
-- Workflows gain service context for filtering triggers by service tier/metadata
-
-**Critical architectural decisions:**
-- **Single source of truth:** Service.routingKey is canonical identifier, not name-based matching
-- **Fallback routing:** Service routing enhances but never breaks existing TeamTag routing
-- **Policy precedence:** Service-level policy > Team default policy (clear, documented)
-- **Cycle detection:** Validate on every dependency create/update, reject cycles immediately
-- **Depth limits:** Graph traversal max 10 levels to prevent infinite loops
-- **Caching strategy:** Cache dependency graphs in Redis with TTL, invalidate on changes (100+ services)
+**v1.2 extensions:**
+- **Runbook Executor**: New workflow action type, webhook-based execution to external targets (Ansible, SSM), parameter templating from incident context
+- **Partner Authentication**: New PartnerUser entity, magic link login (reuse existing notification infrastructure), session-scoped to read-only status page access
+- **Production Services**: Complete push service with real VAPID keys, add Socket session validation layer, implement Redis rate limiter middleware
 
 ### Critical Pitfalls
 
-Research identified 8 critical pitfalls from Backstage migrations, PagerDuty implementations, and PageFree codebase analysis.
+Research identified eight critical pitfalls specific to production hardening and runbook automation, plus general incident platform patterns to avoid.
 
-1. **Big Bang Migration of Alert Routing** — Breaking change: forcing all alerts to require a Service breaks existing integrations during production emergencies. **Solution:** Build service routing as optional enhancement layer with fallback to TeamTag routing. Route priority: explicit Service ID > Service name match > TeamTag (legacy) > Integration default.
+1. **Breaking Socket.IO clients during auth upgrade**: Current clients pass token but don't expect validation errors. Must implement graceful fallback for legacy tokens while adding proper session validation.
 
-2. **Circular Service Dependencies** — Service A → B → C → A creates infinite loops in status cascade. **Solution:** Cycle detection with DFS on every dependency create/update, reject relationships that would create cycles, max traversal depth of 10 levels.
+2. **VAPID key rollover breaking push subscriptions**: Existing PushSubscription records may have placeholder keys. Must detect and re-register clients, not just replace keys server-side.
 
-3. **N+1 Query Performance on Cascade Status** — Computing status for service with 50 dependencies × 10 subdependencies = 500+ queries. **Solution:** Batch load entire subgraph with recursive CTEs (2-3 queries total), cache computed status in Redis with TTL, background worker updates on incident changes.
+3. **Rate limiting disrupting webhook ingestion**: Memory-based login limiter exists. Adding Redis-backed API-wide limits must whitelist verified webhook sources or use separate tier.
 
-4. **Service Sprawl and Orphan Services** — Teams create 500+ services, many without owners or duplicates. **Solution:** Require `owningTeamId` on creation (not optional), lifecycle states (DRAFT/ACTIVE/DEPRECATED/ARCHIVED), usage tracking (incident count), orphan detection job (flag services with no incidents in 90 days).
+4. **Arbitrary script execution security risk**: Runbook automation must enforce pre-approved scripts only. No pasting code at execution time. All scripts reviewed by admin before APPROVED status.
 
-5. **Standards Compliance Without Enforcement** — Scorecards show 80% non-compliance but no consequences. **Solution:** Graduated enforcement (warnings → soft blocks → hard blocks), actionable requirements (each scorecard item has fix action), compliance in postmortem data, team trend dashboards.
+5. **Runbook agent deployment complexity**: Avoid PagerDuty's agent model. Use webhook-based execution to existing tools (Ansible Tower, AWS SSM). PageFree orchestrates, doesn't execute.
 
-6. **Breaking Existing Escalation Policy References** — Service-level policies conflict with Team policies. **Solution:** Clear precedence (Service policy > Team policy), explicit inheritance flag (`policyInheritance: 'TEAM' | 'SERVICE'`), default new services to inherit Team policy.
+6. **Partner page access without audit trail**: Single access token (current) has no user-level tracking. Partner accounts must log access per user for compliance.
 
-7. **Status Page Component-Service Mismatch** — Existing `serviceIdentifier` (string) conflicts with new `serviceId` (FK). **Solution:** Add `serviceId` FK while keeping legacy field, resolution order (check FK first, fall back to string match), migration script to populate FKs, log usage of legacy path with deprecation timeline.
+7. **Synchronous notification in request path**: Never send notifications in HTTP handlers. Always use BullMQ job queue for delivery with exponential backoff.
 
-8. **Incident-Service Attribution After Migration** — Historical incidents have no `serviceId`, analytics show artificially low counts. **Solution:** Add `serviceId` as nullable FK, best-effort backfill via `fingerprint` patterns and `metadata.service`, analytics explicitly handle null values, dashboard shows "Unattributed" category.
-
-**Performance traps at scale:**
-- Recursive status propagation → use batch load with recursive CTEs (breaks at >50 services with >5 dependencies)
-- No index on `serviceId` FK → add composite index `(serviceId, status, createdAt)` (breaks at >10k incidents/service)
-- Synchronous status propagation → background job for cascade updates (breaks at >100 dependents)
-- Full graph load for visualization → paginated API, load on-demand (breaks at >200 services)
+8. **No alert deduplication causing incident storms**: Always use deduplication keys (fingerprint, alias). Upsert instead of insert. Increment occurrence count.
 
 ## Implications for Roadmap
 
-Based on combined research, clear phase dependencies emerge from the architecture. Build order must respect these constraints to avoid rework.
+Based on combined research, v1.2 should be structured into 4 focused phases following a "complete, extend, harden" pattern. Foundation work (Phase 1) completes half-implemented services. Core capabilities (Phase 2) extend existing systems. Integration (Phase 3) connects partner access. Polish (Phase 4) adds refinements post-validation.
 
-### Phase 1: Service Model Foundation
+### Phase 1: Production Hardening
 
-**Rationale:** Service and dependency models are the foundation for everything else. Must exist before routing, status computation, or compliance can reference them. Critical to build with backward compatibility from day one.
+**Rationale:** Complete half-implemented infrastructure before adding new features. VAPID keys, Socket auth, and rate limiting are prerequisites for reliable production operation. These changes have high risk of breaking existing clients—must validate in isolation before feature work.
 
-**Delivers:**
-- Service model with required `owningTeamId`, unique `routingKey`, optional `escalationPolicyId`
-- BusinessService model for service grouping
-- ServiceDependency model with cycle detection
-- Service CRUD API routes with ownership validation
-- Lifecycle states (DRAFT/ACTIVE/DEPRECATED/ARCHIVED)
-- Migration for nullable `serviceId` on Incident and Alert models
+**Delivers:** Production-ready push notifications, authenticated WebSocket connections, API rate limiting across all endpoints, fixed webhook signature edge cases, PWA manifest with proper icons.
 
-**Addresses (from FEATURES.md):**
-- Service CRUD (P1 table stakes)
-- Team ownership (P1 table stakes)
-- Basic metadata storage (P1 table stakes)
+**Addresses:** All "table stakes" features from FEATURES.md—VAPID keys, PWA icons, Socket session auth, webhook fixes, Redis rate limiting.
 
-**Avoids (from PITFALLS.md):**
-- Service Sprawl (require ownership from day one)
-- Incident Attribution (design backfill strategy before migration)
-- Escalation Policy Conflicts (define precedence rules in schema)
+**Avoids:** Pitfall #2 (VAPID rollover), Pitfall #3 (rate limiting webhooks), Pitfall #1 (breaking Socket clients). Establishes stability foundation before feature additions.
 
-**Research flag:** Standard patterns, skip deep research. Prisma schema design is well-documented, self-referential relations have clear examples.
+**Research flag:** SKIP—production hardening uses standard patterns. Socket.IO auth documented, rate limiting is established pattern, VAPID is web standard.
 
-### Phase 2: Service Dependencies & Graph
+### Phase 2: Runbook Automation Core
 
-**Rationale:** Dependency tracking must be robust before building status propagation or cascade notifications on top. Cycle detection and performance optimization are critical—cannot be retrofitted later without schema changes.
+**Rationale:** Extends existing workflow system with new action type. Workflow infrastructure (triggers, templating, execution tracking) already exists. Runbook is incremental: add script library model, execution target configuration, new action type in WorkflowExecutor. Lower risk than partner pages because it's internal-only (no auth surface).
 
-**Delivers:**
-- Dependency API routes (add/remove/list dependencies)
-- DependencyGraphService with cycle detection
-- Graph traversal with depth limits (getDependents, getDependencies)
-- Recursive CTE queries for batch loading
-- Dependency visualization UI (React Flow + dagre integration)
-- Migration to upgrade dagre → @dagrejs/dagre
+**Delivers:** Pre-approved script library with CRUD, execution targets (webhook endpoints), runbook action type in workflows, manual trigger from incident detail page, execution audit trail.
 
-**Uses (from STACK.md):**
-- @xyflow/react 12.10.0 (already installed)
-- @dagrejs/dagre 2.0.0 (upgrade from 0.8.5)
-- PostgreSQL recursive CTEs for graph queries
-- TanStack Query for caching dependency graphs
+**Addresses:** Competitive differentiators—runbook automation, integrated script library, incident-triggered automation from FEATURES.md.
 
-**Implements (from ARCHITECTURE.md):**
-- DependencyGraphService component
-- Cycle detection on relationship creation
-- Batch graph loading with recursive CTEs
+**Uses:** BullMQ (existing) for execution jobs, Handlebars (existing) for parameter templating, WorkflowExecution (existing) for audit trail, webhook delivery infrastructure (existing).
 
-**Avoids (from PITFALLS.md):**
-- Circular Dependencies (cycle detection from day one)
-- N+1 Query Performance (batch loading with CTEs)
+**Avoids:** Pitfall #4 (arbitrary script execution), Pitfall #5 (agent complexity). Pre-approval model enforced in API, webhook-based execution avoids deployment complexity.
 
-**Research flag:** May need graph visualization research for optimal UI patterns. React Flow + dagre integration patterns are well-documented, but complex edge routing may need deeper investigation during implementation.
+**Research flag:** SKIP—extends existing workflow patterns. No new concepts beyond "webhook action with script metadata."
 
-### Phase 3: Service-Based Alert Routing
+### Phase 3: Partner Status Page Access
 
-**Rationale:** Core value proposition—alerts route via services instead of fragile TeamTag matching. Must maintain backward compatibility to avoid breaking existing integrations during production incidents.
+**Rationale:** Adds authentication layer on top of existing status page system. StatusPage model and status computation already exist. Partner access requires new entity (PartnerUser) and auth flow (magic link), but no changes to status computation logic. Isolated risk—only affects new partner users, doesn't impact internal or existing private pages.
 
-**Delivers:**
-- ServiceRoutingService with fallback logic
-- routing_key extraction from alert payloads (support multiple field names)
-- Modified deduplicationService to use service routing
-- Service-aware incident creation (link serviceId)
-- Integration model enhancement (defaultServiceId)
+**Delivers:** PartnerUser model with status page assignments, magic link authentication (reuse notification infrastructure), partner-scoped session with read-only access, access audit logging, admin partner management UI.
 
-**Uses (from STACK.md):**
-- Existing Prisma models (Alert, Incident, Integration)
-- Existing routing.service.ts as fallback
+**Addresses:** Partner status pages (differentiator), authenticated access without password complexity.
 
-**Implements (from ARCHITECTURE.md):**
-- ServiceRoutingService component
-- Alert routing flow with service-first, team-fallback logic
-- Incident-Service attribution during creation
+**Uses:** Magic link infrastructure (existing in notifications), session management (connect-pg-simple existing), audit system (existing AuditEvent model).
 
-**Avoids (from PITFALLS.md):**
-- Big Bang Migration (fallback routing ensures legacy path works)
-- Incident Attribution (serviceId linked during incident creation going forward)
+**Avoids:** Pitfall #6 (no audit trail), security mistakes from PITFALLS.md (visibility controls, team boundaries). Separate session type prevents privilege escalation.
 
-**Research flag:** Standard patterns, skip deep research. Alert routing enhancement follows established patterns from existing code.
+**Research flag:** NEEDS LIGHT RESEARCH—magic link auth pattern is well-documented, but session scoping for read-only external users may have nuances. Consider `gsd:research-phase` if team unfamiliar with multi-session-type patterns.
 
-### Phase 4: Status Page Integration & Cascade Status
+### Phase 4: Refinement & Extensions
 
-**Rationale:** Status pages and cascade status depend on having services with incidents linked. Business service status rollup requires technical service status computation. Must handle migration from string-based serviceIdentifier to FK-based linking.
+**Rationale:** Post-validation improvements after core v1.2 ships. Script approval workflow, execution callbacks, partner invitation flow are "nice to have" but not blockers. This phase can be v1.2.1/v1.2.2 patch releases based on user feedback.
 
-**Delivers:**
-- StatusPageComponent migration (add serviceId FK, keep legacy field)
-- Modified statusComputationService for service-based status
-- Cascade status computation (check incidents on dependencies)
-- Business service status rollup (compute from technical services)
-- Migration script to backfill serviceId from serviceIdentifier
+**Delivers:** Script approval workflow (DRAFT → APPROVED states with admin review), runbook execution callbacks (webhook endpoint to receive completion status), partner invitation flow (email invite + magic link setup), component-level partner access (fine-grained visibility).
 
-**Uses (from STACK.md):**
-- Existing StatusPage models
-- DependencyGraphService (from Phase 2)
+**Addresses:** "Add after validation" items from FEATURES.md.
 
-**Implements (from ARCHITECTURE.md):**
-- Modified statusComputationService
-- Cascade status computation with dependency awareness
+**Uses:** Existing workflow approval patterns (if any), webhook receiver infrastructure for callbacks, email notification infrastructure for invites.
 
-**Avoids (from PITFALLS.md):**
-- Status Page Component-Service Mismatch (dual resolution with migration path)
-- N+1 Query Performance (leverage Phase 2 batch loading)
-
-**Research flag:** Standard patterns, skip deep research. Status computation patterns exist in current codebase.
-
-### Phase 5: Cascade Notifications & Context Hub
-
-**Rationale:** Advanced features that deliver competitive advantage. Cascade notifications require dependency graph and incident linking (Phases 2-3). Context hub aggregates data from multiple sources, requires all prior phases to be valuable.
-
-**Delivers:**
-- CascadeNotificationService (notify dependent service owners)
-- Notification templates for dependency impact alerts
-- Workflow integration with service context
-- Context hub UI (unified service detail page)
-- Service detail page showing incidents, dependencies, on-call, runbooks
-
-**Uses (from STACK.md):**
-- BullMQ for background cascade notification jobs
-- Socket.io for real-time status updates
-- Existing Workflow system for notification delivery
-
-**Implements (from ARCHITECTURE.md):**
-- CascadeNotificationService component
-- Workflow integration with service metadata
-
-**Addresses (from FEATURES.md):**
-- Cascade impact analysis (P2 competitive advantage)
-- Cascade notifications (P2 competitive advantage)
-- Context hub (P2 competitive advantage)
-
-**Research flag:** May need notification UX research. Determining optimal notification frequency and content for cascade alerts requires user feedback.
-
-### Phase 6: Service Standards & Compliance
-
-**Rationale:** Governance features are valuable but not required for core functionality. Can be built incrementally after service catalog is operational. Requires services to have sufficient data for meaningful compliance checks.
-
-**Delivers:**
-- ServiceStandard model (define compliance requirements)
-- Compliance validation using Zod schemas
-- Compliance scorecard computation (background job)
-- Compliance dashboard UI
-- Enforcement hooks (advisory warnings initially)
-
-**Uses (from STACK.md):**
-- Zod 4.3.0 for composable validation schemas
-- BullMQ for background compliance checks
-
-**Addresses (from FEATURES.md):**
-- Service standards (P2 competitive advantage)
-- Compliance dashboard (P2 competitive advantage)
-- Service health score (P3 future consideration)
-
-**Avoids (from PITFALLS.md):**
-- Standards Without Enforcement (build enforcement hooks from start, even if advisory-only)
-
-**Research flag:** May need compliance framework research. Determining optimal compliance categories and scoring algorithms may benefit from reviewing Backstage Scorecards and PagerDuty Service Standards patterns.
+**Research flag:** SKIP—refinements of Phase 2/3 patterns. Approval workflow is basic state machine, callbacks are reverse webhooks, invitations extend existing email templates.
 
 ### Phase Ordering Rationale
 
-**Why this order:**
-1. **Foundation first (Phase 1)**: Cannot route to services that don't exist. Cannot link incidents without serviceId field.
-2. **Dependencies before status (Phase 2 → 4)**: Cascade status computation requires dependency graph. Building status first would require rework.
-3. **Routing before notifications (Phase 3 → 5)**: Cascade notifications require incidents linked to services. Building notifications first has no incidents to notify about.
-4. **Compliance last (Phase 6)**: Requires operational service catalog with data. Building compliance first has no services to validate.
-
-**How this avoids pitfalls:**
-- Building backward compatibility in Phase 1 prevents big bang migration trap
-- Cycle detection in Phase 2 prevents circular dependencies from being created
-- Batch loading in Phase 2 prevents N+1 queries in Phase 4
-- Ownership requirement in Phase 1 prevents service sprawl
-- Migration strategy in Phase 4 prevents status page mismatch
-
-**Grouping rationale:**
-- Phases 1-3 deliver core service catalog value (routing works, incidents link to services)
-- Phases 4-5 deliver advanced features (cascade awareness, notifications)
-- Phase 6 delivers governance (compliance, standards)
+- **Hardening first:** Production stability is prerequisite for new features. Socket auth and rate limiting must not break under load. VAPID keys must work reliably before depending on push for runbook notifications.
+- **Runbooks before partners:** Runbook automation is lower risk (internal-only, extends existing workflow system). Partner pages require new authentication surface and external user management. Validate workflow extension pattern before adding auth complexity.
+- **Partner pages self-contained:** Phase 3 doesn't depend on Phase 2 success. Can be parallelized if team capacity allows, but sequential order reduces risk.
+- **Refinements deferred:** Phase 4 items are polish, not core functionality. Ship v1.2.0 without them, iterate based on real usage. Script approval can be "admin manually sets status" initially.
 
 ### Research Flags
 
 **Phases likely needing deeper research during planning:**
-- **Phase 2 (Dependencies & Graph)**: Graph visualization UI patterns—React Flow has many layout options, may need research on optimal visualization for service dependencies vs. generic node graphs. **Effort: 1-2 hours** to review React Flow documentation and examples.
-- **Phase 5 (Cascade Notifications)**: Notification UX patterns—determining optimal frequency, grouping, and content for cascade alerts. **Effort: 2-3 hours** to review notification best practices and potentially interview users.
-- **Phase 6 (Standards & Compliance)**: Compliance framework design—reviewing Backstage Scorecards and PagerDuty Service Standards for optimal category/scoring model. **Effort: 2-3 hours** to analyze competitor compliance features.
+- **Phase 3 (Partner Pages)**: Magic link auth is standard, but session scoping for read-only external users may have nuances. Recommend light `gsd:research-phase` if team hasn't implemented multi-session-type auth before. Focus research on session scope/permissions patterns, not basic magic link implementation.
 
-**Phases with well-documented patterns (skip research-phase):**
-- **Phase 1 (Foundation)**: Prisma self-referential relations are standard, migration patterns are documented
-- **Phase 3 (Routing)**: Alert routing enhancement follows existing codebase patterns
-- **Phase 4 (Status Integration)**: Status computation patterns exist in current code
+**Phases with standard patterns (skip research-phase):**
+- **Phase 1 (Hardening)**: Socket.IO authentication, rate limiting, VAPID keys are all documented web standards. Implementation is straightforward extension of existing services.
+- **Phase 2 (Runbooks)**: Direct extension of existing workflow system. Webhook delivery, templating, audit logging all exist. New action type follows established pattern.
+- **Phase 4 (Refinements)**: All features extend Phase 2/3 patterns. Approval workflow is state machine, callbacks are webhook receivers, invitations are email templates.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | **HIGH** | Existing PageFree stack already includes all critical technologies. Only change needed is dagre upgrade. Stack decisions verified against official docs and package.json. |
-| Features | **MEDIUM-HIGH** | Feature prioritization based on PagerDuty, Opsgenie, Backstage, Atlassian Compass patterns. MVP features (P1) have high confidence from multiple sources. P2 features have medium confidence—valuable but need user validation. |
-| Architecture | **HIGH** | Architecture patterns verified against existing PageFree codebase (schema.prisma, routing.service.ts, deduplication.service.ts). Service-based routing is proven pattern in incident management domain. |
-| Pitfalls | **HIGH** | Pitfalls identified from three sources: Backstage migration experiences (documented issues), competitor analysis (PagerDuty/Opsgenie patterns), and PageFree codebase analysis (existing routing fragility, TeamTag string matching). |
+| Stack | HIGH | All technologies verified via official docs, versions confirmed as current stable, existing codebase analysis validates choices |
+| Features | MEDIUM-HIGH | Feature scope clear from project requirements, competitive analysis validates runbook/partner differentiators, table stakes derived from production deployment needs |
+| Architecture | HIGH | Codebase inspection confirms standard incident platform patterns, existing workflow/status page systems provide extension points, no architectural changes required |
+| Pitfalls | MEDIUM-HIGH | Runbook security model well-documented (PagerDuty, Azure), auth pitfalls common in production upgrades, codebase analysis identifies specific breaking points (Socket token handling, session validation) |
 
-**Overall confidence:** **HIGH**
+**Overall confidence:** MEDIUM-HIGH
 
-This is a well-trodden domain with clear best practices. The biggest risk is not technical complexity but change management—migrating from team-based to service-based routing without breaking existing workflows.
+Research is strong on technical implementation (stack, architecture) and industry patterns (runbook automation, partner pages). Lower confidence on operational pitfalls specific to PageFree's existing client base—don't know if production users rely on specific Socket.IO token behavior or webhook ingestion patterns. Mitigation: extensive testing in staging with production-like load before rollout.
 
 ### Gaps to Address
 
-**Gap: Historical incident backfill accuracy**
-- **Issue:** Current incidents route via TeamTag or metadata.service (string matching). Backfilling serviceId requires inferring service from fingerprint patterns or metadata.
-- **Mitigation:** Best-effort backfill with manual audit of sample. Accept that some historical incidents will remain unattributed. Dashboard must handle null serviceId gracefully.
-- **When to address:** Phase 1 migration—write backfill script, run in staging, audit sample of 100 incidents.
+**During Phase 1 planning:**
+- **Socket.IO client compatibility**: Unknown if existing mobile/web clients have hardcoded token handling. Must audit client code before implementing session validation. Consider feature flag for gradual rollout.
+- **Rate limiting thresholds**: No data on current webhook ingestion rates or API call patterns. Must analyze production metrics before setting Redis rate limits. Risk of false positives blocking legitimate sources.
+- **VAPID key migration**: Unknown how many clients have active push subscriptions with placeholder keys. Must detect and re-register, but registration UX (permission prompt) may confuse users if triggered without context.
 
-**Gap: Optimal dependency graph visualization**
-- **Issue:** React Flow supports multiple layout algorithms (dagre, ELK, D3). Research provides high-level recommendations but specific UI patterns for service dependencies may need experimentation.
-- **Mitigation:** Start with dagre hierarchical layout (recommended by research). Add user testing during Phase 2 to validate visualization approach.
-- **When to address:** Phase 2 implementation—build basic visualization, gather feedback, iterate if needed.
+**During Phase 2 planning:**
+- **Runbook execution targets**: Unknown which external tools (Ansible Tower, AWS SSM, custom services) users actually need. May need discovery research or user interviews before building execution target abstraction.
+- **Script library governance**: Approval workflow deferred to Phase 4, but admin manual approval may not scale. Consider if "auto-approve for specific teams" or "approval delegation" needed even in MVP.
 
-**Gap: Compliance scorecard weighting**
-- **Issue:** Research identifies compliance categories (documentation, alerting, monitoring, security) but optimal weighting for "service health score" requires domain expertise.
-- **Mitigation:** Start with equal weighting, make configurable. Gather feedback from users on which compliance checks matter most.
-- **When to address:** Phase 6 implementation—build basic scoring, add configuration UI, iterate based on usage.
+**During Phase 3 planning:**
+- **Partner account provisioning**: Unknown if self-service partner signup (rejected as anti-feature) will be requested despite security concerns. May need compromise solution like "partner requests access, admin approves."
+- **Status page component mapping**: Existing StatusPageComponent has `serviceIdentifier` string field. Partner pages may expose inconsistency if some components use legacy string match vs Service FK. Consider cleanup migration before Phase 3.
 
-**Gap: Cascade notification frequency**
-- **Issue:** Research shows cascade notifications are valuable but doesn't specify optimal notification strategy (immediate vs. batched, all dependents vs. critical-only).
-- **Mitigation:** Start conservative (critical dependencies only, immediate notification to team admins). Add configuration options based on feedback.
-- **When to address:** Phase 5 implementation—build basic notification, monitor for alert fatigue, add throttling if needed.
+**Validation during Phase 4:**
+- **Runbook execution callbacks**: Unknown if external systems (Ansible, SSM) support callback webhooks or if polling required. May need research into specific tool APIs during refinement phase.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- **PageFree codebase**: `/Users/tvellore/work/pagefree/prisma/schema.prisma` (existing models, routing patterns, current limitations)
-- **PageFree routing logic**: `/Users/tvellore/work/pagefree/src/services/routing.service.ts` (TeamTag matching, fallback logic)
-- **PageFree deduplication**: `/Users/tvellore/work/pagefree/src/services/deduplication.service.ts` (incident creation flow)
-- **PageFree status computation**: `/Users/tvellore/work/pagefree/src/services/statusComputation.service.ts` (existing patterns for status from incidents)
-- **React Flow official docs**: https://reactflow.dev — v12.10.0 features, dagre integration patterns
-- **PostgreSQL 16 docs**: Recursive CTE syntax, CYCLE detection
-- **Prisma docs**: Self-referential relations, TypedSQL for raw queries
-- **Zod 4 official docs**: https://zod.dev — schema composition, TypeScript integration
-- **DagreJS GitHub**: v2.0.0 release notes (Nov 2025), ES module support
+- **STACK.md**: Official documentation verified for Node.js 24.x LTS, Express 5.2.x, PostgreSQL 18.x, Redis 8.x, Socket.IO 4.x, BullMQ 5.x, React 19.x, Vite 7.x, Workbox 7.4.0, Zod 4.3.6 (2026-01-22 release)
+- **FEATURES.md**: PagerDuty Automation Actions docs, Atlassian Statuspage pricing/features, Azure Automation Runbooks, Rundeck documentation, MDN Web Push API, web.dev push notifications guide, Socket.IO CORS/auth docs
+- **ARCHITECTURE.md**: PagerDuty Events API, Opsgenie Alert API, GoAlert open-source repository analysis, Grafana OnCall repository architecture, AWS SNS patterns, Redis Pub/Sub docs, PostgreSQL docs, BullMQ docs, Socket.IO docs, Twilio webhook patterns
+- **PITFALLS.md**: Backstage Software Catalog docs, Opsgenie Service API, Atlassian Compass, Google SRE Workbook, Grafana OnCall integration docs
+- **Codebase analysis**: `/Users/tvellore/work/pagefree/prisma/schema.prisma`, `/Users/tvellore/work/pagefree/src/services/workflow/`, `/Users/tvellore/work/pagefree/src/services/statusPage.service.ts`, `/Users/tvellore/work/pagefree/src/services/push.service.ts`, `/Users/tvellore/work/pagefree/src/lib/socket.ts`, `/Users/tvellore/work/pagefree/src/middleware/rateLimiter.ts`
 
 ### Secondary (MEDIUM confidence)
-- **PagerDuty Service Directory**: https://support.pagerduty.com/main/docs/service-directory — feature catalog, API patterns
-- **PagerDuty Service Profile**: https://support.pagerduty.com/main/docs/service-profile — context hub patterns
-- **PagerDuty Business Services**: https://support.pagerduty.com/main/docs/business-services — aggregation model
-- **PagerDuty Service Dependencies**: https://support.pagerduty.com/main/docs/service-dependencies — dependency graph patterns
-- **PagerDuty Service Standards**: https://support.pagerduty.com/docs/service-standards — compliance scorecard patterns
-- **Opsgenie Service API**: https://docs.opsgenie.com/docs/service-api — service-team relationship model
-- **Backstage Software Catalog**: https://backstage.io/docs/features/software-catalog/ — entity model, dependsOn relations, ownership patterns
-- **Atlassian Compass**: https://www.atlassian.com/software/compass — service catalog patterns, scorecards
-- **Cortex Service Catalog**: https://www.cortex.io/products/service-catalog — competitive feature analysis
+- Martin Fowler distributed systems patterns (HeartBeat, Idempotent Receiver)
+- AWS EventBridge architecture patterns
+- GitHub webhook best practices
+- GraphQL subscriptions patterns (Apollo docs)
+- PagerDuty Platform marketing pages (runbook automation capabilities)
+- Rundeck marketing pages (runbook automation definition)
+- Google SRE book on runbooks (concept definitions)
 
-### Tertiary (LOW confidence)
-- **Google SRE Workbook**: https://sre.google/workbook/on-call/ — service ownership principles (general guidance, not product-specific)
-- **Grafana OnCall documentation**: https://grafana.com/docs/oncall/latest/configure/integrations/ — integration patterns (useful for reference, different architecture)
+### Tertiary (LOW confidence, needs validation)
+- Rate limiting threshold recommendations—must be tuned based on actual production metrics
+- Socket.IO client behavior assumptions—requires client code audit
+- External tool callback support—needs specific API research during implementation
 
 ---
 *Research completed: 2026-02-08*

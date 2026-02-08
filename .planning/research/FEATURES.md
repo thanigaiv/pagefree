@@ -1,48 +1,42 @@
-# Feature Research
+# Feature Research: v1.2 Production Readiness
 
-**Domain:** Incident Management Platform
-**Researched:** 2026-02-06
-**Confidence:** HIGH
+**Domain:** Incident Management Platform - Production Hardening
+**Researched:** 2026-02-08
+**Confidence:** MEDIUM-HIGH
+
+## Scope
+
+This research covers NEW features for v1.2 only:
+1. **Runbook automation** - Pre-approved scripts executed on incident triggers
+2. **Partner status pages** - Authenticated external access
+3. **Production hardening** - PWA icons, VAPID keys, webhook fixes, socket auth, rate limiting
+
+Existing v1.0/v1.1 features (alerts, routing, escalation, notifications, workflows, internal status pages, etc.) are NOT in scope.
 
 ## Feature Landscape
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist. Missing these = product feels incomplete.
+Features users assume exist in production-ready incident management. Missing these = platform feels incomplete for real deployment.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Alert Ingestion & Routing | Core purpose of platform - accept alerts from monitoring tools and route to right person | MEDIUM | Requires webhook handling, alert parsing, routing rules engine. Must support multiple formats (Datadog, New Relic, etc.) |
-| On-Call Scheduling | Teams need predictable rotation management | MEDIUM | Needs calendar views, rotation patterns (daily/weekly/custom), timezone handling, schedule layers, overrides |
-| Escalation Policies | Alerts must reach someone who can help | MEDIUM | Multi-level escalation, timeout configuration, fallback contacts, repeat escalation logic |
-| Multi-Channel Notifications | People need alerts on their preferred channel | HIGH | Push notifications, SMS, phone calls, email, Slack, Teams. Each has different delivery guarantees and complexity |
-| Incident Acknowledgment | Responders must signal they're working on it | LOW | Simple state machine: triggered → acknowledged → resolved |
-| Mobile App (or PWA) | On-call responders aren't always at desk | HIGH | Native features (push notifications, calling), offline capability, full incident management from mobile |
-| Alert De-duplication | Same issue shouldn't create 100 alerts | MEDIUM | Fingerprinting algorithm, time-window grouping, configurable grouping rules |
-| Basic Integrations | Must work with existing monitoring stack | HIGH | Each integration requires custom logic. Start with DataDog, New Relic, Slack, Teams per requirements |
-| Incident Timeline/Audit Log | Need to know what happened when | LOW | Event logging with timestamps, state changes, who did what |
-| User Management & Teams | Multi-tenant with team boundaries | MEDIUM | User roles, team assignment, permission model, authentication |
-| Incident Dashboard | Central view of active incidents | LOW | List view with filters, severity indicators, assignment status |
-| Alert Customization | Teams want different fields/priorities | MEDIUM | Custom fields, severity mapping, alert enrichment from source data |
+| **VAPID key configuration** | Web push notifications require VAPID for production; current implementation has placeholder | LOW | Already have push service, just need proper key generation/configuration and actual web-push library usage |
+| **PWA manifest icons** | Mobile users on home screen see generic icon instead of branded | LOW | Add icon assets to manifest.json, likely 192x192 and 512x512 PNG |
+| **Socket.IO session authentication** | Current simplified auth uses token pass-through; production needs proper session validation | MEDIUM | Comment in code says "verify session from connect-pg-simple"; need to integrate with existing session store |
+| **Webhook signature verification fixes** | Must handle all edge cases (encoding, timestamps) for Datadog/New Relic webhooks reliably | LOW-MEDIUM | Existing infrastructure works but may have edge cases per "webhook fixes" scope item |
+| **API rate limiting** | Production APIs need rate limits to prevent abuse; only login rate limiting exists | MEDIUM | Existing rate limiter is memory-based and login-only; need Redis-backed limiter for all API endpoints |
 
 ### Differentiators (Competitive Advantage)
 
-Features that set the product apart. Not required, but valuable.
+Features that set PageFree apart. These directly address gaps in competitors like PagerDuty.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Advanced Workflow Automation | **Pain point addressed**: PagerDuty automation is "limited and hard to configure" | HIGH | Visual workflow builder, conditional logic, auto-remediation, runbook execution. This is your competitive advantage. |
-| Intelligent Alert Noise Reduction | ML-based grouping and suppression reduces fatigue | HIGH | Requires historical data, clustering algorithms, pattern recognition. PagerDuty has this - consider table stakes for mature platforms |
-| Easy Integration Setup | **Pain point addressed**: "integration setup is cumbersome" | MEDIUM | One-click integrations, auto-discovery, guided configuration, integration templates |
-| Incident Command System (ICS) | Google SRE model with defined roles (IC, Ops Lead, Comms Lead) | MEDIUM | Role assignment UI, role-specific views, handoff procedures. Most platforms lack this structure |
-| Post-Incident Analytics | Beyond basic metrics - insights on patterns, team performance, MTTR trends | MEDIUM | Data warehouse, custom reports, trend analysis, cost-of-incidents tracking |
-| Status Page Integration | Automated public communication during incidents | MEDIUM | Template-based updates, subscriber management, automatic status changes from incident state |
-| Postmortem Automation | Auto-generate postmortem from incident timeline with AI assistance | MEDIUM | Template generation, timeline export, action item extraction, searchable archive |
-| Responder Recommendations | ML suggests best responder based on incident type and historical resolution | MEDIUM | Requires incident categorization, resolution tracking, expertise modeling |
-| Custom Alert Enrichment | Add context from external sources (AWS, K8s, logs) automatically | HIGH | Query external APIs, cache mechanisms, configurable enrichment rules |
-| Multi-Service Dependencies | Model service relationships to understand blast radius | MEDIUM | Service catalog, dependency graph, impact prediction |
-| Stakeholder Communication | Keep non-technical people informed without alert noise | LOW | Filtered views, plain-english summaries, scheduled updates |
-| Conference Bridge Automation | Auto-create war room with phone bridge and video link | LOW | Integration with Zoom/Meet/Teams, automatic invites |
+| **Runbook automation** | Execute pre-approved remediation scripts automatically when incidents trigger; PagerDuty requires separate Runner agent and Rundeck license | HIGH | Pre-approved scripts only (security constraint), no arbitrary code execution. Builds on existing workflow infrastructure |
+| **Partner/contractor status pages** | Share incident status with external parties via authenticated access without exposing internal systems; Statuspage charges $300+/month for this | MEDIUM | Existing private status pages use single access token; need partner accounts with proper auth |
+| **Integrated script library** | Curated, versioned, audited runbook scripts managed within platform; competitors require external script repos | MEDIUM | Governance advantage - scripts reviewed before approval, full audit trail |
+| **Incident-triggered automation** | Runbooks automatically invoked by workflow triggers (existing), not just manual | LOW | Existing workflow executor already handles webhooks/Jira/Linear; extend with runbook action type |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
@@ -50,243 +44,379 @@ Features that seem good but create problems.
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Real-time Everything | Seems modern and responsive | Creates complexity - polling intervals are fine for most use cases. Real-time adds websocket infrastructure, connection management, offline state handling | Use 30-60s polling for dashboards, push notifications for critical state changes only |
-| Custom Alert Sources Without Templates | "I want to send any JSON" | Becomes unmaintainable - every team's alerts are different formats | Provide integration templates with schema validation. Custom sources must map to standard fields |
-| Unlimited Alert Retention | Historical analysis sounds valuable | Storage costs explode, queries slow down, GDPR complications | 90-day retention with aggregated metrics for longer periods. Archive to S3 for compliance |
-| Alert Snoozing Without Escalation | "Let me snooze for 4 hours" | Incidents get forgotten, no escalation if original person doesn't return | Snooze must reassign or escalate, not just delay. Max snooze time 30min |
-| Role-Based Access Control (RBAC) for Everything | Security team wants granular permissions | Over-engineering for 50-person team, slows development | Start with team-based access (you can see/manage your team's incidents). Add RBAC later if needed |
-| Built-in Monitoring | "Why integrate when you could monitor directly?" | Scope creep - you're building incident management, not Datadog | Focus on best-in-class integration with existing monitoring tools |
-| Incident Severity Auto-Classification | "AI should determine if it's P1 or P3" | ML is unreliable for new incident types, false positives create alert fatigue | Let source system set severity, allow manual override, suggest severity based on patterns |
-| Chat Platform in the Product | "We need incident chat" | Building Slack is not your business | Deep integration with Slack/Teams where people already are. Auto-create incident channels |
-| Complex On-Call Compensation Tracking | "Track who was on-call for payroll" | HR/payroll integration scope creep, timezone complexity, labor law variations | Export schedule data as CSV, let HR tools handle compensation |
+| **Arbitrary script execution** | "Let me run any script" | Security nightmare - no governance, audit gaps, potential for destructive commands | Pre-approved scripts only: curated library, version controlled, reviewed before deployment |
+| **SSH/direct server access** | "Execute runbook directly on servers" | Requires agent deployment, network access, credentials management | Use webhooks to existing tooling (Ansible Tower, AWS SSM, Rundeck); PageFree orchestrates, not executes |
+| **Public partner pages** | "Make partner pages fully public" | Exposes sensitive operational data to competitors/attackers | Authenticated access with email domain restrictions or explicit partner accounts |
+| **Self-registration for partners** | "Partners sign themselves up" | No control over who sees status; potential spam | Admin-provisioned partner accounts with invitation flow |
+| **Runner agents** | "Install agent to execute scripts" | Deployment complexity, security surface, maintenance burden | Webhook-based execution via existing integrations; external tools (Ansible/SSM) handle the "last mile" |
+
+## Runbook Automation Deep Dive
+
+### Industry Standard: How Runbooks Work
+
+Based on research of PagerDuty Automation Actions, Rundeck, and Azure Automation:
+
+**Execution Models:**
+
+1. **Agent-based (PagerDuty Runner, Rundeck Enterprise Runner):**
+   - Install software on target networks
+   - Agent polls for jobs, executes locally
+   - Requires firewall rules, credential management
+   - **Not recommended for v1.2** - too much complexity
+
+2. **Webhook-based (Recommended for PageFree):**
+   - Define scripts as named actions with pre-configured parameters
+   - When triggered, POST to external automation endpoint
+   - External system (Ansible Tower, AWS SSM, custom service) executes
+   - PageFree tracks execution status via callback webhooks
+
+3. **Sandbox execution (Azure Automation):**
+   - Cloud-hosted execution environment
+   - Scripts run in isolated sandbox
+   - **Future consideration** - significant infrastructure
+
+### Recommended Architecture for PageFree v1.2
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    RUNBOOK SYSTEM                        │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────┐    ┌──────────────┐                   │
+│  │   Runbook    │    │  Execution   │                   │
+│  │   Library    │    │   Targets    │                   │
+│  │ (pre-approved│    │ (webhooks to │                   │
+│  │   scripts)   │    │ external     │                   │
+│  └──────┬───────┘    │  systems)    │                   │
+│         │            └──────┬───────┘                   │
+│         ▼                   │                           │
+│  ┌──────────────────────────▼───────────────────────┐   │
+│  │              Runbook Executor                      │   │
+│  │  - Resolves script + target                       │   │
+│  │  - Builds execution context (incident data)       │   │
+│  │  - Posts to target webhook                        │   │
+│  │  - Tracks execution status                        │   │
+│  └──────────────────────────┬───────────────────────┘   │
+│                             │                           │
+│                             ▼                           │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │           External Execution Targets              │   │
+│  │  - AWS Systems Manager (SSM) Run Command          │   │
+│  │  - Ansible Tower/AWX webhooks                     │   │
+│  │  - Custom execution service                       │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Runbook Feature Requirements
+
+| Requirement | Priority | Complexity | Notes |
+|-------------|----------|------------|-------|
+| Pre-approved script library | P1 | MEDIUM | Named scripts with version, description, approval status |
+| Execution targets (webhook endpoints) | P1 | LOW | Similar to existing workflow webhook action |
+| Trigger from workflow | P1 | LOW | New action type in workflow executor |
+| Manual trigger from incident | P1 | LOW | API + UI button on incident detail |
+| Execution audit trail | P1 | LOW | Leverage existing WorkflowExecution logging |
+| Script versioning | P2 | LOW | Track changes, rollback capability |
+| Script approval workflow | P2 | MEDIUM | Admin review before script becomes available |
+| Parameter templating | P1 | LOW | Reuse existing Handlebars templating from workflows |
+| Execution timeout | P1 | LOW | Already in workflow executor |
+| Callback for execution status | P2 | MEDIUM | Webhook endpoint to receive completion status from external system |
+
+### Security Model for Runbooks
+
+**Pre-approved scripts only (per project requirements):**
+
+1. **Script Registration:** Admin creates script definition with:
+   - Name, description, version
+   - Target execution endpoint (webhook URL)
+   - Required parameters (templated from incident context)
+   - Approval status (DRAFT, APPROVED, DEPRECATED)
+
+2. **Execution Controls:**
+   - Only APPROVED scripts can be executed
+   - Scripts scoped to team or global
+   - Execution logged with user, incident, timestamp, result
+
+3. **NO arbitrary code execution:**
+   - Cannot paste custom script at execution time
+   - Cannot modify script parameters beyond defined templates
+   - All scripts reviewed by admin before approval
+
+## Partner Status Pages Deep Dive
+
+### Industry Standard: Authenticated Status Page Access
+
+Based on research of Atlassian Statuspage and industry patterns:
+
+**Access Models:**
+
+1. **Single access token (current PageFree):**
+   - One shared token for private page
+   - Anyone with token can access
+   - No user-level tracking
+
+2. **Audience-specific pages (Statuspage $300+/month):**
+   - Multiple user groups with different views
+   - Email-based authentication
+   - Audit of who viewed what
+
+3. **Partner accounts (recommended for PageFree):**
+   - Named external users with credentials
+   - Session-based authentication
+   - Audit trail per partner user
+   - Revocable access
+
+### Recommended Architecture for PageFree v1.2
+
+```
+┌─────────────────────────────────────────────────────────┐
+│               PARTNER STATUS PAGE ACCESS                 │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────┐    ┌──────────────┐                   │
+│  │   Partner    │    │   Status     │                   │
+│  │   Accounts   │    │    Pages     │                   │
+│  │ (external    │────│ (configured  │                   │
+│  │  users)      │    │  access)     │                   │
+│  └──────┬───────┘    └──────┬───────┘                   │
+│         │                   │                           │
+│         ▼                   ▼                           │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │            Partner Authentication                  │   │
+│  │  - Magic link login (email-based, no password)    │   │
+│  │  - Session with limited scope (read-only)         │   │
+│  │  - Access logged per request                      │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+│  Access Controls:                                        │
+│  - Partner sees only assigned status pages               │
+│  - Read-only (no subscribe, no admin actions)           │
+│  - Session expires after configurable period            │
+│  - Admin can revoke access instantly                    │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Partner Status Page Feature Requirements
+
+| Requirement | Priority | Complexity | Notes |
+|-------------|----------|------------|-------|
+| Partner account model | P1 | MEDIUM | New entity: PartnerUser with email, name, status page access |
+| Magic link authentication | P1 | LOW | Reuse existing magic link infrastructure from notifications |
+| Partner-scoped session | P1 | MEDIUM | Separate session type with limited permissions |
+| Status page access assignment | P1 | LOW | Many-to-many: PartnerUser to StatusPage |
+| Access audit logging | P1 | LOW | Extend existing audit system |
+| Admin partner management UI | P2 | LOW | CRUD for partner accounts |
+| Partner invitation flow | P2 | LOW | Email invite with magic link to set up |
+| Access revocation | P1 | LOW | Deactivate partner account, invalidate sessions |
+| Component-level access | P3 | MEDIUM | Show only specific components to specific partners |
+
+### Access Control Model
+
+**Partner capabilities (read-only):**
+- View assigned status page(s)
+- See component status
+- See active incidents
+- See maintenance windows
+- See incident history
+
+**Partner CANNOT:**
+- Subscribe to updates (managed by internal team)
+- View internal incidents (only status page incidents)
+- Access any admin functions
+- See other status pages
+- View audit logs
+
+## Production Hardening Deep Dive
+
+### VAPID Keys for Web Push
+
+**Current state:** Push service exists but uses placeholder VAPID key
+
+**Required changes:**
+1. Generate VAPID key pair (once, store securely)
+2. Store VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in environment
+3. Use `web-push` library to send actual push notifications
+4. Store full PushSubscription (endpoint + keys) not just endpoint
+
+**Complexity:** LOW - infrastructure exists, need to complete implementation
+
+### PWA Icons
+
+**Current state:** PWA manifest likely missing proper icons
+
+**Required changes:**
+1. Add icon assets: 192x192, 512x512 PNG
+2. Update manifest.json with icon references
+3. Add apple-touch-icon for iOS
+
+**Complexity:** LOW - asset creation and manifest update
+
+### Socket.IO Authentication
+
+**Current state:** Token passed but not validated against session store
+
+```typescript
+// Current (simplified)
+const token = socket.handshake.auth?.token;
+(socket as any).userId = token; // NOT validated
+
+// Needed
+const session = await sessionStore.get(token);
+if (!session || !session.user) throw new Error('Invalid session');
+socket.userId = session.user.id;
+```
+
+**Complexity:** MEDIUM - need to query connect-pg-simple session table
+
+### Webhook Signature Verification
+
+**Current state:** Basic verification exists
+
+**Potential fixes needed:**
+- Timestamp validation (reject old webhooks)
+- Encoding edge cases (URL encoding, charset)
+- Provider-specific quirks (Datadog vs New Relic)
+
+**Complexity:** LOW-MEDIUM - depends on specific issues found
+
+### API Rate Limiting
+
+**Current state:** Login-only, memory-based rate limiter
+
+**Required changes:**
+1. Redis-backed rate limiter for persistence across restarts
+2. Multiple tiers: webhook ingestion, API calls, public endpoints
+3. Response headers (X-RateLimit-Limit, X-RateLimit-Remaining)
+4. Per-IP and per-user limits
+
+**Complexity:** MEDIUM - new middleware, Redis integration
 
 ## Feature Dependencies
 
 ```
-Core Platform Foundation
-    └──requires──> User Management & Auth
-    └──requires──> Team Management
-    └──requires──> Database & API Layer
+Runbook Automation
+    └──requires──> Workflow System (existing)
+                       └──requires──> Incident Management (existing)
+    └──requires──> Execution Target Configuration (new)
+    └──requires──> Script Library (new)
+    └──requires──> Audit System (existing)
 
-Alert Ingestion & Routing
-    └──requires──> Core Platform Foundation
-    └──requires──> Notification System (to route to)
-    └──requires──> On-Call Scheduling (to know who to route to)
-    └──enhances──> Alert De-duplication
-    └──enhances──> Alert Enrichment
+Partner Status Pages
+    └──requires──> Status Page System (existing)
+    └──requires──> Partner Account Model (new)
+    └──requires──> Magic Link Auth (existing)
+    └──requires──> Session Management (existing)
 
-On-Call Scheduling
-    └──requires──> Core Platform Foundation
-    └──requires──> User Management & Teams
-
-Escalation Policies
-    └──requires──> On-Call Scheduling
-    └──requires──> Notification System
-    └──requires──> Alert Routing
-
-Notification System
-    └──requires──> Core Platform Foundation
-    └──requires──> Third-party services (Twilio, Push, SMTP)
-
-Mobile App/PWA
-    └──requires──> API Layer
-    └──requires──> Push Notification Infrastructure
-    └──requires──> Authentication
-
-Integrations (Datadog, New Relic, etc.)
-    └──requires──> Alert Ingestion & Routing
-    └──requires──> Webhook Infrastructure
-    └──enhances──> Alert Enrichment
-
-Workflow Automation
-    └──requires──> Alert Routing
-    └──requires──> Incident State Machine
-    └──requires──> Integration API Layer
-    └──enhances──> Auto-remediation
-
-Status Pages
-    └──requires──> Incident Management Core
-    └──requires──> Public Web Infrastructure
-    └──enhances──> Stakeholder Communication
-
-Postmortems
-    └──requires──> Incident Timeline/Audit Log
-    └──requires──> Incident Resolution
-    └──enhances──> Analytics
-
-Analytics & Reporting
-    └──requires──> Incident History
-    └──requires──> Resolution Data
-    └──requires──> Team/User Activity Logs
-
-ICS (Incident Command System)
-    └──requires──> Incident Management Core
-    └──requires──> Role Assignment
-    └──conflicts──> Simple Incident Model (adds complexity)
+Production Hardening
+    └── VAPID Keys ──> Push Service (existing)
+    └── Socket Auth ──> Session Store (existing)
+    └── Rate Limiting ──> Redis (existing)
+    └── PWA Icons ──> Manifest (existing)
 ```
 
 ### Dependency Notes
 
-- **Alert Ingestion requires On-Call Scheduling:** Can't route alerts without knowing who's on-call
-- **Escalation requires Notification System:** Must be able to notify before escalating
-- **Mobile App requires Push Infrastructure:** PWA can work without native push, but user experience suffers
-- **Workflow Automation requires stable integration layer:** Automations call external systems, need reliable API
-- **ICS conflicts with simple model:** Adding IC/Ops/Comms roles increases complexity. Good for large incidents (10+ people), overkill for 2-person response
-- **Postmortems enhance Analytics:** Rich postmortem data feeds better insights
-- **Status Pages require public infrastructure:** Different security/scaling concerns than internal app
+- **Runbook automation requires workflow system:** Extends existing WorkflowExecutor with new action type
+- **Partner pages require status page system:** Adds access layer on top of existing StatusPage model
+- **All hardening items have existing infrastructure:** Completing/fixing rather than building new
 
-## MVP Definition
+## v1.2 MVP Definition
 
-### Launch With (v1)
+### Launch With (v1.2.0)
 
-Minimum viable product — what's needed for 50-person team to replace PagerDuty.
+Minimum for production deployment with new capabilities:
 
-- [ ] **Alert Ingestion** — Webhooks for Datadog, New Relic (integration sources listed in requirements)
-- [ ] **Alert Routing** — Rule-based routing to teams and individuals
-- [ ] **On-Call Scheduling** — Weekly/daily rotations with timezone support, overrides
-- [ ] **Escalation Policies** — Multi-level escalation with timeout configuration
-- [ ] **Basic Notifications** — Email, Slack, Teams (start with these before SMS/phone)
-- [ ] **Mobile PWA** — Web app that works on mobile, progressive enhancement
-- [ ] **Incident State Management** — Trigger, acknowledge, resolve workflow
-- [ ] **Incident Dashboard** — View active/recent incidents, filter by team/status
-- [ ] **User & Team Management** — Team boundaries, role assignment (admin vs responder)
-- [ ] **Alert De-duplication** — Time-window grouping to prevent spam
-- [ ] **Audit Log** — Who did what when for each incident
+- [ ] **Runbook script library** - Admin can create/approve scripts
+- [ ] **Runbook execution via webhook** - Execute script to external endpoint
+- [ ] **Runbook workflow trigger** - Add "runbook" action type to workflow builder
+- [ ] **Partner account model** - Create partner users with status page access
+- [ ] **Partner magic link login** - Email-based authentication for partners
+- [ ] **VAPID key implementation** - Production-ready web push
+- [ ] **Socket session validation** - Proper auth for real-time
+- [ ] **Redis-backed rate limiting** - All API endpoints protected
 
-**Why these for MVP:**
-- Covers core on-call workflow: alert arrives → routes to on-call person → they acknowledge → they resolve
-- Addresses known requirements: integrations (Datadog/New Relic/Slack/Teams), scheduling, escalation, mobile
-- Enables team to stop using PagerDuty immediately after launch
-- Defers complex features (automation, analytics, status pages) until core is proven
+### Add After Validation (v1.2.x)
 
-### Add After Validation (v1.x)
+- [ ] **Script approval workflow** - Admin review before script activation
+- [ ] **Runbook execution callbacks** - Receive status from external systems
+- [ ] **Partner invitation flow** - Email invite with setup wizard
+- [ ] **Component-level partner access** - Fine-grained visibility control
 
-Features to add once core is working.
+### Future Consideration (v1.3+)
 
-- [ ] **SMS & Phone Notifications** — After Slack/email proven, add critical notification channels (requires Twilio integration)
-- [ ] **Basic Workflow Automation** — Simple if-then rules before visual builder (addresses pain point but starts simple)
-- [ ] **Alert Enrichment** — Add context from AWS/K8s metadata to alerts
-- [ ] **Incident Timeline** — Detailed event log with all state changes, comments, actions
-- [ ] **Native Mobile App** — After PWA validated, build iOS/Android for better push notifications
-- [ ] **Status Page** — Public incident communication (addressed in requirements but not MVP-critical)
-- [ ] **Postmortem Templates** — Basic postmortem generation from timeline
-- [ ] **Basic Analytics** — MTTR, MTTA, incident counts by team/service
-- [ ] **Maintenance Windows** — Suppress alerts during planned maintenance
-- [ ] **Integration Marketplace** — Expand beyond initial Datadog/New Relic/Slack/Teams
-
-**Trigger for adding:** When team successfully responds to 50+ incidents on MVP platform, indicating core workflow is solid.
-
-### Future Consideration (v2+)
-
-Features to defer until product-market fit is established.
-
-- [ ] **Advanced Workflow Builder** — Visual automation designer (competitive advantage but complex)
-- [ ] **ML-based Noise Reduction** — Requires significant historical data (6+ months)
-- [ ] **Incident Command System** — Role-based incident management for major incidents
-- [ ] **Responder Recommendations** — ML-suggested best responder for incident type
-- [ ] **Service Catalog & Dependencies** — Service modeling for blast radius analysis
-- [ ] **Advanced Analytics** — Cost-of-incidents, trend prediction, team optimization
-- [ ] **Conference Bridge Automation** — Auto-create war rooms with video/phone
-- [ ] **Multi-Region Deployment** — For high availability (can start single-region)
-- [ ] **Custom Mobile App Themes** — Team branding (nice-to-have)
-- [ ] **API Rate Limiting & Quotas** — Needed for multi-tenant SaaS, not internal tool
-
-**Why defer:**
-- ML features require historical data you don't have yet
-- Advanced features add complexity before core is proven
-- Internal tool for 50 people doesn't need enterprise features (rate limiting, multi-tenancy at scale)
-- Focus on addressing PagerDuty pain points (automation, easy integrations) before adding novel features
+- [ ] **Sandbox script execution** - Run scripts in isolated environment (major infrastructure)
+- [ ] **Partner SSO** - SAML/OIDC for enterprise partners
+- [ ] **Multi-audience status pages** - Different views for different partner groups
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Alert Ingestion (Datadog/NewRelic) | HIGH | MEDIUM | P1 |
-| On-Call Scheduling | HIGH | MEDIUM | P1 |
-| Escalation Policies | HIGH | MEDIUM | P1 |
-| Slack/Teams Notifications | HIGH | LOW | P1 |
-| Mobile PWA | HIGH | MEDIUM | P1 |
-| Alert De-duplication | HIGH | MEDIUM | P1 |
-| Incident Dashboard | HIGH | LOW | P1 |
-| User/Team Management | HIGH | LOW | P1 |
-| Incident State Management | HIGH | LOW | P1 |
-| Audit Log | MEDIUM | LOW | P1 |
-| Email Notifications | MEDIUM | LOW | P1 |
-| Alert Routing Rules | HIGH | MEDIUM | P1 |
-| SMS/Phone Notifications | HIGH | MEDIUM | P2 |
-| Basic Workflow Automation | HIGH | HIGH | P2 |
-| Alert Enrichment | MEDIUM | MEDIUM | P2 |
-| Status Page | MEDIUM | MEDIUM | P2 |
-| Postmortem Templates | MEDIUM | MEDIUM | P2 |
-| Basic Analytics (MTTR/MTTA) | MEDIUM | LOW | P2 |
-| Native Mobile Apps | MEDIUM | HIGH | P2 |
-| Maintenance Windows | MEDIUM | LOW | P2 |
-| Advanced Workflow Builder | HIGH | HIGH | P3 |
-| ML Noise Reduction | MEDIUM | HIGH | P3 |
-| Incident Command System | MEDIUM | MEDIUM | P3 |
-| Responder Recommendations | LOW | HIGH | P3 |
-| Service Dependencies | LOW | MEDIUM | P3 |
-| Advanced Analytics | LOW | MEDIUM | P3 |
-| Conference Bridge Automation | LOW | LOW | P3 |
+| VAPID keys | HIGH | LOW | P1 |
+| PWA icons | MEDIUM | LOW | P1 |
+| Socket auth fix | HIGH | MEDIUM | P1 |
+| Redis rate limiting | HIGH | MEDIUM | P1 |
+| Runbook script library | HIGH | MEDIUM | P1 |
+| Runbook webhook execution | HIGH | LOW | P1 |
+| Runbook workflow action | HIGH | LOW | P1 |
+| Partner account model | MEDIUM | MEDIUM | P1 |
+| Partner magic link auth | MEDIUM | LOW | P1 |
+| Partner access audit | MEDIUM | LOW | P2 |
+| Script approval workflow | MEDIUM | MEDIUM | P2 |
+| Runbook callbacks | MEDIUM | MEDIUM | P2 |
+| Partner invitation flow | LOW | LOW | P2 |
+| Webhook signature fixes | MEDIUM | LOW | P1 (if broken) |
 
 **Priority key:**
-- P1: Must have for launch (MVP)
-- P2: Should have, add in first 6 months after launch
-- P3: Nice to have, future consideration
-
-**Note on "Advanced Workflow Automation" (P3):**
-While this addresses a key pain point ("PagerDuty's automation is limited"), the *advanced* visual builder is P3. Basic automation (P2) ships first to validate the approach, then iterate to advanced builder once patterns are clear.
+- P1: Required for v1.2.0 launch
+- P2: Add in v1.2.x patch releases
 
 ## Competitor Feature Analysis
 
-| Feature | PagerDuty | Opsgenie | Splunk On-Call | Our Approach |
-|---------|-----------|----------|----------------|--------------|
-| Alert Routing | Rule-based, complex config | Service-based routing with filters | Expertise-based routing | Start simple (team + schedule), add complexity progressively |
-| Workflow Automation | Event Orchestration (limited per pain point) | Custom actions, API-based | Rules engine with runbooks | Visual builder + code (best of both) - P3 feature |
-| Integrations | 700+ integrations | Native Atlassian suite + 200+ | Multi-platform (unspecified count) | Start with required 4 (Datadog/NewRelic/Slack/Teams), expand based on demand |
-| Mobile Experience | Native iOS/Android apps | Native apps | Native apps with full functionality | Start PWA (P1), upgrade to native (P2) |
-| Notifications | Multi-channel (phone/SMS/push/email) | Multiple channels + custom actions | Device-agnostic with metadata | Email/Slack/Teams (P1), SMS/phone (P2) |
-| Scheduling | Complex layers and rotations | On-call schedules with reminders | Automated rotation creation | Match PagerDuty capability - teams need this |
-| Analytics | Advanced with ML insights | Operational efficiency + productivity | MTTA/MTTR + historical insights | Basic metrics (P2), advanced (P3) |
-| Status Pages | Separate Statuspage product | Stakeholder notifications | Not mentioned | Integrated status page (P2) |
-| Postmortems | Post-incident reviews | Post-incident analysis reports | Streamlined retrospectives | Auto-generated from timeline (P2) |
-| Noise Reduction | ML-based AIOps | Alert clustering | ML recommendations | Basic dedup (P1), ML clustering (P3) |
-| Incident Command | Not explicitly mentioned | Incident Command Center | War room automation | ICS model per Google SRE (P3) |
-| Easy Setup | 700+ integrations but "cumbersome" per pain point | Atlassian ecosystem makes setup easier | Not differentiated | One-click integrations, auto-config (P2 differentiator) |
+| Feature | PagerDuty | Statuspage | Our Approach |
+|---------|-----------|------------|--------------|
+| **Runbook execution** | Requires Runner agent ($), Rundeck integration | N/A | Webhook-based, no agent, built-in library |
+| **Script governance** | Managed via external tools | N/A | Integrated approval workflow, version control |
+| **Partner status access** | N/A | $300+/month tier for audience-specific | Included in platform, partner accounts |
+| **Auth for external users** | N/A | Email verification, SSO at enterprise tier | Magic link (simple), SSO later |
+| **Rate limiting** | Enterprise feature | Built-in | Redis-backed, configurable tiers |
+| **PWA push** | Native apps preferred | N/A | First-class PWA with proper VAPID |
 
 **Key Competitive Insights:**
 
-1. **All platforms have 100+ integrations:** Start with 4 required ones, don't try to match 700 on day one
-2. **Native mobile is table stakes:** But PWA can ship faster and validate UX first
-3. **Automation is differentiator:** PagerDuty's is "limited and hard to configure" - opportunity here
-4. **ML/AI features common in mature platforms:** Defer until you have data (6+ months post-launch)
-5. **Status pages often separate products:** You can integrate from start (advantage)
-6. **ICS not widely implemented:** Google SRE advocates it, but platforms don't explicitly support it - opportunity for differentiation
+1. **Runbook without agents:** PagerDuty requires Runner installation; PageFree uses webhooks to existing tools
+2. **Integrated script governance:** Competitors require external script repos; PageFree has built-in library
+3. **Partner access included:** Statuspage charges $300+/month; PageFree includes in platform
+4. **Simpler partner auth:** Magic link avoids password management complexity
 
 ## Sources
 
-**Official Platform Documentation (HIGH confidence):**
-- PagerDuty Platform: https://www.pagerduty.com/platform/
-- Atlassian Opsgenie Features: https://www.atlassian.com/software/opsgenie/features
-- Splunk On-Call: https://www.splunk.com/en_us/products/on-call.html
-- Atlassian Statuspage: https://www.atlassian.com/software/statuspage
-- Atlassian Incident Response: https://www.atlassian.com/incident-management/incident-response
+**High Confidence (Official Documentation):**
+- PagerDuty Automation Actions: https://support.pagerduty.com/docs/automation-actions
+- Atlassian Statuspage pricing/features: https://www.atlassian.com/software/statuspage
+- Azure Automation Runbooks: https://learn.microsoft.com/en-us/azure/automation/automation-runbook-execution
+- Rundeck Documentation: https://docs.rundeck.com/docs/
+- MDN Web Push API: https://developer.mozilla.org/en-US/docs/Web/API/Push_API
+- web.dev Push Notifications: https://web.dev/articles/push-notifications-overview
+- Socket.IO CORS/Auth: https://socket.io/docs/v4/handling-cors/
 
-**Open Source References (MEDIUM confidence):**
-- Grafana OnCall: https://github.com/grafana/oncall (Note: Entering maintenance mode Mar 2025, archiving Mar 2026)
-- Netflix Dispatch: https://github.com/Netflix/dispatch
-- Post-mortem Examples: https://github.com/danluu/post-mortems
+**Medium Confidence (Industry Patterns):**
+- PagerDuty Platform: https://www.pagerduty.com/platform/automation/
+- Rundeck Runbook Automation marketing: https://www.rundeck.com/runbook-automation
+- Google SRE on runbooks: https://sre.google/sre-book/accelerating-sre-on-call/
+- PagerDuty runbook definition: https://www.pagerduty.com/resources/learn/what-is-a-runbook/
 
-**Best Practices (HIGH confidence):**
-- Google SRE Workbook - Incident Response: https://sre.google/workbook/incident-response/
-
-**Research Methodology:**
-- Reviewed feature pages for 3 major commercial platforms (PagerDuty, Opsgenie, Splunk On-Call)
-- Analyzed 2 open-source platforms (Grafana OnCall, Netflix Dispatch) for implementation patterns
-- Cross-referenced with Google SRE best practices for incident management
-- Validated table stakes vs differentiators based on what all platforms implement vs unique features
-- Prioritized based on project requirements: 50-person team, PagerDuty replacement, pain points around automation and integration setup
+**Codebase Analysis:**
+- Existing workflow system: `/Users/tvellore/work/pagefree/src/services/workflow/`
+- Status page implementation: `/Users/tvellore/work/pagefree/src/services/statusPage.service.ts`
+- Push service: `/Users/tvellore/work/pagefree/src/services/push.service.ts`
+- Socket implementation: `/Users/tvellore/work/pagefree/src/lib/socket.ts`
+- Rate limiter: `/Users/tvellore/work/pagefree/src/middleware/rateLimiter.ts`
+- Prisma schema: `/Users/tvellore/work/pagefree/prisma/schema.prisma`
 
 ---
-*Feature research for: OnCall Platform - Incident Management*
-*Researched: 2026-02-06*
+*Feature research for: PageFree OnCall Platform v1.2 Production Readiness*
+*Researched: 2026-02-08*
