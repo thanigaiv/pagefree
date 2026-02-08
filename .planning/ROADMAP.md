@@ -247,10 +247,16 @@ Plans:
   3. User can link incidents to postmortems
   4. User can share postmortems with team
   5. User can track action items from postmortems with completion status
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 10-01: TBD during phase planning
+- [ ] 10-01-PLAN.md - Database schema and TypeScript types for postmortems
+- [ ] 10-02-PLAN.md - Postmortem service with CRUD and timeline generation
+- [ ] 10-03-PLAN.md - Action item service with state machine
+- [ ] 10-04-PLAN.md - REST API endpoints for postmortems and action items
+- [ ] 10-05-PLAN.md - Frontend hooks and TypeScript types
+- [ ] 10-06-PLAN.md - Postmortems list page with create dialog
+- [ ] 10-07-PLAN.md - Postmortem detail page with editor, timeline, and action items
 
 ## Progress
 
@@ -268,7 +274,7 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 7. External Integrations | 6/6 | Complete | 2026-02-07 |
 | 8. Automation & Workflows | 8/8 | Complete | 2026-02-07 |
 | 9. Status Pages | 9/9 | Complete | 2026-02-08 |
-| 10. Postmortems | 0/TBD | Not started | - |
+| 10. Postmortems | 0/7 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-06*
