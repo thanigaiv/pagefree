@@ -44,6 +44,7 @@ import { workflowTemplateRoutes } from './routes/workflow-template.routes.js';
 import { statusPageRoutes } from './routes/statusPage.routes.js';
 import { statusPublicRoutes } from './routes/statusPublic.routes.js';
 import { postmortemRouter } from './routes/postmortem.routes.js';
+import { serviceRouter } from './routes/service.routes.js';
 import { statusComputationService } from './services/statusComputation.service.js';
 import { startMaintenanceWorker, stopMaintenanceWorker } from './workers/maintenance.worker.js';
 import { startStatusNotificationWorker, stopStatusNotificationWorker } from './workers/statusNotification.worker.js';
@@ -160,6 +161,7 @@ app.use('/api/workflows', workflowRoutes);
 app.use('/api/workflow-templates', workflowTemplateRoutes);
 app.use('/api/status-pages', statusPageRoutes);
 app.use('/api/postmortems', postmortemRouter);
+app.use('/api/services', serviceRouter);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
