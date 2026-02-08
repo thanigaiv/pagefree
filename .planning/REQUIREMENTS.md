@@ -2,8 +2,9 @@
 
 **Milestone:** v1.2 Production Readiness
 **Goal:** Make the platform production-ready for team migration while adding runbook automation and partner status page access
-**Status:** Draft
+**Status:** Roadmap Created
 **Created:** 2026-02-08
+**Roadmap Created:** 2026-02-08
 
 ## Overview
 
@@ -20,6 +21,7 @@ v1.2 focuses on three areas identified during v1.0/v1.1 deployment:
 **Priority:** P1 (Blocker)
 **Category:** Production Hardening
 **Status:** Not Started
+**Phase:** 14 - Production Hardening
 
 **Description:**
 Implement production-ready web push notifications with proper VAPID key generation and configuration.
@@ -41,6 +43,7 @@ Implement production-ready web push notifications with proper VAPID key generati
 **Priority:** P1 (Nice-to-have but expected)
 **Category:** Production Hardening
 **Status:** Not Started
+**Phase:** 14 - Production Hardening
 
 **Description:**
 Replace SVG placeholder icons with proper PNG assets for PWA home screen installation.
@@ -62,6 +65,7 @@ Replace SVG placeholder icons with proper PNG assets for PWA home screen install
 **Priority:** P1 (Security)
 **Category:** Production Hardening
 **Status:** Not Started
+**Phase:** 14 - Production Hardening
 
 **Description:**
 Implement proper session validation for Socket.IO connections instead of token pass-through.
@@ -85,6 +89,7 @@ Implement proper session validation for Socket.IO connections instead of token p
 **Priority:** P1 (Quality)
 **Category:** Production Hardening
 **Status:** Not Started
+**Phase:** 14 - Production Hardening
 
 **Description:**
 Fix 10 failing Phase 2 webhook tests that regressed during Phase 4 changes.
@@ -108,6 +113,7 @@ Fix 10 failing Phase 2 webhook tests that regressed during Phase 4 changes.
 **Priority:** P1 (Security)
 **Category:** Production Hardening
 **Status:** Not Started
+**Phase:** 14 - Production Hardening
 
 **Description:**
 Implement Redis-backed rate limiting for all API endpoints to prevent abuse.
@@ -133,6 +139,7 @@ Implement Redis-backed rate limiting for all API endpoints to prevent abuse.
 **Priority:** P1 (Security)
 **Category:** Production Hardening
 **Status:** Not Started
+**Phase:** 14 - Production Hardening
 
 **Description:**
 Add rate limiting to WebSocket events to prevent abuse of real-time connections.
@@ -156,6 +163,7 @@ Add rate limiting to WebSocket events to prevent abuse of real-time connections.
 **Priority:** P1 (Core Feature)
 **Category:** Runbook Automation
 **Status:** Not Started
+**Phase:** 15 - Runbook Automation Foundation
 
 **Description:**
 Create a pre-approved script library where admins can define, version, and approve runbook scripts.
@@ -182,6 +190,7 @@ Create a pre-approved script library where admins can define, version, and appro
 **Priority:** P1 (Core Feature)
 **Category:** Runbook Automation
 **Status:** Not Started
+**Phase:** 15 - Runbook Automation Foundation
 
 **Description:**
 Execute approved runbooks by posting to external webhook endpoints (Ansible Tower, AWS SSM, custom services).
@@ -209,6 +218,7 @@ Execute approved runbooks by posting to external webhook endpoints (Ansible Towe
 **Priority:** P1 (Core Feature)
 **Category:** Runbook Automation
 **Status:** Not Started
+**Phase:** 16 - Runbook Integration
 
 **Description:**
 Add "runbook" as a new action type in the workflow builder for automated execution on incident triggers.
@@ -232,6 +242,7 @@ Add "runbook" as a new action type in the workflow builder for automated executi
 **Priority:** P1 (Core Feature)
 **Category:** Runbook Automation
 **Status:** Not Started
+**Phase:** 16 - Runbook Integration
 
 **Description:**
 Allow responders to manually trigger runbooks from the incident detail page.
@@ -257,6 +268,7 @@ Allow responders to manually trigger runbooks from the incident detail page.
 **Priority:** P1 (Core Feature)
 **Category:** Partner Status Pages
 **Status:** Not Started
+**Phase:** 17 - Partner Status Pages
 
 **Description:**
 Create a partner user model for external authenticated access to status pages.
@@ -280,6 +292,7 @@ Create a partner user model for external authenticated access to status pages.
 **Priority:** P1 (Core Feature)
 **Category:** Partner Status Pages
 **Status:** Not Started
+**Phase:** 17 - Partner Status Pages
 
 **Description:**
 Implement magic link email authentication for partner users (no password required).
@@ -304,6 +317,7 @@ Implement magic link email authentication for partner users (no password require
 **Priority:** P1 (Core Feature)
 **Category:** Partner Status Pages
 **Status:** Not Started
+**Phase:** 17 - Partner Status Pages
 
 **Description:**
 Enforce access control for partner users viewing status pages.
@@ -335,6 +349,7 @@ Enforce access control for partner users viewing status pages.
 **Priority:** P1 (Security)
 **Category:** Partner Status Pages
 **Status:** Not Started
+**Phase:** 17 - Partner Status Pages
 
 **Description:**
 Log all partner access to status pages for security and compliance.
@@ -355,6 +370,27 @@ Log all partner access to status pages for security and compliance.
 ---
 
 ## Requirement Traceability
+
+### Phase Mapping
+
+| Requirement | Phase | Category | Status |
+|-------------|-------|----------|--------|
+| HARD-01 | Phase 14 | Production Hardening | Not Started |
+| HARD-02 | Phase 14 | Production Hardening | Not Started |
+| HARD-03 | Phase 14 | Production Hardening | Not Started |
+| HARD-04 | Phase 14 | Production Hardening | Not Started |
+| HARD-05 | Phase 14 | Production Hardening | Not Started |
+| HARD-06 | Phase 14 | Production Hardening | Not Started |
+| AUTO-07 | Phase 15 | Runbook Automation | Not Started |
+| AUTO-08 | Phase 15 | Runbook Automation | Not Started |
+| AUTO-09 | Phase 16 | Runbook Automation | Not Started |
+| AUTO-10 | Phase 16 | Runbook Automation | Not Started |
+| PARTNER-01 | Phase 17 | Partner Status Pages | Not Started |
+| PARTNER-02 | Phase 17 | Partner Status Pages | Not Started |
+| PARTNER-03 | Phase 17 | Partner Status Pages | Not Started |
+| PARTNER-04 | Phase 17 | Partner Status Pages | Not Started |
+
+**Coverage:** 14/14 requirements mapped (100%)
 
 ### Production Hardening
 | Requirement | Components | Dependencies |
@@ -437,6 +473,9 @@ v1.2 is considered successful when:
 
 ---
 
-**Requirements Status:** Draft (awaiting approval)
-**Next Step:** Create phased roadmap for implementation
-**Estimated Scope:** 4-5 phases, ~2 weeks execution
+**Requirements Status:** Roadmap Created
+**Next Step:** Plan Phase 14 (Production Hardening) using `/gsd:plan-phase 14`
+**Roadmap:** 4 phases (14-17), estimated 14 requirements
+
+*Requirements defined: 2026-02-08*
+*Roadmap created: 2026-02-08*

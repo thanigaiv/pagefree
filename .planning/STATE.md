@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Milestone v1.2 Production Readiness - Defining requirements
+**Current focus:** Milestone v1.2 Production Readiness - Roadmap created, ready for phase planning
 
 ## Current Position
 
 Milestone: v1.2 Production Readiness
-Phase: Not started (defining requirements)
+Phase: Phase 14 (Production Hardening) - Ready to plan
 Plan: —
-Status: Defining requirements
-Last activity: 2026-02-08 - Milestone v1.2 started
+Status: Roadmap created, awaiting phase planning
+Last activity: 2026-02-08 - v1.2 roadmap created with 4 phases
 
-Progress: [______________________________] 0% (defining scope)
+Progress: [______________________________] 0% (roadmap defined, ready to plan Phase 14)
 
 ## Performance Metrics
 
@@ -49,48 +49,62 @@ Progress: [______________________________] 0% (defining scope)
 | 12. Service Dependencies Graph | 2/2 | 7 min | 3.5 min |
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
+**v1.2 Metrics:**
+- Plans completed: 0
+- Status: Roadmap created
+
 ## Accumulated Context
 
 ### Decisions
 
 See PROJECT.md Key Decisions table for full list.
-Recent decisions from Phase 11-13:
 
-- Service routing with team-based fallback for backward compatibility
-- PostgreSQL sufficient for dependency graphs (no graph DB needed)
-- Cycle detection on every dependency create/update
-- React Flow + dagre for dependency visualization (already installed)
-- Platform admin only for service creation; team admin can update owned services
-- Routing key regex: alphanumeric, underscores, hyphens only
-- Status filter defaults to ACTIVE in UI to show relevant services first
-- Routing key cannot be changed after service creation (UI enforces this)
-- Implicit Prisma join table (_ServiceDependency) instead of explicit model
-- DFS traversal for cycle detection (O(V+E) complexity)
-- Recursive CTE with depth limit (max 20) for bounded graph queries
-- Edges represent A depends on B (A->B direction)
-- Left-to-right graph layout for dependency visualization
-- Nested dialog pattern for add dependency flow
-- Graph view requires service selection first
-- ARCHIVED services skipped for routing (Phase 13)
-- Service escalation policy checked for isActive before use (Phase 13)
-- Service display renders only when incident.service exists (graceful legacy handling)
-- Edit dialog pattern for integration settings (consistent with create dialog)
-- Default service dropdown shows only ACTIVE services with team name
+**v1.2 Roadmap Decisions:**
+- 4-phase structure: Production Hardening → Runbook Foundation → Runbook Integration → Partner Pages
+- Hardening first to establish production stability before feature additions
+- Runbook automation before partner pages (lower risk, extends existing workflow system)
+- Partner pages depends on Phase 14 security hardening (not Phase 15-16)
+- Phase numbering continues from v1.1 (starts at Phase 14)
+- All 14 requirements mapped (6 HARD, 4 AUTO, 4 PARTNER)
+- Depth: comprehensive (research-driven phase boundaries)
+
+**Coverage validation:**
+- Production Hardening: HARD-01, HARD-02, HARD-03, HARD-04, HARD-05, HARD-06 (6 reqs)
+- Runbook Foundation: AUTO-07, AUTO-08 (2 reqs)
+- Runbook Integration: AUTO-09, AUTO-10 (2 reqs)
+- Partner Pages: PARTNER-01, PARTNER-02, PARTNER-03, PARTNER-04 (4 reqs)
+- Total: 14/14 requirements mapped
+
+**Dependency ordering:**
+- Phase 14 blocks Phase 15-17 (production stability prerequisite)
+- Phase 15 blocks Phase 16 (runbook library/executor needed before integration)
+- Phase 17 independent of Phase 15-16 (could be parallelized, but sequential reduces risk)
 
 ### Pending Todos
 
-None. Milestone v1.1 complete.
+None. v1.2 roadmap complete.
+
+**Next action:** Use `/gsd:plan-phase 14` to plan Production Hardening phase.
 
 ### Blockers/Concerns
 
-Carried from v1.0 (see PROJECT.md "Known Tech Debt"):
-- AUTO-06 (runbook automation) deferred for security review
-- 10 failing Phase 2 webhook tests (regression from Phase 4)
-- PWA icons are SVG placeholders
+Known tech debt to address in Phase 14:
+- VAPID keys are placeholders (HARD-01)
+- PWA icons are SVG placeholders (HARD-02)
+- Socket.IO session validation incomplete (HARD-03)
+- 10 failing Phase 2 webhook tests (HARD-04)
+- No Redis-backed rate limiting (HARD-05)
+- No WebSocket event rate limiting (HARD-06)
+
+Research notes:
+- Phase 14: Standard patterns (Socket.IO auth, rate limiting, VAPID) - skip research
+- Phase 15: Extends workflow system - skip research
+- Phase 16: Integration patterns - skip research
+- Phase 17: Magic link auth standard, but consider light research for session scoping patterns if team unfamiliar
 
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Milestone v1.1 archived - all planning artifacts created
+Stopped at: v1.2 roadmap created with 4 phases, 14 requirements mapped
 Resume file: None
-Next action: Use `/gsd:new-milestone` to start next milestone (questioning → research → requirements → roadmap)
+Next action: Use `/gsd:plan-phase 14` to create execution plans for Production Hardening
