@@ -96,6 +96,8 @@ model User {
   preferences                 Json? // User preferences (dashboard filters, notifications, etc.)
   workflowsCreated            Workflow[]               @relation("WorkflowCreatedBy")
   workflowVersionsCreated     WorkflowVersion[]
+  postmortemsCreated          Postmortem[]             @relation("PostmortemCreatedBy")
+  actionItemsAssigned         ActionItem[]
 
   @@index([email])
   @@index([oktaId])
@@ -130,6 +132,7 @@ model Team {
   incidents          Incident[]
   workflows          Workflow[]
   statusPages        StatusPage[]
+  postmortems        Postmortem[]
 
   @@index([name])
   @@index([isActive])
@@ -932,4 +935,70 @@ model StatusIncident {
 
   @@index([statusPageId, status])
   @@index([incidentId])
+}
+
+// ============================================================================
+// POSTMORTEM MODELS (Phase 10)
+// ============================================================================
+
+enum PostmortemStatus {
+  DRAFT // Initial state, editable
+  PUBLISHED // Finalized, read-only except by team admin
+}
+
+enum ActionItemStatus {
+  OPEN // Initial state
+  IN_PROGRESS // Work started
+  COMPLETED // Done
+}
+
+model Postmortem {
+  id          String           @id @default(cuid())
+  title       String
+  content     String           @default("") // Markdown content
+  incidentIds String[] // Array of linked incident IDs for multi-incident support
+  status      PostmortemStatus @default(DRAFT)
+
+  // Ownership
+  teamId      String
+  team        Team             @relation(fields: [teamId], references: [id])
+  createdById String
+  createdBy   User             @relation("PostmortemCreatedBy", fields: [createdById], references: [id])
+
+  // Timestamps
+  publishedAt DateTime? @db.Timestamptz // When status changed to PUBLISHED
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @db.Timestamptz
+
+  // Relations
+  actionItems ActionItem[]
+
+  @@index([teamId, status])
+  @@index([createdById])
+}
+
+model ActionItem {
+  id           String           @id @default(cuid())
+  postmortemId String
+  postmortem   Postmortem       @relation(fields: [postmortemId], references: [id], onDelete: Cascade)
+
+  title       String // What needs to be done
+  description String? // Optional details
+  status      ActionItemStatus @default(OPEN)
+  priority    String           @default("MEDIUM") // HIGH/MEDIUM/LOW
+
+  // Assignment (every action needs owner)
+  assigneeId String
+  assignee   User   @relation(fields: [assigneeId], references: [id])
+
+  // Tracking
+  dueDate     DateTime? @db.Timestamptz
+  completedAt DateTime? @db.Timestamptz
+
+  // Timestamps
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@index([postmortemId])
+  @@index([assigneeId, status])
 }
