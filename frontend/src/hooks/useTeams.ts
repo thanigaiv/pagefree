@@ -8,6 +8,22 @@ export interface Team {
   isActive: boolean;
 }
 
+export interface TeamMember {
+  userId: string;
+  role: 'TEAM_ADMIN' | 'RESPONDER' | 'OBSERVER';
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+  };
+}
+
+export interface TeamWithMembers extends Team {
+  members: TeamMember[];
+}
+
 export function useTeams() {
   return useQuery({
     queryKey: ['teams'],
@@ -21,5 +37,14 @@ export function useTeam(id: string | undefined) {
     queryKey: ['teams', id],
     queryFn: () => apiFetch<Team>(`/teams/${id}`),
     enabled: !!id,
+  });
+}
+
+export function useTeamWithMembers(id: string | undefined) {
+  return useQuery({
+    queryKey: ['teams', id, 'members'],
+    queryFn: () => apiFetch<TeamWithMembers>(`/teams/${id}`),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
   });
 }
