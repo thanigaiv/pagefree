@@ -2,23 +2,22 @@
 
 ## What This Is
 
-A production-ready Digital Operations Reliability Platform that orchestrates incident response for 50+ on-call engineers. Features a complete alert pipeline (ingestion, deduplication, routing, escalation), multi-channel notifications (email, SMS, Slack, Teams, push, voice), on-call scheduling with timezone/DST handling, a React dashboard with real-time WebSocket updates, a visual no-code workflow automation builder, auto-computed status pages, and postmortem documentation with action item tracking. Built as a cost-effective PagerDuty replacement with enhanced automation capabilities and simpler integration setup.
+A production-ready Digital Operations Reliability Platform that orchestrates incident response for 50+ on-call engineers. Features a complete alert pipeline (ingestion, deduplication, routing, escalation) with service-based routing through a comprehensive service catalog, multi-channel notifications (email, SMS, Slack, Teams, push, voice), on-call scheduling with timezone/DST handling, a React dashboard with real-time WebSocket updates, service dependency tracking with visual graphs, a visual no-code workflow automation builder, auto-computed status pages, and postmortem documentation with action item tracking. Built as a cost-effective PagerDuty replacement with enhanced automation capabilities, service ownership clarity, and simpler integration setup.
 
 ## Core Value
 
 Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds, with clear escalation paths. If alerts don't reach the right person at the right time, nothing else matters.
 
-## Current Milestone: v1.1 Service Catalog
+## Current State: v1.1 Service Catalog (Shipped 2026-02-08)
 
-**Goal:** Centralize service ownership and alert routing through a comprehensive service catalog that serves as the single source of truth for the organization's technical ecosystem.
+**What shipped:**
+- Technical service registry with team ownership, lifecycle management (ACTIVE/DEPRECATED/ARCHIVED), and optional escalation policy overrides
+- Service dependency tracking with DFS-based cycle detection, recursive CTE queries, and React Flow + dagre visualization
+- Service-based alert routing with three-tier fallback (routing_key → integration default → TeamTag legacy)
+- Service integration in incident details and integration configuration
+- Admin dashboard navigation for service catalog access
 
-**Target features:**
-- Technical service registry with team ownership and escalation policy mapping
-- Business services aggregating technical services for stakeholder visibility
-- Service dependency tracking with visual graphs, cascade status computation, and auto-notifications
-- Service standards compliance dashboard (metadata completeness, communication channels)
-- Context hub providing runbooks, Slack/Teams channels, and documentation per service
-- Retrofit alert routing to require service-based routing (Alert → Service → Team → Escalation Policy)
+**What's next:** Ready for next milestone planning. Use `/gsd:new-milestone` to define requirements and roadmap.
 
 ## Requirements
 
@@ -87,6 +86,17 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 - ✓ User notification preferences (push, email, SMS) — v1.0
 - ✓ Audit log of user actions — v1.0 (comprehensive audit middleware)
 
+**Service Catalog (v1.1):**
+- ✓ Create technical services with team ownership and routing keys — v1.1 (with audit logging)
+- ✓ Edit service metadata and manage lifecycle states — v1.1 (ACTIVE/DEPRECATED/ARCHIVED)
+- ✓ Service directory with search, filter by team/status — v1.1 (React Query with optimistic updates)
+- ✓ Service dependency relationships with cycle detection — v1.1 (DFS-based graph validation)
+- ✓ Visual dependency graph with upstream/downstream views — v1.1 (React Flow + dagre auto-layout)
+- ✓ Alert routing via service routing_key — v1.1 (three-tier routing with TeamTag fallback)
+- ✓ Integration default service configuration — v1.1 (with ACTIVE-only service dropdown)
+- ✓ Service escalation policy precedence — v1.1 (service overrides team default)
+- ✓ Service display on incident details — v1.1 (conditional rendering for legacy incidents)
+
 ### Active
 
 **Deferred from v1.0:**
@@ -103,13 +113,14 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 
 ## Context
 
-**Current State (post v1.0):**
-- v1.0 shipped with ~51,000 lines of TypeScript across 281 source files
+**Current State (post v1.1):**
+- v1.1 shipped with ~62,000 lines of TypeScript (total codebase)
 - Tech stack: Express.js + Prisma + PostgreSQL (backend), React + Vite + TanStack Query + shadcn/ui (frontend)
 - Infrastructure: BullMQ + Redis (queues), Socket.io (real-time), AWS SES/SNS (notifications), Twilio (SMS/voice)
-- 10 phases, 85 plans, 360 commits executed in 2 days
-- 74/75 v1 requirements satisfied (1 intentionally deferred: AUTO-06)
-- All 8 E2E flows verified by integration checker
+- **v1.0:** 10 phases, 85 plans, 360 commits (shipped 2026-02-08)
+- **v1.1:** 3 phases, 6 plans, 17 commits (shipped 2026-02-08, same day)
+- 91/92 total requirements satisfied across v1.0 + v1.1 (1 intentionally deferred: AUTO-06)
+- Phase 13 UAT: 6/7 tests passed (1 environmental issue resolved)
 
 **Known Tech Debt:**
 - AUTO-06 runbook automation deferred for security review
@@ -149,6 +160,14 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 | RRULE for schedule representation | Calendar standard, handles infinite schedules without pre-computing | ✓ Good — DST transitions handled correctly |
 | Circuit breaker for notification failover | Prevent hammering failed providers | ✓ Good — Twilio→SNS failover with 3-failure threshold |
 | Audit events as incident timeline | No separate timeline table, reuse audit infrastructure | ✓ Good — Consistent audit trail across all features |
+| **v1.1 Service Catalog Decisions** | | |
+| PostgreSQL for dependency graphs | Recursive CTEs sufficient, avoid graph DB complexity | ✓ Good — DFS cycle detection O(V+E), recursive CTE with depth limit works well |
+| Service-first routing with TeamTag fallback | Maintain backward compatibility during migration | ✓ Good — Zero breaking changes, gradual service adoption possible |
+| Implicit Prisma join table for dependencies | Simpler than explicit ServiceDependency model | ✓ Good — Clean many-to-many relation, no extra queries needed |
+| React Flow + dagre for graph visualization | Library already installed from workflow builder | ✓ Good — Consistent UX, auto-layout works well for service graphs |
+| Routing key immutable after creation | Prevent breaking integrations, enforce via UI | ✓ Good — Clear constraint, forces intentional service design |
+| ACTIVE-only services in dropdowns | Reduce noise, focus on operational services | ✓ Good — Users only see relevant services in integration config |
+| Service escalation policy as optional override | Flexibility without forcing per-service configuration | ✓ Good — Defaults to team policy, allows service-specific escalation when needed |
 
 ---
-*Last updated: 2026-02-08 after v1.1 milestone start*
+*Last updated: 2026-02-08 after v1.1 milestone completion*
