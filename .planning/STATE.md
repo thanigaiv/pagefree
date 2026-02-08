@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-08)
 ## Current Position
 
 Phase: 11 of 13 (Service Model Foundation)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-08 — Completed 11-01-PLAN.md (Service Model Backend CRUD)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-08 — Completed 11-02-PLAN.md (Service Directory Frontend)
 
-Progress: [#####################.........] 78% (v1.0 complete, v1.1 Plan 1/2)
+Progress: [#######################.......] 80% (v1.0 complete, v1.1 Phase 11 complete)
 
 ## Performance Metrics
 
@@ -39,8 +39,8 @@ Progress: [#####################.........] 78% (v1.0 complete, v1.1 Plan 1/2)
 | 10. Postmortems | 7/7 | 15 min | 2.1 min |
 
 **v1.1 Metrics:**
-- Plans completed: 1
-- Time elapsed: 3 min
+- Plans completed: 2
+- Time elapsed: 5 min
 
 ## Accumulated Context
 
@@ -55,6 +55,8 @@ Recent decisions from Phase 11:
 - React Flow + dagre for dependency visualization (already installed)
 - Platform admin only for service creation; team admin can update owned services
 - Routing key regex: alphanumeric, underscores, hyphens only
+- Status filter defaults to ACTIVE in UI to show relevant services first
+- Routing key cannot be changed after service creation (UI enforces this)
 
 ### Pending Todos
 
@@ -70,6 +72,6 @@ Carried from v1.0 (see PROJECT.md "Known Tech Debt"):
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 11-01-PLAN.md (Service Model Backend CRUD)
+Stopped at: Completed 11-02-PLAN.md (Service Directory Frontend)
 Resume file: None
-Next action: Execute 11-02-PLAN.md
+Next action: Phase 11 complete. Ready for Phase 12 (Service Dependencies) or Phase 13 (Service Routing).
