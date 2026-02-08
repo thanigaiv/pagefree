@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Phase 13 - Service-based Alert Routing (In Progress)
+**Current focus:** Phase 13 - Service-based Alert Routing (Complete)
 
 ## Current Position
 
 Phase: 13 of 13 (Service-based Alert Routing)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-08 - Completed 13-01-PLAN.md (Backend Service-Based Alert Routing)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-08 - Completed 13-02-PLAN.md (Frontend Service Routing UI)
 
-Progress: [###########################...] 90% (v1.0 complete, v1.1 Phase 13 plan 1/2 complete)
+Progress: [##############################] 100% (v1.0 complete, v1.1 complete)
 
 ## Performance Metrics
 
@@ -39,14 +39,14 @@ Progress: [###########################...] 90% (v1.0 complete, v1.1 Phase 13 pla
 | 10. Postmortems | 7/7 | 15 min | 2.1 min |
 
 **v1.1 Metrics:**
-- Plans completed: 5
-- Time elapsed: 16 min
+- Plans completed: 6
+- Time elapsed: 18 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 11. Service Model Foundation | 2/2 | 6 min | 3 min |
 | 12. Service Dependencies Graph | 2/2 | 7 min | 3.5 min |
-| 13. Service-based Alert Routing | 1/2 | 4 min | 4 min |
+| 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 ## Accumulated Context
 
@@ -72,6 +72,9 @@ Recent decisions from Phase 11-13:
 - Graph view requires service selection first
 - ARCHIVED services skipped for routing (Phase 13)
 - Service escalation policy checked for isActive before use (Phase 13)
+- Service display renders only when incident.service exists (graceful legacy handling)
+- Edit dialog pattern for integration settings (consistent with create dialog)
+- Default service dropdown shows only ACTIVE services with team name
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ Carried from v1.0 (see PROJECT.md "Known Tech Debt"):
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 13-01-PLAN.md (Backend Service-Based Alert Routing)
+Stopped at: Completed 13-02-PLAN.md (Frontend Service Routing UI) - v1.1 COMPLETE
 Resume file: None
-Next action: Execute 13-02-PLAN.md (Frontend Service Routing UI)
+Next action: None - v1.1 roadmap complete
