@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 9 of 10 (Status Pages)
-Plan: 8 of N complete
-Status: In progress - Public status page and tests complete
-Last activity: 2026-02-08 — Completed 09-08-PLAN.md (Public Status Page & Tests)
+Plan: 9 of N complete
+Status: In progress - Subscription endpoints wired to service
+Last activity: 2026-02-08 — Completed 09-09-PLAN.md (Subscription Endpoint Wiring)
 Progress: [████████████████████████████████████████████████░░] 85% (8.5 of 10 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 74
+- Total plans completed: 75
 - Average duration: 3.5 min
-- Total execution time: 4.47 hours
+- Total execution time: 4.53 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [███████████████████████
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
 | 8. Automation & Workflows | 8/8 | 42 min | 5.25 min |
-| 9. Status Pages | 8/? | 27 min | 3.4 min |
+| 9. Status Pages | 9/? | 31 min | 3.4 min |
 
 **Recent Trend:**
-- Last 7 plans: 09-03 (5 min), 09-04 (3 min), 09-05 (3 min), 09-06 (4 min), 09-07 (3 min), 09-08 (4 min), average 3.7 min
-- Trend: Phase 9 progressing - Public status page and integration tests complete
+- Last 7 plans: 09-04 (3 min), 09-05 (3 min), 09-06 (4 min), 09-07 (3 min), 09-08 (4 min), 09-09 (4 min), average 3.5 min
+- Trend: Phase 9 progressing - Subscription endpoints wired to service
 
 *Updated after each plan completion*
 
@@ -332,6 +332,9 @@ Recent decisions affecting current work:
 | Dual badge styling (solid for sm, light for default) | 09-07 | Admin UI uses solid colors, public pages use light colors |
 | Public route outside MobileLayout | 09-08 | Status page needs full-width view without app navigation |
 | Status added to BottomNav | 09-08 | 5th nav item with BarChart3 icon for status page management |
+| statusPageId + destination for unsubscribe | 09-09 | Simple approach over signed tokens for unsubscribe endpoint |
+| 409 Conflict for duplicate subscriptions | 09-09 | Service throws Already subscribed, route returns 409 |
+| Email verification, Webhook/Slack auto-verified | 09-09 | Consistent with Phase 5 contact verification pattern |
 
 ### Pending Todos
 
@@ -362,9 +365,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 09-08-PLAN.md (Public Status Page & Tests)
+Stopped at: Completed 09-09-PLAN.md (Subscription Endpoint Wiring)
 Resume file: None
 
 ---
-*Phase 9 In Progress: Status Pages (8/? plans complete)*
+*Phase 9 In Progress: Status Pages (9/? plans complete)*
 *Ready for: Next status page plan or Phase 10*
