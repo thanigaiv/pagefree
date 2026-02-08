@@ -453,8 +453,8 @@ model Alert {
   metadata Json @default("{}")
 
   // Relations
-  integrationId String
-  integration   Integration       @relation(fields: [integrationId], references: [id])
+  integrationId String?
+  integration   Integration?      @relation(fields: [integrationId], references: [id])
   deliveries    WebhookDelivery[]
   incidentId    String?
   incident      Incident?         @relation(fields: [incidentId], references: [id])

@@ -1,8 +1,48 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import { incidentService } from '../services/incident.service.js';
 import { permissionService } from '../services/permission.service.js';
 
 const router = Router();
+
+// Validation schema for creating incidents
+const createIncidentSchema = z.object({
+  title: z.string().min(1).max(500),
+  description: z.string().max(2000).optional(),
+  teamId: z.string(),
+  escalationPolicyId: z.string(),
+  priority: z.enum(['INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
+  assignedUserId: z.string().optional(),
+});
+
+// POST /api/incidents - Create incident manually
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const input = createIncidentSchema.parse(req.body);
+    const user = (req as any).user;
+
+    // Check team access - must be team member
+    const permission = permissionService.canViewTeam(user, input.teamId);
+    if (!permission.allowed) {
+      return res.status(403).json({ error: permission.reason });
+    }
+
+    const incident = await incidentService.create({
+      ...input,
+      createdByUserId: user.id,
+    });
+
+    return res.status(201).json({ incident });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      return res.status(400).json({
+        error: 'Invalid incident data',
+        details: error.issues
+      });
+    }
+    return next(error);
+  }
+});
 
 // GET /api/incidents - List incidents with filters
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {

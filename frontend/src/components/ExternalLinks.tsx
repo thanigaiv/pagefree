@@ -3,13 +3,18 @@ import { ExternalLink } from 'lucide-react';
 
 interface ExternalLinksProps {
   service?: string;
-  metadata: Record<string, unknown>;
+  metadata?: Record<string, unknown> | null;
 }
 
 // Map services to external tool URLs
 // In production, this would come from configuration
-function getExternalLinks(service: string | undefined, metadata: Record<string, unknown>) {
+function getExternalLinks(service: string | undefined, metadata?: Record<string, unknown> | null) {
   const links: Array<{ name: string; url: string }> = [];
+
+  // Guard against null/undefined metadata
+  if (!metadata) {
+    return links;
+  }
 
   // DataDog dashboard
   if (metadata.datadog_dashboard_url || service) {

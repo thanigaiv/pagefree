@@ -144,7 +144,7 @@ export function IncidentRow({
 
       {/* Expanded content with full details (per user decision: inline expansion) */}
       {isExpanded && (
-        <div className="border-t">
+        <div className="border-t" onClick={(e) => e.stopPropagation()}>
           <IncidentDetail
             incident={incident}
             isInline={true}

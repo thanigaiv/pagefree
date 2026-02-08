@@ -501,6 +501,85 @@ class IncidentService {
     logger.debug({ incidentId, userId }, 'Note added to incident');
   }
 
+  // Create incident manually
+  async create(data: {
+    title: string;
+    description?: string;
+    teamId: string;
+    escalationPolicyId: string;
+    priority: 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    assignedUserId?: string;
+    createdByUserId: string;
+  }): Promise<any> {
+    // Generate a fingerprint for manual incidents
+    const fingerprint = `manual:${data.teamId}:${Date.now()}`;
+
+    // Create incident
+    const incident = await prisma.incident.create({
+      data: {
+        fingerprint,
+        teamId: data.teamId,
+        escalationPolicyId: data.escalationPolicyId,
+        priority: data.priority,
+        status: 'OPEN',
+        assignedUserId: data.assignedUserId,
+        alertCount: 0,
+        currentLevel: 1,
+        currentRepeat: 1,
+      },
+      include: {
+        team: { select: { id: true, name: true } },
+        escalationPolicy: { select: { id: true, name: true } },
+        assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+      }
+    });
+
+    // Create a synthetic alert for this manual incident
+    await prisma.alert.create({
+      data: {
+        externalId: `manual:${incident.id}`,
+        title: data.title,
+        description: data.description || '',
+        severity: data.priority,
+        status: 'OPEN',
+        source: 'manual',
+        triggeredAt: new Date(),
+        incidentId: incident.id,
+        fingerprint: incident.fingerprint,
+      }
+    });
+
+    // Audit log
+    await auditService.log({
+      action: 'incident.created',
+      userId: data.createdByUserId,
+      teamId: data.teamId,
+      resourceType: 'incident',
+      resourceId: incident.id,
+      severity: 'INFO',
+      metadata: {
+        title: data.title,
+        priority: data.priority,
+        manual: true
+      }
+    });
+
+    // Broadcast via WebSocket
+    socketService.broadcastIncidentUpdate({
+      incident,
+      event: 'created'
+    }, data.teamId);
+
+    // Trigger workflow execution (async)
+    onIncidentStateChanged(incident.id, 'created', data.createdByUserId).catch(err => {
+      logger.warn({ error: (err as Error).message, incidentId: incident.id }, 'Failed to trigger workflows for manual incident');
+    });
+
+    logger.info({ incidentId: incident.id, teamId: data.teamId }, 'Manual incident created');
+
+    return incident;
+  }
+
   // Get incident timeline (audit events for this incident)
   async getTimeline(incidentId: string): Promise<any[]> {
     return prisma.auditEvent.findMany({

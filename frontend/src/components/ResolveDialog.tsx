@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
@@ -37,16 +36,29 @@ export function ResolveDialog({
       ? `Resolve ${incidentCount} incidents?`
       : 'Resolve this incident?';
 
+  const handleCancel = () => {
+    setNote('');
+    onOpenChange(false);
+  };
+
+  const handleResolve = () => {
+    handleConfirm();
+    onOpenChange(false);
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
             This will mark the incident(s) as resolved. You can optionally add a
             resolution note.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="py-4">
           <Label htmlFor="resolution-note">Resolution Note (optional)</Label>
@@ -60,13 +72,15 @@ export function ResolveDialog({
           />
         </div>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setNote('')}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleResolve}>
             Resolve
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

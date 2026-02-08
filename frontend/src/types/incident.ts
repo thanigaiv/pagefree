@@ -8,7 +8,7 @@ export interface Incident {
   priority: IncidentPriority;
   title: string;
   description?: string;
-  metadata: Record<string, unknown>;
+  metadata?: Record<string, unknown> | null;
   teamId: string;
   team: { id: string; name: string };
   assignedUserId?: string;

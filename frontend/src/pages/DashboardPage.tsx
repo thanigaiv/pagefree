@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useIncidents } from '@/hooks/useIncidents';
+import { useIncidents, useCreateIncident } from '@/hooks/useIncidents';
 import { useUrlState } from '@/hooks/useUrlState';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { usePWA } from '@/hooks/usePWA';
 import { useDefaultFilters } from '@/hooks/usePreferences';
+import { useTeams } from '@/hooks/useTeams';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { IncidentList } from '@/components/IncidentList';
 import { IncidentFilters } from '@/components/IncidentFilters';
 import { FilterPresets } from '@/components/FilterPresets';
@@ -13,7 +15,31 @@ import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { BulkActions } from '@/components/BulkActions';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { RefreshCw, Plus, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api';
+
+interface EscalationPolicy {
+  id: string;
+  name: string;
+}
 
 export default function DashboardPage() {
   const { filters, updateFilters, clearFilters } = useUrlState();
@@ -21,9 +47,22 @@ export default function DashboardPage() {
   const { connectionState, reconnectAttempt } = useWebSocket();
   const { canInstall, showInstallPrompt } = usePWA();
   const defaultFilters = useDefaultFilters();
+  const { data: teams } = useTeams();
+  const { data: currentUser } = useCurrentUser();
+  const createIncident = useCreateIncident();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    description: '',
+    teamId: '',
+    escalationPolicyId: '',
+    priority: 'MEDIUM' as 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
+    assignedUserId: 'unassigned',
+  });
+  const [escalationPolicies, setEscalationPolicies] = useState<EscalationPolicy[]>([]);
 
   // Apply default filters on mount if URL has no filters
   useEffect(() => {
@@ -34,6 +73,54 @@ export default function DashboardPage() {
       updateFilters(defaultFilters);
     }
   }, [defaultFilters]); // Only run when default filters load
+
+  // Fetch escalation policies when team is selected
+  useEffect(() => {
+    if (createForm.teamId) {
+      apiFetch<{ policies: EscalationPolicy[] }>(
+        `/escalation-policies/teams/${createForm.teamId}`
+      )
+        .then((response) => setEscalationPolicies(response.policies))
+        .catch(() => setEscalationPolicies([]));
+    } else {
+      setEscalationPolicies([]);
+      setCreateForm((prev) => ({ ...prev, escalationPolicyId: '' }));
+    }
+  }, [createForm.teamId]);
+
+  const handleCreateIncident = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!createForm.title || !createForm.teamId || !createForm.escalationPolicyId) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await createIncident.mutateAsync({
+        title: createForm.title,
+        description: createForm.description || undefined,
+        teamId: createForm.teamId,
+        escalationPolicyId: createForm.escalationPolicyId,
+        priority: createForm.priority,
+        assignedUserId: createForm.assignedUserId === 'unassigned' ? undefined : createForm.assignedUserId,
+      });
+
+      toast.success('Incident created successfully');
+      setIsCreateOpen(false);
+      setCreateForm({
+        title: '',
+        description: '',
+        teamId: '',
+        escalationPolicyId: '',
+        priority: 'MEDIUM',
+        assignedUserId: 'unassigned',
+      });
+      refetch();
+    } catch (err) {
+      toast.error('Failed to create incident');
+    }
+  };
 
   // Calculate metrics from current data
   const metrics = useMemo(() => {
@@ -93,6 +180,138 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <InstallPrompt canInstall={canInstall} onInstall={showInstallPrompt} />
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                New Incident
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Create Incident</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateIncident} className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Title *</Label>
+                  <Input
+                    id="title"
+                    value={createForm.title}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, title: e.target.value })
+                    }
+                    placeholder="Brief description of the incident"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={createForm.description}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, description: e.target.value })
+                    }
+                    placeholder="Additional details..."
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="team">Team *</Label>
+                  <Select
+                    value={createForm.teamId}
+                    onValueChange={(v) =>
+                      setCreateForm({ ...createForm, teamId: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teams?.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {createForm.teamId && (
+                  <div>
+                    <Label htmlFor="policy">Escalation Policy *</Label>
+                    <Select
+                      value={createForm.escalationPolicyId}
+                      onValueChange={(v) =>
+                        setCreateForm({ ...createForm, escalationPolicyId: v })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select policy" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {escalationPolicies.map((policy) => (
+                          <SelectItem key={policy.id} value={policy.id}>
+                            {policy.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="priority">Priority *</Label>
+                  <Select
+                    value={createForm.priority}
+                    onValueChange={(v: any) =>
+                      setCreateForm({ ...createForm, priority: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="INFO">Info</SelectItem>
+                      <SelectItem value="LOW">Low</SelectItem>
+                      <SelectItem value="MEDIUM">Medium</SelectItem>
+                      <SelectItem value="HIGH">High</SelectItem>
+                      <SelectItem value="CRITICAL">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="assignee">Assign To (Optional)</Label>
+                  <Select
+                    value={createForm.assignedUserId}
+                    onValueChange={(v) =>
+                      setCreateForm({ ...createForm, assignedUserId: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Leave unassigned</SelectItem>
+                      {currentUser && (
+                        <SelectItem value={currentUser.id}>
+                          {currentUser.firstName} {currentUser.lastName} (Me)
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={createIncident.isPending}
+                  className="w-full"
+                >
+                  {createIncident.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Create Incident
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
           <Button
             variant="outline"
             size="sm"

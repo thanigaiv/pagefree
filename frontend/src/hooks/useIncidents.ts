@@ -1,7 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../lib/api';
 import type { Incident, IncidentListResponse } from '../types/incident';
 import type { IncidentFilters } from './useUrlState';
+
+export interface CreateIncidentInput {
+  title: string;
+  description?: string;
+  teamId: string;
+  escalationPolicyId: string;
+  priority: 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  assignedUserId?: string;
+}
 
 const PAGE_SIZE = 20; // Per user decision: 10-20 per page
 
@@ -77,5 +86,23 @@ export function useIncidentCounts() {
       };
     },
     staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+export function useCreateIncident() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateIncidentInput) => {
+      const response = await apiFetch<{ incident: Incident }>('/incidents', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      });
+      return response.incident;
+    },
+    onSuccess: () => {
+      // Invalidate all incident queries to refetch
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+    },
   });
 }

@@ -9,7 +9,7 @@ import { ChevronDown, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TechnicalDetailsProps {
-  metadata: Record<string, unknown>;
+  metadata?: Record<string, unknown> | null;
   alerts?: Array<{
     id: string;
     title: string;
@@ -23,7 +23,7 @@ export function TechnicalDetails({ metadata, alerts }: TechnicalDetailsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const jsonContent = JSON.stringify({ metadata, alerts }, null, 2);
+  const jsonContent = JSON.stringify({ metadata: metadata || {}, alerts }, null, 2);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(jsonContent);
