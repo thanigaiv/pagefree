@@ -10,6 +10,8 @@ import IntegrationsPage from './pages/IntegrationsPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
 import { PublicStatusPage } from './pages/PublicStatusPage';
+import { StatusPagesPage } from './pages/StatusPagesPage';
+import { StatusPageDetailPage } from './pages/StatusPageDetailPage';
 
 export default function App() {
   const { isOnline } = usePWA();
@@ -37,6 +39,10 @@ export default function App() {
                 <Route path="/workflows" element={<WorkflowsPage />} />
                 <Route path="/workflows/new" element={<WorkflowBuilderPage />} />
                 <Route path="/workflows/:id" element={<WorkflowBuilderPage />} />
+
+                {/* Status page admin routes */}
+                <Route path="/status-pages" element={<StatusPagesPage />} />
+                <Route path="/status-pages/:id" element={<StatusPageDetailPage />} />
               </Routes>
             </MobileLayout>
           }
