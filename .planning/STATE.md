@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 Milestone: v1.2 Production Readiness
 Phase: Phase 14 (Production Hardening) - In progress
-Plan: 3 of 6 complete
+Plan: 4 of 6 complete
 Status: Executing Phase 14 plans
-Last activity: 2026-02-08 - Completed 14-01 (Web Push VAPID Implementation)
+Last activity: 2026-02-08 - Completed 14-04 (Webhook Test Fixes)
 
-Progress: [###___________________________] 50% (3/6 plans complete in Phase 14)
+Progress: [####__________________________] 67% (4/6 plans complete in Phase 14)
 
 ## Performance Metrics
 
@@ -50,12 +50,12 @@ Progress: [###___________________________] 50% (3/6 plans complete in Phase 14)
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 **v1.2 Metrics:**
-- Plans completed: 3
-- Time elapsed: 9 min
+- Plans completed: 4
+- Time elapsed: 18 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 14. Production Hardening | 3/6 | 9 min | 3 min |
+| 14. Production Hardening | 4/6 | 18 min | 4.5 min |
 
 ## Accumulated Context
 
@@ -90,6 +90,12 @@ See PROJECT.md Key Decisions table for full list.
 - Graceful degradation: allow requests if Redis unavailable
 - Keep memory-based break-glass limiter as separate emergency fallback
 
+**Phase 14-04 Decisions:**
+- Use dashes instead of colons in BullMQ job IDs (colons not allowed)
+- Extract timestamps from provider-specific payload fields (date, timestamp)
+- Reject webhooks >60s in future to prevent clock skew attacks
+- Create test integrations directly in DB to reliably get webhookSecret
+
 **Coverage validation:**
 - Production Hardening: HARD-01, HARD-02, HARD-03, HARD-04, HARD-05, HARD-06 (6 reqs)
 - Runbook Foundation: AUTO-07, AUTO-08 (2 reqs)
@@ -114,7 +120,7 @@ Known tech debt to address in Phase 14:
 - ~~VAPID keys are placeholders (HARD-01)~~ DONE (14-01)
 - PWA icons are SVG placeholders (HARD-02)
 - ~~Socket.IO session validation incomplete (HARD-03)~~ DONE (14-03)
-- 10 failing Phase 2 webhook tests (HARD-04)
+- ~~10 failing Phase 2 webhook tests (HARD-04)~~ DONE (14-04) - All 27 webhook tests pass
 - ~~No Redis-backed rate limiting (HARD-05)~~ DONE (14-05)
 - No WebSocket event rate limiting (HARD-06)
 
@@ -127,6 +133,6 @@ Research notes:
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed plan 14-01 (Web Push VAPID Implementation)
-Resume file: .planning/phases/14-production-hardening/14-01-SUMMARY.md
-Next action: Execute remaining Phase 14 plans (14-02, 14-04, 14-06)
+Stopped at: Completed plan 14-04 (Webhook Test Fixes)
+Resume file: .planning/phases/14-production-hardening/14-04-SUMMARY.md
+Next action: Execute remaining Phase 14 plans (14-02, 14-06)
