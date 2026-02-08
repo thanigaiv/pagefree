@@ -1,3 +1,10 @@
+// Rate limit warning data
+export interface RateLimitWarningData {
+  current: number;
+  limit: number;
+  message: string;
+}
+
 // Events sent from server to client
 export interface ServerToClientEvents {
   // Incident lifecycle events
@@ -15,6 +22,9 @@ export interface ServerToClientEvents {
   'authenticated': () => void;
   'auth_error': (message: string) => void;
   'session_expired': () => void;
+
+  // Rate limiting events
+  'rate_limit_warning': (data: RateLimitWarningData) => void;
 }
 
 // Events sent from client to server

@@ -38,10 +38,16 @@ function isSystemEvent(eventName: string): boolean {
 }
 
 /**
- * Emit rate limit warning to client (placeholder - implemented in Task 2)
+ * Emit rate limit warning to client
+ * Called when client reaches 80% of rate limit
  */
 function emitRateLimitWarning(socket: TypedSocket, current: number, limit: number): void {
-  // Placeholder - full implementation in Task 2
+  socket.emit('rate_limit_warning', {
+    current,
+    limit,
+    message: `You are sending ${current} events/min. Limit is ${limit}. Slow down to avoid disconnection.`
+  });
+
   logger.warn({
     socketId: socket.id,
     userId: (socket as any).userId,
@@ -51,11 +57,23 @@ function emitRateLimitWarning(socket: TypedSocket, current: number, limit: numbe
 }
 
 /**
- * Handle rate limit exceeded - disconnect socket (placeholder - implemented in Task 2)
+ * Handle rate limit exceeded - log violation and disconnect socket
+ * Called when client exceeds 100 events/min
  */
-function handleRateLimitExceeded(socket: TypedSocket, eventCount: number): void {
-  // Placeholder - full implementation in Task 2
+async function handleRateLimitExceeded(socket: TypedSocket, eventCount: number): Promise<void> {
   const userId = (socket as any).userId;
+
+  // Audit log the violation
+  await auditService.log({
+    action: 'socket.rate_limit_exceeded',
+    severity: 'WARN',
+    userId,
+    metadata: {
+      socketId: socket.id,
+      eventCount,
+      limit: EVENT_LIMIT
+    }
+  });
 
   logger.warn({
     socketId: socket.id,
@@ -63,7 +81,14 @@ function handleRateLimitExceeded(socket: TypedSocket, eventCount: number): void 
     eventCount
   }, 'Socket disconnected for rate limit violation');
 
-  // Disconnect after brief delay to allow error to be sent
+  // Emit final warning before disconnect
+  socket.emit('rate_limit_warning', {
+    current: eventCount,
+    limit: EVENT_LIMIT,
+    message: 'Rate limit exceeded. Connection terminated.'
+  });
+
+  // Give client a moment to receive the message before disconnect
   setTimeout(() => {
     socket.disconnect(true);
   }, 100);
