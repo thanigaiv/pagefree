@@ -24,12 +24,15 @@ import readline from 'readline';
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
+  terminal: true
 });
 
 function question(prompt: string): Promise<string> {
   return new Promise((resolve) => {
-    rl.question(prompt, resolve);
+    rl.question(prompt, (answer) => {
+      resolve(answer.trim());
+    });
   });
 }
 
@@ -135,9 +138,12 @@ async function main() {
 
   rl.close();
   await prisma.$disconnect();
+  process.exit(0);
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   console.error('Error:', error);
+  rl.close();
+  await prisma.$disconnect();
   process.exit(1);
 });

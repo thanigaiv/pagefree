@@ -141,7 +141,7 @@ app.get('/', (_req, res) => {
 
 // API routes
 app.use('/api/audit', auditRouter);
-app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/keys', apiKeyRouter);
 app.use('/api/teams', teamRouter);
 app.use('/api/users', userRouter);

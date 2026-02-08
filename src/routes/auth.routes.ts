@@ -13,7 +13,7 @@ authRouter.get('/login', passport.authenticate('okta'));
 // Okta callback
 authRouter.get('/callback',
   passport.authenticate('okta', {
-    failureRedirect: '/auth/login-failed',
+    failureRedirect: '/api/auth/login-failed',
     failureMessage: true
   }),
   (req, res): void => {
