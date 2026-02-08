@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Calendar, User, Workflow, BarChart3 } from 'lucide-react';
+import { AlertCircle, Calendar, User, Workflow, BarChart3, FileText } from 'lucide-react';
 
 const navItems = [
   {
@@ -18,6 +18,11 @@ const navItems = [
     to: '/status-pages',
     icon: BarChart3,
     label: 'Status',
+  },
+  {
+    to: '/postmortems',
+    icon: FileText,
+    label: 'Postmortems',
   },
   {
     to: '/schedule',
