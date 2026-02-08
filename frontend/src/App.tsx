@@ -19,6 +19,7 @@ import { StatusPageEditPage } from './pages/StatusPageEditPage';
 import PostmortemsPage from './pages/PostmortemsPage';
 import PostmortemDetailPage from './pages/PostmortemDetailPage';
 import EmergencyLoginPage from './pages/EmergencyLoginPage';
+import ServicesPage from './pages/ServicesPage';
 
 export default function App() {
   const { isOnline } = usePWA();
@@ -46,6 +47,7 @@ export default function App() {
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/admin/teams" element={<TeamsAdminPage />} />
                 <Route path="/admin/escalation-policies" element={<EscalationPoliciesPage />} />
+                <Route path="/admin/services" element={<ServicesPage />} />
                 <Route path="/integrations" element={<IntegrationsPage />} />
 
                 {/* Workflow routes */}
