@@ -54,6 +54,12 @@ enum AlertStatus {
   CLOSED
 }
 
+enum ServiceStatus {
+  ACTIVE       // Normal operating state
+  DEPRECATED   // Soft notice: will be removed
+  ARCHIVED     // Inactive, hidden from default views
+}
+
 // ============================================================================
 // USER MODEL
 // ============================================================================
@@ -133,6 +139,7 @@ model Team {
   workflows          Workflow[]
   statusPages        StatusPage[]
   postmortems        Postmortem[]
+  services           Service[]
 
   @@index([name])
   @@index([isActive])
@@ -164,6 +171,39 @@ model TeamTag {
   @@unique([teamId, tagType, tagValue])
   @@index([tagType, tagValue])
   @@index([teamId])
+}
+
+// ============================================================================
+// SERVICE MODEL (Phase 11)
+// ============================================================================
+
+model Service {
+  id                  String        @id @default(cuid())
+  name                String
+  description         String?
+  routingKey          String        @unique  // For alert routing (Phase 13)
+
+  // Ownership (required per SVC-05)
+  teamId              String
+  team                Team          @relation(fields: [teamId], references: [id])
+
+  // Optional escalation override (SVC-06)
+  escalationPolicyId  String?
+  escalationPolicy    EscalationPolicy? @relation(fields: [escalationPolicyId], references: [id])
+
+  // Lifecycle (SVC-03)
+  status              ServiceStatus @default(ACTIVE)
+
+  // Metadata (SVC-02)
+  tags                String[]      @default([])
+
+  createdAt           DateTime      @default(now()) @db.Timestamptz
+  updatedAt           DateTime      @updatedAt @db.Timestamptz
+
+  @@index([teamId])
+  @@index([status])
+  @@index([routingKey])
+  @@index([name])
 }
 
 // ============================================================================
@@ -516,6 +556,7 @@ model EscalationPolicy {
   // Relations
   levels    EscalationLevel[]
   incidents Incident[]
+  services  Service[]
 
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt @db.Timestamptz
