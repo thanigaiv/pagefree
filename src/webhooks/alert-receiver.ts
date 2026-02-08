@@ -198,12 +198,13 @@ alertWebhookRouter.post(
         service: (alert.metadata as any)?.service || alert.source
       });
 
-      // 5. Deduplicate and create/link incident
+      // 5. Deduplicate and create/link incident (pass integration for service routing fallback)
       const { incident, isDuplicate } = await deduplicationService.deduplicateAndCreateIncident(
         alert.id,
         deduplicationFingerprint,
         alert,
-        integration.deduplicationWindowMinutes
+        integration.deduplicationWindowMinutes,
+        { defaultServiceId: integration.defaultServiceId }
       );
 
       // 6. If new incident, start escalation

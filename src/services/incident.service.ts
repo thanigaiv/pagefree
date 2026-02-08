@@ -30,6 +30,14 @@ class IncidentService {
         team: { select: { id: true, name: true } },
         escalationPolicy: { select: { id: true, name: true } },
         assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            routingKey: true,
+            team: { select: { id: true, name: true } }
+          }
+        },
         alerts: {
           select: {
             id: true,
@@ -108,6 +116,14 @@ class IncidentService {
       include: {
         team: { select: { id: true, name: true } },
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            routingKey: true,
+            team: { select: { id: true, name: true } }
+          }
+        },
         _count: { select: { alerts: true } },
         alerts: {
           take: 1,

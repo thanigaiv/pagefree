@@ -29,7 +29,8 @@ const updateIntegrationSchema = z.object({
   signatureFormat: z.enum(['hex', 'base64']).optional(),
   signaturePrefix: z.string().max(50).optional(),
   deduplicationWindowMinutes: z.number().int().min(1).max(1440).optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
+  defaultServiceId: z.string().uuid().nullable().optional() // Phase 13 - ROUTE-04
 });
 
 /**

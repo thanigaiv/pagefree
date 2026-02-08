@@ -25,6 +25,7 @@ export interface UpdateIntegrationParams {
   signaturePrefix?: string;
   deduplicationWindowMinutes?: number;
   isActive?: boolean;
+  defaultServiceId?: string | null; // Phase 13 - ROUTE-04
 }
 
 // Default configurations per integration type
@@ -215,7 +216,8 @@ class IntegrationService {
         signatureFormat: params.signatureFormat,
         signaturePrefix: params.signaturePrefix,
         deduplicationWindowMinutes: params.deduplicationWindowMinutes,
-        isActive: params.isActive
+        isActive: params.isActive,
+        defaultServiceId: params.defaultServiceId
       }
     });
 

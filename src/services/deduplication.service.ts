@@ -21,18 +21,20 @@ class DeduplicationService {
    * @param fingerprint - Content fingerprint for deduplication
    * @param alert - Full alert object for routing
    * @param windowMinutes - Deduplication window (default 15 min)
+   * @param integration - Optional integration for service routing fallback
    * @returns Incident and duplicate flag
    */
   async deduplicateAndCreateIncident(
     alertId: string,
     fingerprint: string,
     alert: any,
-    windowMinutes: number = 15
+    windowMinutes: number = 15,
+    integration?: { defaultServiceId?: string | null }
   ): Promise<DeduplicationResult> {
     // Retry loop for serialization failures
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
-        const result = await this.executeTransaction(alertId, fingerprint, alert, windowMinutes);
+        const result = await this.executeTransaction(alertId, fingerprint, alert, windowMinutes, integration);
 
         // Broadcast new incident creation via WebSocket (only for new incidents, not duplicates)
         if (!result.isDuplicate) {
@@ -41,7 +43,8 @@ class DeduplicationService {
             where: { id: result.incident.id },
             include: {
               team: { select: { id: true, name: true } },
-              assignedUser: { select: { id: true, firstName: true, lastName: true } }
+              assignedUser: { select: { id: true, firstName: true, lastName: true } },
+              service: { select: { id: true, name: true, routingKey: true } }
             }
           });
 
@@ -56,6 +59,8 @@ class DeduplicationService {
               team: fullIncident.team,
               assignedUserId: fullIncident.assignedUserId ?? undefined,
               assignedUser: fullIncident.assignedUser ?? undefined,
+              serviceId: fullIncident.serviceId ?? undefined,
+              service: fullIncident.service ?? undefined,
               createdAt: fullIncident.createdAt.toISOString(),
             });
 
@@ -103,7 +108,8 @@ class DeduplicationService {
     alertId: string,
     fingerprint: string,
     alert: any,
-    windowMinutes: number
+    windowMinutes: number,
+    integration?: { defaultServiceId?: string | null }
   ): Promise<DeduplicationResult> {
     return await prisma.$transaction(
       async (tx) => {
@@ -138,10 +144,10 @@ class DeduplicationService {
           return { incident: updated, isDuplicate: true };
         }
 
-        // Route to team and get on-call user
-        const routing = await routingService.routeAlertToTeam(alert);
+        // Route to team and get on-call user (with integration for service fallback)
+        const routing = await routingService.routeAlertToTeam(alert, integration);
 
-        // Create new incident
+        // Create new incident with serviceId if routed via service (ROUTE-03)
         const incident = await tx.incident.create({
           data: {
             fingerprint,
@@ -150,6 +156,7 @@ class DeduplicationService {
             teamId: routing.teamId,
             escalationPolicyId: routing.escalationPolicyId,
             assignedUserId: routing.assignedUserId,
+            serviceId: routing.serviceId,
             currentLevel: 1,
             currentRepeat: 1,
             alertCount: 1

@@ -34,6 +34,8 @@ export interface IncidentBroadcast {
   team: { id: string; name: string };
   assignedUserId?: string;
   assignedUser?: { id: string; firstName: string; lastName: string };
+  serviceId?: string;
+  service?: { id: string; name: string; routingKey: string } | null;
   createdAt: string;
   acknowledgedAt?: string;
   resolvedAt?: string;
