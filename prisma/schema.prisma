@@ -60,6 +60,12 @@ enum ServiceStatus {
   ARCHIVED     // Inactive, hidden from default views
 }
 
+enum RunbookApprovalStatus {
+  DRAFT       // Initial state, can be edited
+  APPROVED    // Platform admin approved, executable
+  DEPRECATED  // Soft-delete, preserved for audit
+}
+
 // ============================================================================
 // USER MODEL
 // ============================================================================
@@ -104,6 +110,10 @@ model User {
   workflowVersionsCreated     WorkflowVersion[]
   postmortemsCreated          Postmortem[]             @relation("PostmortemCreatedBy")
   actionItemsAssigned         ActionItem[]
+  runbooksCreated             Runbook[]                @relation("RunbookCreatedBy")
+  runbooksApproved            Runbook[]                @relation("RunbookApprovedBy")
+  runbookVersions             RunbookVersion[]
+  runbookExecutions           RunbookExecution[]
 
   @@index([email])
   @@index([oktaId])
@@ -140,6 +150,7 @@ model Team {
   statusPages        StatusPage[]
   postmortems        Postmortem[]
   services           Service[]
+  runbooks           Runbook[]
 
   @@index([name])
   @@index([isActive])
@@ -639,6 +650,7 @@ model Incident {
   magicLinkTokens    MagicLinkToken[]
   workflowExecutions WorkflowExecution[]
   statusIncidents    StatusIncident[]
+  runbookExecutions  RunbookExecution[]
 
   @@index([teamId, status])
   @@index([fingerprint, status, createdAt])
@@ -1000,6 +1012,109 @@ model StatusIncident {
 
   @@index([statusPageId, status])
   @@index([incidentId])
+}
+
+// ============================================================================
+// RUNBOOK AUTOMATION MODELS (Phase 15)
+// ============================================================================
+
+model Runbook {
+  id               String                @id @default(cuid())
+  name             String
+  description      String
+  version          Int                   @default(1)
+
+  // Webhook execution target
+  webhookUrl       String                // URL to POST to (Ansible Tower, SSM, custom)
+  webhookMethod    String                @default("POST")
+  webhookHeaders   Json                  @default("{}")
+  webhookAuth      Json?                 // Auth config (same as WorkflowWebhookAuth)
+
+  // Parameters defined as JSON Schema
+  parameters       Json                  @default("{}")
+
+  // Payload template (Handlebars)
+  payloadTemplate  String
+
+  // Timeout (in seconds)
+  timeoutSeconds   Int                   @default(300)
+
+  // Approval workflow
+  approvalStatus   RunbookApprovalStatus @default(DRAFT)
+  approvedById     String?
+  approvedBy       User?                 @relation("RunbookApprovedBy", fields: [approvedById], references: [id])
+  approvedAt       DateTime?             @db.Timestamptz
+
+  // Scope (team or global)
+  teamId           String?
+  team             Team?                 @relation(fields: [teamId], references: [id])
+
+  // Ownership
+  createdById      String
+  createdBy        User                  @relation("RunbookCreatedBy", fields: [createdById], references: [id])
+
+  // Timestamps
+  createdAt        DateTime              @default(now()) @db.Timestamptz
+  updatedAt        DateTime              @updatedAt @db.Timestamptz
+
+  // Relations
+  versions         RunbookVersion[]
+  executions       RunbookExecution[]
+
+  @@index([teamId, approvalStatus])
+  @@index([approvalStatus])
+  @@index([createdById])
+}
+
+model RunbookVersion {
+  id          String   @id @default(cuid())
+  runbookId   String
+  runbook     Runbook  @relation(fields: [runbookId], references: [id], onDelete: Cascade)
+  version     Int
+  definition  Json     // Snapshot of runbook at this version
+  changedById String
+  changedBy   User     @relation(fields: [changedById], references: [id])
+  changeNote  String?
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  @@unique([runbookId, version])
+  @@index([runbookId, version])
+}
+
+model RunbookExecution {
+  id                 String    @id @default(cuid())
+  runbookId          String
+  runbook            Runbook   @relation(fields: [runbookId], references: [id])
+  runbookVersion     Int
+
+  // Frozen definition at execution time
+  definitionSnapshot Json
+
+  // Incident link (optional - can be manual trigger without incident)
+  incidentId         String?
+  incident           Incident? @relation(fields: [incidentId], references: [id])
+
+  // Parameters used for this execution
+  parameters         Json      @default("{}")
+
+  // Execution state
+  status             String    // PENDING, RUNNING, SUCCESS, FAILED
+  result             Json?     // Response payload from webhook
+  error              String?
+
+  // Who triggered
+  triggeredBy        String    // 'workflow' | 'manual'
+  executedById       String?
+  executedBy         User?     @relation(fields: [executedById], references: [id])
+
+  // Timestamps
+  startedAt          DateTime? @db.Timestamptz
+  completedAt        DateTime? @db.Timestamptz
+  createdAt          DateTime  @default(now()) @db.Timestamptz
+
+  @@index([runbookId, status])
+  @@index([incidentId])
+  @@index([status, createdAt])
 }
 
 // ============================================================================
