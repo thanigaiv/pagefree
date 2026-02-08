@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 9 of 10 (Status Pages)
-Plan: 5 of N complete
-Status: In progress - Status page API routes complete
-Last activity: 2026-02-08 — Completed 09-05-PLAN.md (Status Page API Routes)
+Plan: 6 of N complete
+Status: In progress - Status page integration complete
+Last activity: 2026-02-08 — Completed 09-06-PLAN.md (Status Page Integration)
 Progress: [████████████████████████████████████████████████░░] 85% (8.5 of 10 phases)
 
 ## Performance Metrics
@@ -34,11 +34,11 @@ Progress: [███████████████████████
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
 | 8. Automation & Workflows | 8/8 | 42 min | 5.25 min |
-| 9. Status Pages | 5/? | 16 min | 3.2 min |
+| 9. Status Pages | 6/? | 20 min | 3.3 min |
 
 **Recent Trend:**
-- Last 7 plans: 08-08 (6 min), 09-01 (2 min), 09-02 (3 min), 09-03 (5 min), 09-04 (3 min), 09-05 (3 min), average 3.7 min
-- Trend: Phase 9 progressing - Status page API routes complete
+- Last 7 plans: 09-01 (2 min), 09-02 (3 min), 09-03 (5 min), 09-04 (3 min), 09-05 (3 min), 09-06 (4 min), average 3.3 min
+- Trend: Phase 9 progressing - Status page integration complete
 
 *Updated after each plan completion*
 
@@ -323,6 +323,10 @@ Recent decisions affecting current work:
 | Public routes mounted before auth middleware | 09-05 | /status/:slug accessible without session, token query param for private pages |
 | Team admin permission check for status page mutations | 09-05 | Consistent with existing permission patterns via permissionService |
 | Subscriber service placeholder returns empty array | 09-05 | Full StatusSubscriberService implementation in future plan |
+| Fire-and-forget status recomputation pattern | 09-06 | Status updates use async fire-and-forget to avoid blocking incident operations |
+| Best-effort notification dispatch | 09-06 | All notification/socket dispatches wrapped in try/catch with warning logs |
+| Background cache warming on startup | 09-06 | Status cache warms on startup without blocking server readiness |
+| StatusChangeData type for WebSocket | 09-06 | Real-time UI updates via status:changed event |
 
 ### Pending Todos
 
@@ -353,9 +357,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 09-05-PLAN.md (Status Page API Routes)
+Stopped at: Completed 09-06-PLAN.md (Status Page Integration)
 Resume file: None
 
 ---
-*Phase 9 In Progress: Status Pages (5/? plans complete)*
+*Phase 9 In Progress: Status Pages (6/? plans complete)*
 *Ready for: Next status page plan or frontend integration*
