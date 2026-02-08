@@ -74,11 +74,11 @@ Plans:
   3. Incident created via service routing shows linked service on incident detail page
   4. Integration can specify a default service for alerts that arrive without explicit routing_key
   5. Service-level escalation policy takes precedence over team default policy when configured
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
+- [ ] 13-01-PLAN.md — Backend: Schema extensions (serviceId, defaultServiceId), routing service with service-first logic
+- [ ] 13-02-PLAN.md — Frontend: Incident detail service display, integration default service selector
 
 ## Progress
 
@@ -90,8 +90,8 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> 12.1 -> 13
 | 1-10 | v1.0 | 85/85 | Complete | 2026-02-08 |
 | 11. Service Model Foundation | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 12. Service Dependencies & Graph | v1.1 | 2/2 | Complete | 2026-02-08 |
-| 13. Service-Based Alert Routing | v1.1 | 0/? | Not started | - |
+| 13. Service-Based Alert Routing | v1.1 | 0/2 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-08 (Phase 12 complete)*
+*Last updated: 2026-02-08 (Phase 13 planned)*
