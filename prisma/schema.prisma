@@ -129,6 +129,7 @@ model Team {
   escalationPolicies EscalationPolicy[]
   incidents          Incident[]
   workflows          Workflow[]
+  statusPages        StatusPage[]
 
   @@index([name])
   @@index([isActive])
@@ -570,6 +571,7 @@ model Incident {
   notificationLogs   NotificationLog[]
   magicLinkTokens    MagicLinkToken[]
   workflowExecutions WorkflowExecution[]
+  statusIncidents    StatusIncident[]
 
   @@index([teamId, status])
   @@index([fingerprint, status, createdAt])
@@ -790,4 +792,144 @@ model WorkflowActionSecret {
   createdAt  DateTime @default(now()) @db.Timestamptz
 
   @@unique([workflowId, name])
+}
+
+// ============================================================================
+// STATUS PAGE MODELS (Phase 9)
+// ============================================================================
+
+model StatusPage {
+  id          String  @id @default(cuid())
+  name        String // e.g., "Internal Services Status"
+  description String?
+  slug        String  @unique // URL-friendly identifier
+
+  // Access control
+  isPublic    Boolean @default(false) // If false, requires accessToken
+  accessToken String? @unique // For private page access
+
+  // Ownership
+  teamId      String
+  team        Team    @relation(fields: [teamId], references: [id])
+  createdById String
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  components         StatusPageComponent[]
+  subscribers        StatusSubscriber[]
+  maintenanceWindows MaintenanceWindow[]
+  statusIncidents    StatusIncident[]
+
+  @@index([teamId])
+  @@index([slug])
+}
+
+model StatusPageComponent {
+  id           String     @id @default(cuid())
+  statusPageId String
+  statusPage   StatusPage @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+
+  name         String // e.g., "API Gateway", "Database Cluster"
+  description  String?
+  displayOrder Int    @default(0)
+
+  // Incident mapping
+  teamId            String? // If set, incidents from this team affect this component
+  serviceIdentifier String? // If set, only incidents with matching source/service
+
+  // Current status (cached, computed from incidents + maintenance)
+  currentStatus   String   @default("OPERATIONAL") // Cache field for quick reads
+  statusUpdatedAt DateTime @default(now()) @db.Timestamptz
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  maintenanceWindows MaintenanceWindow[] @relation("ComponentMaintenance")
+
+  @@unique([statusPageId, name])
+  @@index([statusPageId, displayOrder])
+}
+
+model StatusSubscriber {
+  id           String     @id @default(cuid())
+  statusPageId String
+  statusPage   StatusPage @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+
+  // Subscriber contact
+  channel     String // EMAIL, SLACK, WEBHOOK
+  destination String // Email address, webhook URL, Slack channel
+
+  // Subscription preferences
+  componentIds String[] // Empty = all components
+  notifyOn     String[] // ['degraded', 'outage', 'maintenance', 'resolved']
+
+  // Verification
+  isVerified  Boolean @default(false) // Email requires verification
+  verifyToken String? @unique
+
+  isActive Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  @@unique([statusPageId, channel, destination])
+  @@index([statusPageId, isActive])
+}
+
+model MaintenanceWindow {
+  id           String     @id @default(cuid())
+  statusPageId String
+  statusPage   StatusPage @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  startTime      DateTime @db.Timestamptz
+  endTime        DateTime @db.Timestamptz
+  recurrenceRule String? // RRULE for recurring maintenance
+
+  // Behavior
+  autoUpdateStatus  Boolean @default(true) // Set components to UNDER_MAINTENANCE
+  notifySubscribers Boolean @default(true)
+
+  status String @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+
+  // Affected components
+  components StatusPageComponent[] @relation("ComponentMaintenance")
+
+  createdById String
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  @@index([statusPageId, startTime])
+  @@index([status, startTime])
+}
+
+model StatusIncident {
+  id           String     @id @default(cuid())
+  statusPageId String
+  statusPage   StatusPage @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+
+  // Link to platform incident
+  incidentId String?
+  incident   Incident? @relation(fields: [incidentId], references: [id])
+
+  // Status page-specific fields
+  title    String // User-facing title (may differ from internal incident)
+  message  String? // Public message about the issue
+  severity String // MINOR, MAJOR, CRITICAL (for display)
+  status   String // INVESTIGATING, IDENTIFIED, MONITORING, RESOLVED
+
+  affectedComponentIds String[]
+
+  createdAt  DateTime  @default(now()) @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @db.Timestamptz
+  resolvedAt DateTime? @db.Timestamptz
+
+  // Updates history (stored as JSON for simplicity)
+  updates Json @default("[]") // Array of { timestamp, status, message }
+
+  @@index([statusPageId, status])
+  @@index([incidentId])
 }
