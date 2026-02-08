@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 10 of 10 (Postmortems)
-Plan: 2 of 7 complete
-Status: In progress - PostmortemService with CRUD and timeline complete
-Last activity: 2026-02-08 — Completed 10-02-PLAN.md (Postmortem Service)
+Plan: 3 of 7 complete
+Status: In progress - ActionItemService with state machine complete
+Last activity: 2026-02-08 — Completed 10-03-PLAN.md (Action Item Service)
 Progress: [██████████████████████████████████████████████████] 90% (9 of 10 phases)
 
 ## Performance Metrics
@@ -35,11 +35,11 @@ Progress: [███████████████████████
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
 | 8. Automation & Workflows | 8/8 | 42 min | 5.25 min |
 | 9. Status Pages | 9/9 | 31 min | 3.4 min |
-| 10. Postmortems | 2/7 | 3 min | 1.5 min |
+| 10. Postmortems | 3/7 | 5 min | 1.7 min |
 
 **Recent Trend:**
-- Last 7 plans: 09-06 (4 min), 09-07 (3 min), 09-08 (4 min), 09-09 (4 min), 10-01 (2 min), 10-02 (1 min), average 3 min
-- Trend: Phase 10 progressing - PostmortemService complete
+- Last 7 plans: 09-07 (3 min), 09-08 (4 min), 09-09 (4 min), 10-01 (2 min), 10-02 (1 min), 10-03 (2 min), average 2.7 min
+- Trend: Phase 10 progressing - ActionItemService complete
 
 *Updated after each plan completion*
 
@@ -339,6 +339,8 @@ Recent decisions affecting current work:
 | incidentIds String[] for multi-incident linking | 10-01 | Simpler queries, matches existing pattern for affectedComponentIds in StatusIncident |
 | Timeline from AuditEvent queries | 10-02 | No separate timeline table, reuse audit event infrastructure for incident history |
 | Action items ordered by status ASC, priority DESC | 10-02 | OPEN items first, then by priority for task prioritization |
+| State machine validation for action items | 10-03 | Use ACTION_ITEM_TRANSITIONS constant to validate status changes |
+| completedAt auto-set on COMPLETED status | 10-03 | Automatic timestamp management on status changes |
 
 ### Pending Todos
 
@@ -369,9 +371,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 10-02-PLAN.md (Postmortem Service)
+Stopped at: Completed 10-03-PLAN.md (Action Item Service)
 Resume file: None
 
 ---
-*Phase 10 In Progress: Postmortems (2/7 plans complete)*
-*Ready for: 10-03-PLAN.md (Postmortem API Routes)*
+*Phase 10 In Progress: Postmortems (3/7 plans complete)*
+*Ready for: 10-04-PLAN.md (Postmortem API Routes)*
