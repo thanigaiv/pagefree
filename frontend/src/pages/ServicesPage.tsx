@@ -563,7 +563,8 @@ export default function ServicesPage() {
               {services.map(service => (
                 <Card
                   key={service.id}
-                  className={`${service.status === 'ARCHIVED' ? 'opacity-60' : ''} ${selectedServiceId === service.id ? 'ring-2 ring-primary' : ''}`}
+                  className={`${service.status === 'ARCHIVED' ? 'opacity-60' : ''} ${selectedServiceId === service.id ? 'ring-2 ring-primary' : ''} cursor-pointer transition-all hover:shadow-md`}
+                  onClick={() => setSelectedServiceId(service.id)}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
@@ -578,14 +579,22 @@ export default function ServicesPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => openDependenciesDialog(service)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDependenciesDialog(service);
+                          }}
                           title="View Dependencies"
                         >
                           <Network className="h-4 w-4" />
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
