@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth, requirePlatformAdmin } from '../middleware/auth.js';
 import { serviceService } from '../services/service.service.js';
+import { serviceDependencyService } from '../services/service-dependency.service.js';
 import { ServiceStatus } from '@prisma/client';
 
 export const serviceRouter = Router();
@@ -155,5 +156,141 @@ serviceRouter.patch('/:serviceId/status', async (req, res) => {
     }
     console.error('Failed to update service status:', error);
     return res.status(500).json({ error: 'Failed to update service status' });
+  }
+});
+
+// ============================================================================
+// SERVICE DEPENDENCY ENDPOINTS (Phase 12 - DEP-01 through DEP-05)
+// ============================================================================
+
+// GET /api/services/:serviceId/dependencies - List upstream dependencies (DEP-05)
+serviceRouter.get('/:serviceId/dependencies', async (req, res) => {
+  try {
+    const dependencies = await serviceDependencyService.getUpstream(req.params.serviceId);
+    return res.json({ dependencies });
+  } catch (error) {
+    console.error('Failed to get dependencies:', error);
+    return res.status(500).json({ error: 'Failed to get dependencies' });
+  }
+});
+
+// GET /api/services/:serviceId/dependents - List downstream dependents (DEP-05)
+serviceRouter.get('/:serviceId/dependents', async (req, res) => {
+  try {
+    const dependents = await serviceDependencyService.getDownstream(req.params.serviceId);
+    return res.json({ dependents });
+  } catch (error) {
+    console.error('Failed to get dependents:', error);
+    return res.status(500).json({ error: 'Failed to get dependents' });
+  }
+});
+
+// GET /api/services/:serviceId/graph - Get graph data for visualization (DEP-04)
+const GraphQuerySchema = z.object({
+  depth: z.coerce.number().min(1).max(20).default(10)
+});
+
+serviceRouter.get('/:serviceId/graph', async (req, res) => {
+  try {
+    const { depth } = GraphQuerySchema.parse(req.query);
+    const graph = await serviceDependencyService.getGraph(req.params.serviceId, depth);
+    return res.json({ graph });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ error: 'Invalid query parameters', details: error.errors });
+    }
+    console.error('Failed to get graph:', error);
+    return res.status(500).json({ error: 'Failed to get graph' });
+  }
+});
+
+// POST /api/services/:serviceId/dependencies - Add dependency (DEP-01)
+const AddDependencySchema = z.object({
+  dependsOnId: z.string().min(1, 'Dependency service ID is required')
+});
+
+serviceRouter.post('/:serviceId/dependencies', async (req, res) => {
+  try {
+    // Get service to check team ownership
+    const existing = await serviceService.get(req.params.serviceId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    // Check authorization: platform admin or team admin of owning team
+    const user = req.user as any;
+    const isPlatformAdmin = user.platformRole === 'PLATFORM_ADMIN';
+    const isTeamAdmin = user.teamMembers?.some(
+      (m: any) => m.teamId === existing.teamId && m.role === 'TEAM_ADMIN'
+    );
+
+    if (!isPlatformAdmin && !isTeamAdmin) {
+      return res.status(403).json({ error: 'Not authorized to modify this service' });
+    }
+
+    const { dependsOnId } = AddDependencySchema.parse(req.body);
+    const service = await serviceDependencyService.addDependency(
+      req.params.serviceId,
+      dependsOnId,
+      user.id
+    );
+    return res.status(201).json({ service });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ error: 'Invalid dependency data', details: error.errors });
+    }
+    // Handle cycle detection error
+    if (error.message?.includes('cycle')) {
+      return res.status(400).json({ error: 'Adding this dependency would create a cycle' });
+    }
+    // Handle archived service errors
+    if (error.message?.includes('archived')) {
+      return res.status(400).json({ error: error.message });
+    }
+    // Handle not found errors
+    if (error.message?.includes('not found')) {
+      return res.status(404).json({ error: error.message });
+    }
+    // Handle self-dependency
+    if (error.message?.includes('itself')) {
+      return res.status(400).json({ error: error.message });
+    }
+    console.error('Failed to add dependency:', error);
+    return res.status(500).json({ error: 'Failed to add dependency' });
+  }
+});
+
+// DELETE /api/services/:serviceId/dependencies/:dependsOnId - Remove dependency (DEP-02)
+serviceRouter.delete('/:serviceId/dependencies/:dependsOnId', async (req, res) => {
+  try {
+    // Get service to check team ownership
+    const existing = await serviceService.get(req.params.serviceId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+
+    // Check authorization: platform admin or team admin of owning team
+    const user = req.user as any;
+    const isPlatformAdmin = user.platformRole === 'PLATFORM_ADMIN';
+    const isTeamAdmin = user.teamMembers?.some(
+      (m: any) => m.teamId === existing.teamId && m.role === 'TEAM_ADMIN'
+    );
+
+    if (!isPlatformAdmin && !isTeamAdmin) {
+      return res.status(403).json({ error: 'Not authorized to modify this service' });
+    }
+
+    const service = await serviceDependencyService.removeDependency(
+      req.params.serviceId,
+      req.params.dependsOnId,
+      user.id
+    );
+    return res.json({ service });
+  } catch (error: any) {
+    if (error.message?.includes('not found')) {
+      return res.status(404).json({ error: error.message });
+    }
+    console.error('Failed to remove dependency:', error);
+    return res.status(500).json({ error: 'Failed to remove dependency' });
   }
 });
