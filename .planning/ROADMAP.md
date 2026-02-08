@@ -63,11 +63,15 @@ See [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md) for full details.
   5. API rate limits enforce across all endpoints and log violations without blocking legitimate webhooks
   6. WebSocket connections rate limit events and disconnect abusive clients with grace warnings
 
-**Plans:** TBD
+**Plans:** 6 plans
 
 Plans:
-- [ ] 14-01: TBD
-- [ ] 14-02: TBD
+- [ ] 14-01-PLAN.md — VAPID key configuration and web-push integration
+- [ ] 14-02-PLAN.md — PWA icon assets (PNG conversion, apple-touch-icon)
+- [ ] 14-03-PLAN.md — Socket.IO session validation against PostgreSQL
+- [ ] 14-04-PLAN.md — Webhook test fixes and timestamp validation
+- [ ] 14-05-PLAN.md — Redis-backed API rate limiting
+- [ ] 14-06-PLAN.md — WebSocket event rate limiting
 
 **Rationale:** These changes have high risk of breaking existing clients. Must validate in isolation before feature work. VAPID keys, Socket auth, and rate limiting are prerequisites for reliable production operation.
 
@@ -166,7 +170,7 @@ Plans:
 | 11. Service Model Foundation | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 12. Service Dependencies Graph | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 13. Service-based Alert Routing | v1.1 | 2/2 | Complete | 2026-02-08 |
-| 14. Production Hardening | v1.2 | 0/? | Not started | - |
+| 14. Production Hardening | v1.2 | 0/6 | Planned | - |
 | 15. Runbook Automation Foundation | v1.2 | 0/? | Not started | - |
 | 16. Runbook Integration | v1.2 | 0/? | Not started | - |
 | 17. Partner Status Pages | v1.2 | 0/? | Not started | - |
@@ -174,4 +178,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-08 (v1.2 milestone roadmap created)*
+*Last updated: 2026-02-08 (Phase 14 planned with 6 plans)*
