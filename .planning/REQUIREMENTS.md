@@ -85,13 +85,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| *To be filled by roadmapper* | | |
+| SVC-01 | Phase 11 | Pending |
+| SVC-02 | Phase 11 | Pending |
+| SVC-03 | Phase 11 | Pending |
+| SVC-04 | Phase 11 | Pending |
+| SVC-05 | Phase 11 | Pending |
+| SVC-06 | Phase 11 | Pending |
+| DEP-01 | Phase 12 | Pending |
+| DEP-02 | Phase 12 | Pending |
+| DEP-03 | Phase 12 | Pending |
+| DEP-04 | Phase 12 | Pending |
+| DEP-05 | Phase 12 | Pending |
+| DEP-06 | Phase 12 | Pending |
+| ROUTE-01 | Phase 13 | Pending |
+| ROUTE-02 | Phase 13 | Pending |
+| ROUTE-03 | Phase 13 | Pending |
+| ROUTE-04 | Phase 13 | Pending |
+| ROUTE-05 | Phase 13 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after initial definition*
+*Last updated: 2026-02-08 after roadmap creation*
