@@ -1,488 +1,381 @@
-# Pitfalls Research: Incident Management Platform
+# Pitfalls Research: Service Catalog for Incident Management
 
-**Domain:** On-Call / Incident Management Systems
-**Researched:** 2026-02-06
-**Confidence:** MEDIUM
+**Domain:** Service Catalog Addition to Existing OnCall Platform
+**Researched:** 2026-02-08
+**Confidence:** MEDIUM-HIGH
+
+---
 
 ## Critical Pitfalls
 
-These mistakes cause system-wide failures, missed incidents, or require major rewrites.
-
----
-
-### Pitfall 1: No Delivery Guarantee Strategy
+### Pitfall 1: Big Bang Migration of Alert Routing
 
 **What goes wrong:**
-Alerts are sent but never confirmed delivered. Network failures, service restarts, or third-party API issues cause silent alert loss. Engineers never get paged, incidents go unnoticed, and production stays down.
+Forcing all existing alerts to require a Service before routing, breaking existing integrations and escalation policies that route via TeamTags or metadata. Legacy alerts fail to route, creating a backlog of unprocessed incidents during production emergencies.
 
 **Why it happens:**
-Teams treat notification delivery as fire-and-forget. They assume "if the API call returned 200, the alert was delivered." They don't implement retry logic, delivery confirmation, or audit trails.
+Teams want the "clean" Service-centric model immediately. The current system routes alerts using `metadata.service` matched to `TeamTag` values (see `routing.service.ts:57-73`). A direct replacement breaks the fallback path (`return null` on line 78), causing all alerts without Service assignments to fail routing.
 
 **How to avoid:**
-- Implement at-least-once delivery semantics with idempotent receivers
-- Store alert delivery state (pending, delivered, acknowledged, failed)
-- Retry failed notifications with exponential backoff
-- Track delivery confirmations (SMS delivered, push notification received)
-- Maintain audit log of all alert attempts and outcomes
-- Alert on alert failures (meta-monitoring)
+- **Phase 1:** Add Service model as optional, route falls back to existing TeamTag logic
+- **Phase 2:** Introduce Service-to-Team mapping with auto-migration
+- **Phase 3:** Deprecation warnings for alerts routing via legacy path
+- **Phase 4:** Require Service assignment with grace period
+
+Implement routing priority order:
+```typescript
+// Correct migration order
+1. explicit Service ID in alert -> use Service's escalation policy
+2. Service name match from metadata -> use matched Service
+3. TeamTag match from metadata -> use Team's default policy (legacy)
+4. Integration default team -> fallback (current behavior)
+```
 
 **Warning signs:**
-- No delivery status tracking in the database
-- Fire-and-forget API calls to notification providers
-- No retry logic for failed sends
-- Missing audit trail for alert attempts
-- No monitoring of notification delivery success rates
+- Routing failures spike after deployment
+- Alerts stuck in "pending routing" state
+- Teams reporting missed notifications for legacy integrations
+- `No team found for alert routing` errors in logs
 
 **Phase to address:**
-Phase 1 (Foundation) - This is table-stakes for mission-critical systems. Build delivery tracking from day one.
-
-**Source confidence:** HIGH - Core distributed systems pattern documented in multiple SRE resources
+Phase 1 (Service Model Foundation) - Build with backward compatibility from day one
 
 ---
 
-### Pitfall 2: Single Point of Failure in Notification Stack
+### Pitfall 2: Circular Service Dependencies
 
 **What goes wrong:**
-Entire notification system depends on one SMS provider, one push notification service, or one email gateway. When that provider has an outage, ALL alerts fail to deliver. The on-call platform becomes useless exactly when it's most needed.
+Service A depends on Service B, which depends on Service C, which depends on Service A. Status cascade algorithms enter infinite loops, cascade status computations never complete, or the system crashes with stack overflow. Dependency graphs become impossible to visualize or reason about.
 
 **Why it happens:**
-Teams integrate with one provider (Twilio, FCM, SendGrid) without fallback options. They don't design for provider failure because "Twilio is reliable." They forget that even 99.9% uptime means 8.7 hours down per year.
+No validation when creating dependency relationships. The Backstage catalog model allows `dependsOn`/`dependencyOf` relations without cycle detection. Developers model actual runtime dependencies without considering status propagation implications.
 
 **How to avoid:**
-- Support multiple SMS providers with automatic failover (Twilio → Nexmo → direct carrier APIs)
-- Support multiple push notification channels (FCM, APNS, web push)
-- Support multiple email gateways with failover
-- Implement provider health checks that trigger failover before complete failure
-- Allow users to configure multiple notification channels (SMS + phone call + push)
-- Test failover paths regularly with chaos engineering
+- Validate dependency graph on every relationship create/update
+- Implement cycle detection using DFS with visited set
+- Reject relationships that would create cycles (fail fast)
+- Provide UI visualization showing potential cycle before save
+- Maximum dependency depth limit (e.g., 10 levels)
+
+```typescript
+// Cycle detection on relationship creation
+async validateDependency(fromServiceId: string, toServiceId: string): Promise<boolean> {
+  const visited = new Set<string>();
+  const stack = [toServiceId];
+
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    if (current === fromServiceId) {
+      throw new Error(`Circular dependency detected`);
+    }
+    if (!visited.has(current)) {
+      visited.add(current);
+      const deps = await this.getDependencies(current);
+      stack.push(...deps.map(d => d.id));
+    }
+  }
+  return true;
+}
+```
 
 **Warning signs:**
-- Single `TwilioClient` with no abstraction layer
-- No provider health monitoring
-- No fallback notification channels
-- Notification sending code tightly coupled to one vendor
-- No testing of provider failure scenarios
+- Status computation requests timing out
+- Memory usage spiking during status updates
+- Dependency graph visualization "hangs"
+- "Maximum call stack exceeded" errors
 
 **Phase to address:**
-Phase 2 (Core Features) - Build abstraction for notification providers early, add secondary providers before production use.
-
-**Source confidence:** MEDIUM - Inferred from SRE best practices and Slack/PagerDuty outage discussions (Increment article)
+Phase 2 (Service Dependencies) - Build cycle detection into the dependency relationship API from the start
 
 ---
 
-### Pitfall 3: Timezone and DST Naive Scheduling
+### Pitfall 3: N+1 Query Performance on Cascade Status
 
 **What goes wrong:**
-On-call schedules break during daylight saving time transitions. Users in different timezones see wrong rotation times. Schedules "shift" by an hour twice per year. The wrong person gets paged during DST boundaries, or nobody gets paged during the "missing hour."
+Computing a Service's status requires checking all dependent services. Each dependent service check triggers its own database query. For a service with 50 dependencies, each with 10 subdependencies, you execute 500+ queries per status request. Status pages load in 30+ seconds. API timeouts during incident storms.
 
 **Why it happens:**
-Teams store schedules in local time instead of UTC. They use naive date/time libraries without timezone awareness. They test schedules in one timezone (often UTC or US Pacific) without considering DST transitions or international users.
+Naive recursive status computation without query batching. Current `statusComputation.service.ts` already shows this pattern for component status. Developers implement the obvious recursive algorithm without considering database impact.
 
 **How to avoid:**
-- Store ALL timestamps in UTC in the database
-- Convert to user's local timezone only for display
-- Use timezone-aware date libraries (luxon, date-fns-tz, not moment.js)
-- Explicitly handle DST transition edge cases:
-  - Spring forward: 2:30 AM doesn't exist - what happens to 2:30 AM schedule?
-  - Fall back: 2:30 AM occurs twice - which one triggers the schedule?
-- Support IANA timezone database (America/New_York, not EST)
-- Test schedules across multiple timezones and DST boundaries
-- Show "starts in X hours" alongside absolute times to catch timezone bugs
+- **Batch loading:** Load entire dependency subgraph in 2-3 queries using recursive CTEs
+- **Materialized status cache:** Store computed status with TTL, invalidate on incident changes
+- **Async status propagation:** Background worker updates cached status when incidents change
+- **Limit cascade depth:** Don't propagate status beyond N levels
+
+```sql
+-- Recursive CTE to load entire dependency graph in one query
+WITH RECURSIVE dependency_tree AS (
+  SELECT id, name, 1 as depth
+  FROM services
+  WHERE id = $1  -- Root service
+
+  UNION ALL
+
+  SELECT s.id, s.name, dt.depth + 1
+  FROM services s
+  JOIN service_dependencies sd ON s.id = sd.depends_on_id
+  JOIN dependency_tree dt ON sd.service_id = dt.id
+  WHERE dt.depth < 10  -- Depth limit
+)
+SELECT DISTINCT * FROM dependency_tree;
+```
 
 **Warning signs:**
-- Schedule times stored as local time without timezone
-- Using Date objects without timezone library
-- Hard-coded UTC offsets instead of timezone names
-- No test cases for DST transitions
-- UI shows times without timezone indicator
-- Schedule rotation code uses `new Date()` without timezone context
+- Status page load times >5 seconds
+- Database connection pool exhaustion during status requests
+- `statusComputationService.recomputeForIncident` execution time >1s
+- CPU spikes during incident state changes
 
 **Phase to address:**
-Phase 1 (Foundation) - Timezone handling must be correct from the start. Very hard to fix after launch.
-
-**Source confidence:** MEDIUM - Common scheduling system pitfall, though specific DST bugs not documented in sources
+Phase 2 (Service Dependencies) - Design efficient query patterns before building dependency graph
 
 ---
 
-### Pitfall 4: Race Conditions in Alert Deduplication
+### Pitfall 4: Service Sprawl and Orphan Services
 
 **What goes wrong:**
-Same alert fires from multiple sources simultaneously. Deduplication logic races, and 5 identical alerts create 5 separate incidents. On-call engineers get spammed with duplicate pages. Or worse: deduplication is too aggressive, and a legitimate second incident gets silently dropped because it "looks like" the first one.
+Teams create services for every microservice, library, and endpoint. 500+ services exist, most without owners, many duplicates (e.g., "user-service", "UserService", "user-svc"). Nobody knows which services matter. Alerts route to wrong services. Incident responders waste time determining which service owns an issue.
 
 **Why it happens:**
-Teams implement deduplication with simple time-window checks without proper locking. They use alert fingerprints that are too broad (dedupe everything from same host) or too narrow (miss obvious duplicates). They don't account for distributed system scenarios where two monitoring systems detect the same problem.
+No governance on service creation. Auto-discovery imports everything from infrastructure (K8s namespaces, AWS services, repos). No ownership requirement on creation. No cleanup process for unused services.
 
 **How to avoid:**
-- Use database transactions or distributed locks for deduplication checks
-- Design fingerprint strategy carefully:
-  - Include: service name, alert type, severity
-  - Exclude: timestamp, alert ID, exact metric values
-  - Consider: host name (sometimes yes, sometimes no)
-- Time-window deduplication (5-minute window) with proper locking
-- Track deduplicated alerts (show "3 duplicate alerts suppressed")
-- Allow manual override to create separate incidents
-- Test with concurrent alert arrival scenarios
-- Consider idempotency keys from monitoring systems
+- **Require owner on creation:** Every Service must have a Team owner (not optional)
+- **Service lifecycle states:** ACTIVE, DEPRECATED, ARCHIVED with visibility rules
+- **Usage tracking:** Count incidents, alerts, API calls per service last 30/60/90 days
+- **Orphan detection job:** Flag services with no incidents in 90 days for review
+- **Naming conventions:** Enforce unique names, slug-based identifiers, no special characters
+- **Import review:** Auto-discovered services start as DRAFT, require human approval
+
+```typescript
+// Service lifecycle validation
+interface ServiceLifecycle {
+  state: 'DRAFT' | 'ACTIVE' | 'DEPRECATED' | 'ARCHIVED';
+  ownerTeamId: string;  // Required, not optional
+  lastIncidentAt: Date | null;
+  incidentCount30d: number;
+  deprecationDate?: Date;
+  archiveDate?: Date;
+}
+
+// Orphan detection query
+const orphanServices = await prisma.service.findMany({
+  where: {
+    state: 'ACTIVE',
+    incidents: { none: { createdAt: { gte: ninetyDaysAgo } } },
+  }
+});
+```
 
 **Warning signs:**
-- Deduplication logic without database locking
-- SELECT-then-INSERT pattern without transactions
-- No tests for concurrent alert arrival
-- User complaints about "duplicate pages"
-- User complaints about "missed alerts"
-- Deduplication fingerprint is opaque or unchangeable
+- Service list exceeds 200+ entries
+- Multiple services with similar names
+- Services with `ownerTeamId: null`
+- Teams complaining "I don't know which service to select"
+- Alert routing to wrong service
 
 **Phase to address:**
-Phase 2 (Core Features) - Critical for preventing alert fatigue, must be right before significant load.
-
-**Source confidence:** MEDIUM - Idempotent receiver pattern verified (MartinFowler), but specific deduplication races inferred from distributed systems experience
+Phase 1 (Service Model Foundation) - Build ownership and lifecycle into the model from day one
 
 ---
 
-### Pitfall 5: Integration Webhook Reliability Assumptions
+### Pitfall 5: Standards Compliance Without Enforcement
 
 **What goes wrong:**
-Monitoring systems send alerts via webhook. Your platform assumes webhooks always arrive. But monitoring systems retry failed webhooks, webhooks arrive out of order, webhooks arrive multiple times, or webhooks arrive minutes/hours late due to network issues. Alert state becomes inconsistent.
+Service scorecards show 80% of services are "non-compliant" with runbook, monitoring, and on-call requirements. Teams ignore scorecards because there are no consequences. Compliance reports are generated but never acted upon. The scorecard becomes a vanity metric rather than a tool for improvement.
 
 **Why it happens:**
-Teams treat webhook endpoints like synchronous function calls. They don't design for retry/duplicate/reorder scenarios. They assume "if we return 200, the monitoring system won't retry." They don't validate webhook signatures. They process webhooks synchronously, blocking the HTTP request.
+Scorecards are advisory-only. No integration with incident routing or operational workflows. Compliance data is visible but not actionable. Leadership doesn't see compliance reports in their normal workflow.
 
 **How to avoid:**
-- Make webhook endpoints idempotent (use alert fingerprints or deduplication keys)
-- Validate webhook signatures (HMAC) to prevent spoofing
-- Process webhooks asynchronously (immediately return 200, process in background)
-- Handle out-of-order delivery (alert resolved arrives before alert triggered)
-- Implement webhook retry logic on YOUR side if monitoring system calls YOUR APIs
-- Set timeouts on webhook processing (don't block forever)
-- Log all webhook payloads for debugging
-- Support webhook payload versioning for backward compatibility
+- **Graduated enforcement:** Start with warnings, progress to blocks
+  - Level 1: Warning in UI when creating incidents for non-compliant services
+  - Level 2: Escalation notifications include compliance status
+  - Level 3: Block routing to services below minimum compliance score
+- **Actionable requirements:** Each scorecard item has a clear fix action
+- **Ownership gates:** Non-compliant services can't be assigned to incidents (optional policy)
+- **Compliance in postmortems:** Auto-include compliance status in postmortem data
+- **Team dashboards:** Show compliance trend, not just current status
+
+```typescript
+// Compliance enforcement levels
+enum ComplianceEnforcement {
+  ADVISORY = 'advisory',      // Show warnings only
+  SOFT_BLOCK = 'soft_block',  // Require override to route
+  HARD_BLOCK = 'hard_block',  // Cannot route to non-compliant
+}
+
+interface ServiceScorecard {
+  serviceId: string;
+  score: number;  // 0-100
+  requirements: {
+    hasRunbook: boolean;
+    hasMonitoring: boolean;
+    hasOnCall: boolean;
+    hasRecentPostmortem: boolean;
+    meetsSLO: boolean;
+  };
+  enforcementLevel: ComplianceEnforcement;
+}
+```
 
 **Warning signs:**
-- Webhook endpoints do synchronous processing
-- No signature validation on incoming webhooks
-- No idempotency keys or deduplication
-- No handling of out-of-order webhooks
-- Webhook failures crash the endpoint
-- No logging of raw webhook payloads
-- No timeout on webhook processing
+- Compliance scores stay static month-over-month
+- Teams don't view scorecard pages
+- Services with 0% compliance still receive incidents
+- No correlation between compliance and incident metrics
 
 **Phase to address:**
-Phase 1 (Foundation) - Integration reliability is core to the system's purpose.
-
-**Source confidence:** HIGH - PagerDuty API breaking changes and synchronization issues documented (GitHub go-pagerduty, Grafana OnCall)
+Phase 3 (Standards & Compliance) - Build enforcement hooks into routing from the start, even if initially advisory-only
 
 ---
 
-### Pitfall 6: No Escalation When Notification Delivery Fails
+### Pitfall 6: Breaking Existing Escalation Policy References
 
 **What goes wrong:**
-Alert is sent to on-call engineer via push notification. Push notification fails silently (app uninstalled, device offline, push token expired). System marks alert as "delivered" even though nobody was notified. Incident goes unhandled until someone manually checks.
+Existing escalation policies reference Teams (via `teamId`). Adding Service-level escalation policies creates confusion: which policy takes precedence? Incidents created through legacy path use Team policy, incidents through Service use Service policy. On-call engineers get conflicting notifications.
 
 **Why it happens:**
-Teams don't distinguish between "API call succeeded" and "user received notification." They don't implement escalation policies that trigger when notifications aren't acknowledged. They assume users will notice alerts immediately.
+Current schema has `EscalationPolicy.teamId` as the foreign key (schema.prisma:508). Adding `serviceId` creates ambiguity. The `routingService.routeAlertToTeam()` assumes team-based routing.
 
 **How to avoid:**
-- Track acknowledgment separately from delivery
-- Implement escalation timers (if not acknowledged in 5 minutes, escalate)
-- Multi-channel escalation (push → SMS → phone call → backup on-call)
-- Re-send through different channel if first channel fails delivery
-- Alert on unacknowledged high-severity incidents
-- Provide "escalate now" button for users
-- Test escalation paths regularly (automated tests that verify escalation triggers)
+- **Clear precedence rules:** Service policy > Team policy (documented, enforced in code)
+- **Explicit policy assignment:** Services can either inherit Team policy or override
+- **Migration path:**
+  1. Add `serviceId` as optional FK to EscalationPolicy
+  2. Add `policyInheritance: 'TEAM' | 'SERVICE' | 'CUSTOM'` to Service model
+  3. Default new Services to `TEAM` (inherit existing behavior)
+  4. Allow explicit Service-level policy assignment
+
+```typescript
+// Escalation policy resolution with Service awareness
+async resolveEscalationPolicy(serviceId: string | null, teamId: string): Promise<EscalationPolicy> {
+  // Priority 1: Service-specific policy
+  if (serviceId) {
+    const servicePolicy = await prisma.escalationPolicy.findFirst({
+      where: { serviceId, isActive: true }
+    });
+    if (servicePolicy) return servicePolicy;
+  }
+
+  // Priority 2: Team default policy (inheritance)
+  return await prisma.escalationPolicy.findFirst({
+    where: { teamId, isDefault: true, isActive: true }
+  });
+}
+```
 
 **Warning signs:**
-- No acknowledgment tracking, only delivery tracking
-- No escalation timers or policies
-- Single notification channel per user
-- No way to manually trigger escalation
-- No monitoring of acknowledgment rates
-- Long-open incidents with no acknowledgments
+- Engineers paged multiple times for same incident
+- Incidents showing conflicting escalation paths in timeline
+- `escalationPolicyId` foreign key violations
+- Teams asking "which policy applies to my service?"
 
 **Phase to address:**
-Phase 2 (Core Features) - Escalation is table-stakes for production incident management, but can follow basic delivery.
-
-**Source confidence:** HIGH - Multiple SRE sources emphasize importance of escalation (Google SRE Workbook on-call chapter)
+Phase 1 (Service Model Foundation) - Define precedence rules before adding Service FK to EscalationPolicy
 
 ---
 
-### Pitfall 7: Ignoring Alert Fatigue Design
+### Pitfall 7: Status Page Component-Service Mismatch
 
 **What goes wrong:**
-Platform successfully delivers thousands of alerts per day. Engineers get numb to notifications and start ignoring them. Critical alerts are buried under noise. Pager load exceeds sustainable levels (Google recommends max 2 incidents per shift). Engineers burn out and quit.
+Existing StatusPageComponent model has `serviceIdentifier` (string field, schema.prisma:844) for matching alerts to components. Adding proper Service entities creates two separate mappings: the legacy string match and the new Service FK. Status pages show incorrect status because one mapping updates but the other doesn't.
 
 **Why it happens:**
-Teams focus on alert delivery mechanics without considering alert quality. They treat every alert equally. They don't provide tools for alert analysis, noise reduction, or intelligent routing. They measure success by "alerts delivered" not "incidents resolved quickly."
+Current implementation uses loose string matching (`serviceIdentifier` matches `alert.metadata.service`). Adding proper Service references requires migrating existing components while maintaining backward compatibility with string-based matching.
 
 **How to avoid:**
-- Expose alert volume metrics prominently (alerts per day, per service, per severity)
-- Implement alert throttling/rate limiting per service
-- Support alert priority levels with different notification channels (P1 = phone call, P3 = Slack)
-- Provide alert analytics (which services are noisiest, trending volume)
-- Allow temporary muting with automatic unmute
-- Support "quiet hours" for low-priority alerts
-- Show acknowledgment rates (% of alerts acknowledged within SLA)
-- Build feedback loop: make it easy to report "this alert was noise"
+- **Add proper FK while keeping legacy field:** `serviceId` (FK to Service) + `serviceIdentifier` (legacy string)
+- **Resolution order:** Check `serviceId` first, fall back to `serviceIdentifier` match
+- **Migration script:** For each StatusPageComponent with `serviceIdentifier`, find or create matching Service, populate `serviceId`
+- **Deprecation timeline:** Log usage of `serviceIdentifier` path, remove after 6 months
+
+```typescript
+// Component-to-Service resolution with backward compatibility
+async resolveComponentService(component: StatusPageComponent): Promise<Service | null> {
+  // New path: direct Service reference
+  if (component.serviceId) {
+    return prisma.service.findUnique({ where: { id: component.serviceId } });
+  }
+
+  // Legacy path: string identifier match
+  if (component.serviceIdentifier) {
+    logger.warn({ componentId: component.id }, 'Using legacy serviceIdentifier match');
+    return prisma.service.findFirst({
+      where: { name: component.serviceIdentifier }
+    });
+  }
+
+  return null;
+}
+```
 
 **Warning signs:**
-- No visibility into alert volume trends
-- All alerts treated identically regardless of priority
-- No rate limiting or throttling mechanisms
-- No tools for identifying noisy services
-- High alert volume with low acknowledgment rates
-- User requests to "turn off notifications"
+- Status page shows "Operational" while incidents are open
+- Component status doesn't update when linked Service has incident
+- Duplicate status entries (one from legacy match, one from FK)
+- `serviceIdentifier` and `serviceId` point to different Services
 
 **Phase to address:**
-Phase 3 (Production Readiness) - Important before scaling to full team, but not MVP critical.
-
-**Source confidence:** HIGH - Extensively documented in Google SRE Workbook with specific thresholds and examples
+Phase 4 (Status Page Integration) - Plan migration strategy before touching StatusPageComponent model
 
 ---
 
-### Pitfall 8: Scheduling Algorithm Edge Cases Not Tested
+### Pitfall 8: Incident-Service Attribution After Migration
 
 **What goes wrong:**
-On-call schedule works fine for simple cases but breaks in edge cases: overlapping shifts, partial coverage (weekdays only), user on vacation during their shift, user leaves company mid-rotation, timezone changes mid-rotation, shift handoff during incident. Wrong person gets paged or nobody gets paged.
+Historical incidents have no `serviceId` (field doesn't exist yet). After adding Service Catalog, analytics queries return incomplete data. MTTR-by-service reports show artificially low incident counts. Service-level dashboards appear to have no history.
 
 **Why it happens:**
-Teams implement "happy path" scheduling (weekly rotation, same people, no gaps) without considering real-world complexity. They don't test edge cases systematically. They discover bugs in production during shift transitions.
+The current Incident model doesn't have a `serviceId` field (schema.prisma:543-583). It routes via `teamId` and `fingerprint`. Adding `serviceId` leaves historical data with null values. Backfill is complex because the original alert metadata may not have clear service attribution.
 
 **How to avoid:**
-- Test edge cases explicitly:
-  - User on vacation override during regular shift
-  - User leaves company mid-rotation (deactivated account)
-  - Multiple users on call simultaneously (follow-the-sun coverage)
-  - Gaps in schedule (weekend coverage ends, weekday hasn't started)
-  - Shift transition during active incident (who owns it?)
-  - Schedule deleted/modified during active incident
-  - User timezone changes while on call
-- Define "who is on call right now" algorithm clearly and test exhaustively
-- Show schedule coverage gaps prominently in UI
-- Require explicit handoff for active incidents during rotation
-- Validate schedule changes don't create gaps
-- Support "effective date" for schedule changes (don't apply immediately)
+- **Add `serviceId` as nullable FK:** Don't break existing incidents
+- **Best-effort backfill script:** Match historical incidents to Services via:
+  1. `fingerprint` patterns (e.g., `datadog:api-service:*`)
+  2. `metadata.service` field from linked alerts
+  3. TeamTag inference (if team owns only one service)
+- **Analytics filtering:** Explicitly handle `serviceId IS NULL` in queries
+- **Dashboard UX:** Show "Unattributed" category in service-level analytics
+- **Forward-only requirement:** New incidents must have serviceId
+
+```typescript
+// Backfill strategy
+async backfillIncidentServices(): Promise<void> {
+  const incidents = await prisma.incident.findMany({
+    where: { serviceId: null },
+    include: { alerts: true }
+  });
+
+  for (const incident of incidents) {
+    // Try to infer service from alerts
+    const serviceName = incident.alerts[0]?.metadata?.service
+      || extractServiceFromFingerprint(incident.fingerprint);
+
+    if (serviceName) {
+      const service = await prisma.service.findFirst({
+        where: { name: serviceName }
+      });
+      if (service) {
+        await prisma.incident.update({
+          where: { id: incident.id },
+          data: { serviceId: service.id }
+        });
+      }
+    }
+  }
+}
+```
 
 **Warning signs:**
-- `getCurrentOnCallUser()` function is complex with many conditionals
-- No test cases for edge conditions
-- Schedule validation only checks "does shift exist"
-- No UI warning for schedule gaps
-- No handling of mid-shift user removal
-- Incident ownership transfer logic is unclear
+- Service dashboards show "No incidents" for established services
+- MTTR analytics show sudden improvement (missing historical data)
+- High percentage of incidents with `serviceId: null`
+- Analytics queries returning unexpected results
 
 **Phase to address:**
-Phase 2 (Core Features) - Must be solid before production use with real rotations.
-
-**Source confidence:** MEDIUM - Specific edge cases inferred from scheduling complexity, not directly documented in sources
-
----
-
-## Moderate Pitfalls
-
-These mistakes cause delays, technical debt, or require significant refactoring.
-
----
-
-### Pitfall 9: No Alert History and Audit Trail
-
-**What goes wrong:**
-Users ask "did I get paged for this incident last night?" System can't answer. Compliance requirements need proof of who was notified when. Debugging delivery failures is impossible without logs. Users distrust the system.
-
-**Why it happens:**
-Teams focus on real-time delivery, not record-keeping. They don't design for auditability from the start. They assume "logs are enough" but logs aren't queryable or persistent.
-
-**How to avoid:**
-- Store complete audit trail of every alert and notification attempt
-- Include: alert created, routed to user, delivery attempted, delivery confirmed, acknowledged, resolved
-- Make audit trail queryable via UI (user can see their notification history)
-- Retain audit logs for compliance period (1+ years)
-- Include metadata: delivery channel, provider used, failure reason, retry attempts
-- Expose audit trail via API for external analysis
-
-**Warning signs:**
-- No database table for notification history
-- Only real-time delivery tracking
-- No way to query "what notifications did user X receive yesterday"
-- No delivery failure reasons stored
-- Audit data stored only in logs
-
-**Phase to address:**
-Phase 1 (Foundation) - Easier to build in from start than retrofit later.
-
----
-
-### Pitfall 10: Synchronous Notification Delivery Blocking Alerting
-
-**What goes wrong:**
-Alert arrives, system tries to send push notification, push notification provider is slow/down, HTTP request hangs for 30 seconds, entire alerting pipeline blocks. New alerts pile up. When provider recovers, flood of delayed alerts hit all at once.
-
-**Why it happens:**
-Teams implement notification sending synchronously in the alert handling path. They don't use background jobs or queues. They don't set aggressive timeouts.
-
-**How to avoid:**
-- Use job queue (Sidekiq, Bull, SQS) for all notification delivery
-- Alert handling: create alert → enqueue notification job → return immediately
-- Set aggressive timeouts on external API calls (3-5 seconds max)
-- Implement circuit breakers for notification providers
-- Monitor queue depth (alert if jobs backing up)
-- Use separate workers for different notification channels (SMS worker crash doesn't block email)
-
-**Warning signs:**
-- Alert API endpoints make synchronous notification API calls
-- No job queue or background worker system
-- No timeouts on external HTTP calls
-- Alert creation latency correlates with notification provider latency
-- All notification delivery in single process
-
-**Phase to address:**
-Phase 2 (Core Features) - Can start synchronous for MVP, but must async before production scale.
-
----
-
-### Pitfall 11: Notification Channel Verification Not Required
-
-**What goes wrong:**
-User adds phone number for SMS but makes typo. System happily sends alerts to wrong number. Or worse, sends to invalid number and burns money on failed delivery attempts. User doesn't receive alerts and doesn't know why.
-
-**How to avoid:**
-- Require verification for all notification channels before activation
-- SMS: send verification code, user must confirm
-- Phone call: call verification required
-- Push: verify device token actually works
-- Email: confirmation link
-- Show verification status prominently in UI
-- Warn when alert would go to unverified channel
-- Periodically re-verify channels (tokens expire, numbers change)
-
-**Warning signs:**
-- No verification flow for notification channels
-- Users can add channels without confirmation
-- No "verified" status indicator
-- No testing of channel before use
-
-**Phase to address:**
-Phase 2 (Core Features) - Important for cost control and reliability, but can follow basic functionality.
-
----
-
-### Pitfall 12: No Testing of Actual Notification Delivery
-
-**What goes wrong:**
-Platform has excellent test coverage for internal logic but never actually tests if SMS gets delivered, push notifications arrive, or emails land in inbox. Production integration breaks and nobody notices until real incident.
-
-**How to avoid:**
-- Integration tests that send actual notifications to test accounts
-- Scheduled smoke tests (hourly: send test alert through entire pipeline)
-- Canary alerts to known-good channels to verify provider health
-- Test against multiple providers regularly
-- Monitor success rates for each notification channel
-- Alert on degraded delivery rates
-
-**Warning signs:**
-- Unit tests mock all external notification APIs
-- No integration tests with real providers
-- No production smoke tests
-- No monitoring of actual delivery success
-- First discovery of provider issues is user report
-
-**Phase to address:**
-Phase 2 (Core Features) - Before production deployment, must verify integrations work.
-
----
-
-### Pitfall 13: Hard-Coded or Poorly Configurable Alert Routing
-
-**What goes wrong:**
-Alert routing rules are hard-coded or require code changes to modify. Team structure changes, on-call rotations reorganize, services move between teams. Each change requires deployment.
-
-**How to avoid:**
-- Make alert routing rules data-driven and configurable
-- Support routing based on: service, severity, tags, custom attributes
-- Allow non-engineers to modify routing rules via UI
-- Version routing rules (track changes, rollback capability)
-- Validate routing rules before activation
-- Show preview of "who would get this alert" for testing
-
-**Warning signs:**
-- Routing logic is code in application
-- Only engineers can change routing
-- No UI for routing configuration
-- Routing changes require deployment
-
-**Phase to address:**
-Phase 2 (Core Features) - Before expanding beyond pilot team.
-
----
-
-## Minor Pitfalls
-
-These mistakes cause annoyance but are fixable without major changes.
-
----
-
-### Pitfall 14: No Rate Limiting on Alert Creation
-
-**What goes wrong:**
-Monitoring system misconfigures alert and sends 10,000 identical alerts per second. Database fills up. Alert processing bogs down. Engineers get spammed.
-
-**How to avoid:**
-- Rate limit alert creation per service (e.g., 100/minute)
-- Rate limit alert creation per integration key
-- Aggressive deduplication even under high load
-- Circuit breaker that stops accepting alerts from misbehaving source
-- Alert on suspiciously high alert rates
-
-**Phase to address:**
-Phase 3 (Production Readiness) - Important before scale, but not critical for pilot.
-
----
-
-### Pitfall 15: Poor Mobile App Push Token Management
-
-**What goes wrong:**
-Push tokens expire, get invalidated when user reinstalls app, or become stale. System keeps trying to send to dead tokens. Users don't receive notifications.
-
-**How to avoid:**
-- Track push token registration date
-- Remove tokens that fail delivery repeatedly
-- Support multiple tokens per user (user has multiple devices)
-- Require app to refresh token periodically
-- Provide UI to see registered devices and remove old ones
-
-**Phase to address:**
-Phase 3 (Production Readiness) - Quality of life improvement after basic push works.
-
----
-
-### Pitfall 16: No Graceful Degradation When Dependencies Down
-
-**What goes wrong:**
-Database has temporary issues. Entire alerting platform goes down instead of degrading gracefully.
-
-**How to avoid:**
-- Critical path should work even with degraded dependencies
-- Cache on-call schedules in memory
-- Allow alert creation even if audit log write fails (write to queue instead)
-- Show degraded status in UI
-- Fallback to simpler notification methods
-
-**Phase to address:**
-Phase 3 (Production Readiness) - Resilience feature after core functionality solid.
-
----
-
-### Pitfall 17: Time Display Ambiguity Causes Confusion
-
-**What goes wrong:**
-UI shows "2:00 PM" without timezone. User in India thinks it's 2 PM IST. Schedule actually means 2 PM PST. Wrong expectations about coverage.
-
-**How to avoid:**
-- Always show timezone with times (2:00 PM PST or 2:00 PM America/Los_Angeles)
-- Show user's local time and optionally UTC
-- Use relative times ("starts in 3 hours") alongside absolute times
-- Consistent timezone display throughout UI
-
-**Phase to address:**
-Phase 1 (Foundation) - Easy to do right from start, hard to fix later.
+Phase 1 (Service Model Foundation) - Design backfill strategy before schema migration
 
 ---
 
@@ -492,34 +385,24 @@ Shortcuts that seem reasonable but create long-term problems.
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Store schedules in local time | Simpler initial logic | DST bugs, timezone bugs, impossible to fix cleanly | Never - always use UTC |
-| Fire-and-forget notification | Faster to build | No delivery guarantees, missing incidents | Never for production system |
-| Single notification provider | Simpler integration | Single point of failure | MVP/pilot only |
-| Synchronous notification | No queue infrastructure | Blocks alert pipeline, poor performance | MVP/pilot only (add queue by Phase 2) |
-| Hard-coded routing rules | No configuration UI needed | Requires deployment to change | MVP only (add UI by Phase 2) |
-| No verification for channels | Simpler user flow | Wrong numbers, wasted costs | Never - always verify |
-| Mock external APIs in tests | Faster test execution | Doesn't catch integration issues | OK if complemented with integration tests |
-
----
+| String-based service matching | Quick implementation, no migrations | Typos break routing, no referential integrity, duplicate services | Never for new code; legacy support only |
+| Denormalizing service data onto incidents | Faster queries, simpler joins | Data inconsistency when service updated, storage bloat | Acceptable for read-heavy analytics with clear update triggers |
+| Computing status synchronously | Simpler code, immediate consistency | API latency, N+1 queries, timeouts during storms | Only for services with <10 dependencies |
+| Optional ownership | Faster service creation, lower friction | Orphan services, unclear responsibility, compliance gaps | Only for DRAFT services awaiting review |
+| Flat dependency model (no hierarchy) | Simple data model, easy queries | Can't model Service -> Component -> Resource, limited blast radius | Acceptable for MVP, but design for extension |
 
 ## Integration Gotchas
 
-Common mistakes when connecting to external services.
+Common mistakes when connecting Service Catalog to existing features.
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Twilio SMS | Assuming 200 status = delivered | Check delivery webhooks/status callbacks for actual delivery |
-| Twilio SMS | Not handling rate limits | Implement backoff, monitor rate limit headers, have backup provider |
-| Twilio SMS | Using trial account in production | Trial account has verified-number-only restriction - completely unusable |
-| FCM Push | Storing single token per user | Users have multiple devices - store multiple tokens |
-| FCM Push | Not removing invalid tokens | Failed tokens accumulate, waste resources, bury real issues |
-| FCM Push | Not handling token refresh | Tokens expire - app must re-register, server must update |
-| Email SMTP | No retry on transient failures | Email delivery can be delayed - implement retry with backoff |
-| Webhook integrations | No signature verification | Accept spoofed alerts - always validate HMAC signatures |
-| Webhook integrations | Synchronous processing | Slow processing blocks sender's retry - return 200 immediately, process async |
-| PagerDuty API | Assuming API is stable | Breaking changes happen (v1.5.0 had breaking changes) - pin versions, test upgrades |
-
----
+| Alert Routing | Requiring Service ID immediately, breaking legacy webhooks | Add Service as optional enrichment, fall back to TeamTag routing |
+| Escalation Policies | Duplicating policies at Service and Team level | Single policy model with Service or Team ownership, clear precedence |
+| Status Pages | Dual status computation (from Service and from Component mapping) | Service is source of truth, Component inherits from Service |
+| Workflows | Filtering workflows by Team but not Service | Add `serviceId` filter to WorkflowTrigger, scope workflows to Service or Team |
+| Postmortems | Not linking postmortems to affected Services | Add `serviceIds[]` to Postmortem model (already has `incidentIds[]`) |
+| Audit Events | Generic service logs without serviceId context | Add `serviceId` to AuditEvent for service-specific audit trails |
 
 ## Performance Traps
 
@@ -527,14 +410,11 @@ Patterns that work at small scale but fail as usage grows.
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Loading all active incidents in memory | Fast with 10 incidents, slow with 1000 | Paginate incidents, use database queries | ~500+ active incidents |
-| Polling for schedule changes | Works with 5 users, hammers DB with 500 | Use pub/sub or webhooks for change notification | ~100 users |
-| Sending notifications serially | OK with 1-2 recipients per alert | Send in parallel or use background workers | ~10+ recipients per alert |
-| No database indexes on alert queries | Fast with 1K alerts, timeout with 1M | Index on created_at, service_id, status | ~100K alerts |
-| Storing full alert history in single table | Works for weeks, slow after months | Partition by time or archive old alerts | ~1M+ alerts |
-| No caching of on-call lookups | OK with occasional queries | Cache current on-call for 1-5 minutes | High query volume |
-
----
+| Recursive dependency status | Status page loads >5s | Batch load with recursive CTE, cache computed status | >50 services with >5 avg dependencies |
+| No index on `serviceId` FK | Slow incident list by service | Add composite index `(serviceId, status, createdAt)` | >10k incidents per service |
+| Synchronous status propagation | Incident state change >1s | Background job for cascade status updates | >100 dependent services |
+| Full graph load for visualization | OOM on dependency graph render | Paginated graph API, load on-demand | >200 services with dependencies |
+| Compliance scorecard computation | Dashboard timeout | Pre-compute scores, update on schema change | >500 services with >10 checks each |
 
 ## Security Mistakes
 
@@ -542,48 +422,35 @@ Domain-specific security issues beyond general web security.
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| No webhook signature verification | Attackers create fake alerts, spam on-call engineers | Always verify HMAC signatures on incoming webhooks |
-| Alert data includes secrets | API keys, passwords in alert descriptions exposed in UI/notifications | Sanitize alert content, redact secrets |
-| No rate limiting on alert API | DDoS via alert creation, fill database | Rate limit per API key, per IP |
-| Phone numbers not verified | Alert attacker's number instead of engineer | Always require verification code |
-| No audit trail of who acknowledged | Can't prove compliance, can't debug "who marked this resolved" | Audit every state change with user ID and timestamp |
-| Webhook URLs not validated | SSRF attacks via webhook callbacks | Validate URLs, block private IPs |
-| No access controls on schedules | Any engineer can edit any schedule | Role-based permissions on schedule editing |
-
----
+| Service visibility ignoring team boundaries | Users see services they shouldn't | Add `visibility: PUBLIC/TEAM/PRIVATE` with team-based access control |
+| Dependency graph reveals architecture | Attackers map internal systems | Restrict dependency view to authenticated users with team membership |
+| Compliance data in error messages | Leak security posture | Generic "compliance check failed", detailed data in audit log only |
+| Service API keys shared across services | Blast radius expansion | Per-service API keys with service-scoped permissions |
 
 ## UX Pitfalls
 
-Common user experience mistakes in this domain.
+Common user experience mistakes in service catalog implementations.
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| No "test this notification" button | Users don't know if channels work | Provide "send test notification" for every channel |
-| No visibility into why alert routed to them | Confusion about unexpected pages | Show routing decision trail ("you got this because: on-call for service X") |
-| Can't see upcoming on-call shifts | Surprised by pages, can't plan | Prominent calendar view of upcoming shifts |
-| No way to override/swap shifts | Can't handle vacation, life events | Easy shift swapping with approval flow |
-| Acknowledge requires multiple clicks | Slows incident response | One-click acknowledge from notification |
-| Can't see if others already working incident | Multiple people work same issue | Show "Alice is working on this" status in real-time |
-| No mobile-friendly interface | Can't manage incidents from phone | Mobile-first design for incident management |
-
----
+| Service picker with 500+ options | Users can't find their service | Default to user's team services, search with fuzzy match, recently-used list |
+| Mandatory service assignment on alert creation | Delays incident response | Auto-suggest service from alert metadata, allow "Unassigned" with follow-up |
+| Dependency graph as primary navigation | Confusing for non-visual users | List view as default, graph as optional visualization |
+| Compliance score without explanation | Users don't know how to improve | Each score component links to fix action |
+| Service creation wizard with 20 fields | Users abandon halfway | Progressive disclosure: required fields first, optional fields in tabs |
 
 ## "Looks Done But Isn't" Checklist
 
 Things that appear complete but are missing critical pieces.
 
-- [ ] **Push notifications:** Often missing token refresh logic - verify tokens expire and app re-registers
-- [ ] **SMS delivery:** Often missing delivery confirmation tracking - verify using webhook callbacks not just API success
-- [ ] **On-call schedules:** Often missing timezone handling - verify DST transitions and international users
-- [ ] **Alert deduplication:** Often missing race condition handling - verify concurrent alert creation
-- [ ] **Webhook endpoints:** Often missing signature verification - verify HMAC validation
-- [ ] **Notification delivery:** Often missing retry logic - verify exponential backoff on failures
-- [ ] **Schedule coverage:** Often missing gap detection - verify 24/7 coverage validation
-- [ ] **Alert routing:** Often missing fallback logic - verify what happens when primary on-call unreachable
-- [ ] **Escalation policies:** Often missing actually-tested escalation - verify escalation timer triggers
-- [ ] **Integration testing:** Often missing real provider testing - verify actual SMS/push/email delivery
-
----
+- [ ] **Service Model:** Often missing lifecycle state (DRAFT/ACTIVE/DEPRECATED/ARCHIVED) - verify state machine is implemented
+- [ ] **Dependency Graph:** Often missing cycle detection - verify circular references are rejected
+- [ ] **Status Propagation:** Often missing depth limit - verify cascades don't exceed 10 levels
+- [ ] **Ownership:** Often missing ownership transfer flow - verify services can be reassigned
+- [ ] **Alert Routing:** Often missing fallback path - verify legacy routing still works
+- [ ] **Compliance Scorecard:** Often missing update triggers - verify scores recalculate on schema changes
+- [ ] **Service Deletion:** Often missing orphan handling - verify dependent services are notified/blocked
+- [ ] **Analytics:** Often missing null serviceId handling - verify queries account for unattributed incidents
 
 ## Recovery Strategies
 
@@ -591,17 +458,12 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Missing timezone handling | HIGH | Database migration to convert all times to UTC + application logic changes |
-| Fire-and-forget delivery | MEDIUM | Add delivery tracking table + retry logic + migrate existing data |
-| No audit trail | HIGH | Can't backfill historical data - start logging going forward, lose history |
-| Synchronous notifications | MEDIUM | Add job queue infrastructure + refactor notification sending |
-| Hard-coded routing | LOW | Build routing rules UI + migrate rules to database |
-| Single notification provider | MEDIUM | Add provider abstraction + integrate secondary provider |
-| No verification flow | LOW | Add verification step + mark existing channels unverified + require verification |
-| Deduplication races | MEDIUM | Add database locking + transaction boundaries around deduplication |
-| No escalation policies | MEDIUM | Add escalation table + timer infrastructure + configure policies |
-
----
+| Circular dependencies created | LOW | Run detection query, identify cycles, admin UI to break cycles |
+| Service sprawl (500+ services) | MEDIUM | Usage audit, archive unused, merge duplicates (redirect FKs) |
+| N+1 query performance | MEDIUM | Add recursive CTE queries, introduce caching layer, may need schema changes |
+| Broken alert routing | HIGH | Emergency fallback to team routing, audit affected incidents, reprocess alerts |
+| Historical incident attribution wrong | HIGH | Re-run backfill with corrected logic, may need to manually audit sample |
+| Escalation policy conflicts | MEDIUM | Clear precedence in code, migration to canonical policy, notify affected teams |
 
 ## Pitfall-to-Phase Mapping
 
@@ -609,46 +471,33 @@ How roadmap phases should address these pitfalls.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| No delivery guarantee | Phase 1 (Foundation) | Audit trail shows retry attempts and final delivery status |
-| Single point of failure | Phase 2 (Core Features) | Force-fail primary provider, verify fallback works |
-| Timezone/DST bugs | Phase 1 (Foundation) | Test cases for DST transitions in multiple zones pass |
-| Alert deduplication races | Phase 2 (Core Features) | Load test with concurrent identical alerts, verify single incident |
-| Webhook reliability | Phase 1 (Foundation) | Send duplicate webhooks, out-of-order webhooks, verify handled correctly |
-| No escalation | Phase 2 (Core Features) | Don't acknowledge alert, verify escalation triggers in 5 min |
-| Alert fatigue design | Phase 3 (Production Readiness) | Alert volume metrics visible, throttling configurable |
-| Scheduling edge cases | Phase 2 (Core Features) | Test cases for vacation, deactivation, gaps all pass |
-| No audit trail | Phase 1 (Foundation) | Query notification history for user, see complete timeline |
-| Synchronous blocking | Phase 2 (Core Features) | Load test shows alert pipeline throughput unaffected by slow notifications |
-| No channel verification | Phase 2 (Core Features) | Try to add unverified channel, blocked until verified |
-| No delivery testing | Phase 2 (Core Features) | CI runs integration tests that send real notifications |
-| Hard-coded routing | Phase 2 (Core Features) | Non-engineer can modify routing via UI |
-| No rate limiting | Phase 3 (Production Readiness) | Spam alert API, verify throttling kicks in |
-| Poor token management | Phase 3 (Production Readiness) | Tokens that fail repeatedly are removed automatically |
-| No graceful degradation | Phase 3 (Production Readiness) | Take down DB briefly, verify alerts still accepted |
-
----
+| Big Bang Migration | Phase 1 (Foundation) | Legacy routing tests pass, fallback path exercises |
+| Circular Dependencies | Phase 2 (Dependencies) | Unit tests for cycle detection, property-based tests |
+| N+1 Query Performance | Phase 2 (Dependencies) | Load test with 100+ services, status computation <500ms |
+| Service Sprawl | Phase 1 (Foundation) | Ownership required on create, lifecycle states in UI |
+| Standards Without Enforcement | Phase 3 (Compliance) | Enforcement hooks in routing, warning logs visible |
+| Escalation Policy Conflicts | Phase 1 (Foundation) | Precedence rules documented, tests for each path |
+| Status Page Mismatch | Phase 4 (Status Pages) | Both FK and string paths tested, migration script verified |
+| Incident Attribution | Phase 1 (Foundation) | Backfill script runs in staging, analytics queries verified |
 
 ## Sources
 
-**HIGH confidence sources:**
-- Google SRE Workbook - On-Call chapter: On-call load limits, alert fatigue, pager rotation best practices
-- Google SRE Book - Managing Incidents: Coordination breakdown patterns, incident command structure
-- Increment Magazine - When the Pager Goes Off: Manual processes, alert quality, operational complexity
-- GitHub danluu/post-mortems: Real incident patterns showing monitoring failures, detection delays
-- PagerDuty go-pagerduty library: Breaking changes, API reliability considerations
+### High Confidence
+- **Backstage Software Catalog documentation:** Entity model, relationships, ownership patterns - https://backstage.io/docs/features/software-catalog/
+- **Opsgenie Service API:** Service-team relationship model, API structure - https://docs.opsgenie.com/docs/service-api
+- **Atlassian Compass:** Service catalog patterns, scorecards, dependency tracking - https://www.atlassian.com/software/compass
+- **Existing PageFree codebase:** schema.prisma, routing.service.ts, incident.service.ts, statusComputation.service.ts
 
-**MEDIUM confidence sources:**
-- MartinFowler - Idempotent Receiver pattern: Delivery guarantees, duplicate handling
-- Grafana OnCall repository: Maintenance status, synchronization issues, dependency constraints
-- Twilio trial documentation: SMS reliability limitations
+### Medium Confidence
+- **Google SRE Workbook:** Service ownership principles, on-call organization - https://sre.google/workbook/on-call/
+- **Grafana OnCall documentation:** Integration and routing patterns - https://grafana.com/docs/oncall/latest/configure/integrations/
 
-**LOW confidence (inferred from domain knowledge):**
-- Timezone/DST edge cases: Standard scheduling system pitfalls, not directly documented in sources
-- Specific race condition scenarios: Inferred from distributed systems patterns
-- Notification provider failover: SRE best practices, not specific to incident management
+### Inferred from Domain Experience
+- Circular dependency detection patterns (standard graph algorithm)
+- N+1 query optimization with recursive CTEs (PostgreSQL best practice)
+- Service lifecycle state machines (common in service catalog implementations)
+- Compliance enforcement gradients (learned from governance systems)
 
 ---
-
-*Pitfalls research for: OnCall Platform (PagerDuty replacement)*
-*Researched: 2026-02-06*
-*Primary focus: Mission-critical reliability for 50+ person on-call team*
+*Pitfalls research for: Service Catalog Addition to OnCall Platform*
+*Researched: 2026-02-08*
