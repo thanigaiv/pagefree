@@ -20,6 +20,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import type { Node, Edge } from '@xyflow/react';
+import { ReactFlowProvider } from '@xyflow/react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -520,47 +521,14 @@ export default function WorkflowBuilderPage() {
     []
   );
 
-  // Handle drop from sidebar
-  const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-
-      const data = event.dataTransfer.getData('application/reactflow');
-      if (!data) return;
-
-      const { type, subType, label } = JSON.parse(data);
-
-      // Don't allow multiple triggers
-      if (type === 'trigger' && hasTrigger) {
-        return;
-      }
-
-      // Get drop position relative to canvas
-      const canvasRect = event.currentTarget.getBoundingClientRect();
-      const position = {
-        x: event.clientX - canvasRect.left - 100,
-        y: event.clientY - canvasRect.top - 50,
-      };
-
-      // Create new node
-      const newNode: Node = {
-        id: `${type}_${Date.now()}`,
-        type,
-        position,
-        data: createDefaultNodeData(type, subType),
-      };
-
-      setNodes((prevNodes) => [...prevNodes, newNode]);
-      setSelectedNodeId(newNode.id);
+  // Handle drop from sidebar - just mark as dirty since canvas handles the node creation
+  const handleNodeDrop = useCallback(
+    (type: string, subType: string | undefined, position: { x: number; y: number }) => {
+      // Canvas handles node creation, we just mark workflow as dirty
       setIsDirty(true);
     },
-    [hasTrigger]
+    []
   );
-
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
 
   // Save workflow
   const handleSave = async () => {
@@ -710,6 +678,7 @@ export default function WorkflowBuilderPage() {
   };
 
   return (
+    <ReactFlowProvider>
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Header with metadata editing */}
       <div className="border-b bg-background px-4 py-2">
@@ -797,15 +766,12 @@ export default function WorkflowBuilderPage() {
         />
 
         {/* Canvas */}
-        <div
-          className="flex-1 relative"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-        >
+        <div className="flex-1 relative">
           <WorkflowCanvas
             initialNodes={nodes}
             initialEdges={edges}
             onChange={handleCanvasChange}
+            onNodeDrop={handleNodeDrop}
           />
         </div>
 
@@ -869,5 +835,6 @@ export default function WorkflowBuilderPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </ReactFlowProvider>
   );
 }

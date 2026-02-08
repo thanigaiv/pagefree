@@ -11,7 +11,7 @@
  * - Performance warning for >20 nodes
  */
 
-import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -20,6 +20,7 @@ import {
   addEdge,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   type Connection,
   type Node,
   type Edge,
@@ -62,6 +63,7 @@ interface WorkflowCanvasProps {
   initialEdges: Edge[];
   onChange?: (nodes: Node[], edges: Edge[]) => void;
   readOnly?: boolean;
+  onNodeDrop?: (type: string, subType: string | undefined, position: { x: number; y: number }) => void;
 }
 
 /**
@@ -235,7 +237,11 @@ export function WorkflowCanvas({
   initialEdges,
   onChange,
   readOnly = false,
+  onNodeDrop,
 }: WorkflowCanvasProps) {
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const reactFlow = useReactFlow();
+
   // Apply auto-layout to initial elements
   const { nodes: layoutedInitialNodes, edges: layoutedInitialEdges } = useMemo(
     () => getLayoutedElements(initialNodes, initialEdges),
@@ -244,8 +250,8 @@ export function WorkflowCanvas({
     []
   );
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedInitialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedInitialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [showPerformanceWarning, setShowPerformanceWarning] = useState(false);
 
   // Check for performance warning
@@ -253,7 +259,7 @@ export function WorkflowCanvas({
     setShowPerformanceWarning(nodes.length > MAX_RECOMMENDED_NODES);
   }, [nodes.length]);
 
-  // Notify parent of changes
+  // Notify parent of changes only when nodes/edges actually change from user interaction
   useEffect(() => {
     if (onChange) {
       onChange(nodes, edges);
@@ -298,8 +304,100 @@ export function WorkflowCanvas({
   // Show for workflows with 5+ nodes
   const showMiniMap = nodes.length >= 5;
 
+  // Handle drop with proper coordinate transformation using ReactFlow's screenToFlowPosition
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const data = event.dataTransfer.getData('application/reactflow');
+
+      if (!data) {
+        return;
+      }
+
+      const { type, subType } = JSON.parse(data);
+
+      // Check if we already have a trigger (only one allowed)
+      const hasTrigger = nodes.some(n => n.type === 'trigger');
+      if (type === 'trigger' && hasTrigger) {
+        console.log('Cannot add multiple triggers');
+        return;
+      }
+
+      // Convert screen coordinates to flow coordinates
+      const position = reactFlow.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // Create default node data based on type
+      let defaultData: any = {};
+      switch (type) {
+        case 'trigger':
+          defaultData = {
+            name: 'New Trigger',
+            triggerType: subType || 'incident_created',
+            conditions: [],
+          };
+          break;
+        case 'action':
+          defaultData = {
+            name: subType === 'jira' ? 'New Jira Ticket' : subType === 'linear' ? 'New Linear Issue' : 'New Webhook',
+            actionType: subType || 'webhook',
+            config: subType === 'jira' ? { projectKey: '', issueType: 'Bug', summary: '', description: '' }
+              : subType === 'linear' ? { teamId: '', title: '', description: '' }
+              : { url: '', method: 'POST', headers: {}, body: '{}', auth: { type: 'none' } },
+            retry: { attempts: 1, backoff: 'exponential', initialDelayMs: 1000 },
+          };
+          break;
+        case 'condition':
+          defaultData = {
+            name: 'New Condition',
+            field: '',
+            operator: '=',
+            value: '',
+          };
+          break;
+        case 'delay':
+          defaultData = {
+            name: 'Wait',
+            durationMinutes: 5,
+          };
+          break;
+      }
+
+      // Create new node and add directly to canvas state
+      const newNode: Node = {
+        id: `${type}_${Date.now()}`,
+        type,
+        position,
+        data: defaultData,
+      };
+
+      console.log('Adding node directly to canvas:', newNode);
+      setNodes((nds) => [...nds, newNode]);
+
+      // Notify parent if callback provided (for additional handling)
+      if (onNodeDrop) {
+        onNodeDrop(type, subType, position);
+      }
+    },
+    [nodes, reactFlow, setNodes, onNodeDrop]
+  );
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
   return (
-    <div className="relative h-full w-full">
+    <div
+      ref={reactFlowWrapper}
+      className="relative h-full w-full"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+    >
       {/* Performance warning */}
       {showPerformanceWarning && (
         <Alert className="absolute top-2 left-2 z-10 w-auto bg-yellow-50 border-yellow-200">
