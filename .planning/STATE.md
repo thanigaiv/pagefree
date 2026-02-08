@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 9 of 10 (Status Pages)
-Plan: 4 of N complete
-Status: In progress - Subscriber notification system complete
-Last activity: 2026-02-08 — Completed 09-04-PLAN.md (Subscriber Notifications)
-Progress: [████████████████████████████████████████████████░░] 84% (8.4 of 10 phases)
+Plan: 5 of N complete
+Status: In progress - Status page API routes complete
+Last activity: 2026-02-08 — Completed 09-05-PLAN.md (Status Page API Routes)
+Progress: [████████████████████████████████████████████████░░] 85% (8.5 of 10 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 73
+- Total plans completed: 74
 - Average duration: 3.5 min
-- Total execution time: 4.42 hours
+- Total execution time: 4.47 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [███████████████████████
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
 | 8. Automation & Workflows | 8/8 | 42 min | 5.25 min |
-| 9. Status Pages | 4/? | 13 min | 3.25 min |
+| 9. Status Pages | 5/? | 16 min | 3.2 min |
 
 **Recent Trend:**
-- Last 7 plans: 08-07 (3 min), 08-08 (6 min), 09-01 (2 min), 09-02 (3 min), 09-03 (5 min), 09-04 (3 min), average 3.7 min
-- Trend: Phase 9 progressing - Subscriber notification system complete
+- Last 7 plans: 08-08 (6 min), 09-01 (2 min), 09-02 (3 min), 09-03 (5 min), 09-04 (3 min), 09-05 (3 min), average 3.7 min
+- Trend: Phase 9 progressing - Status page API routes complete
 
 *Updated after each plan completion*
 
@@ -320,6 +320,9 @@ Recent decisions affecting current work:
 | Email verification required for subscribers | 09-04 | Webhook/Slack auto-verified, email requires token confirmation |
 | Lazy import for circular dependency avoidance | 09-04 | statusNotificationQueue imported dynamically in subscriber service |
 | Rate limit 50 notifications/minute | 09-04 | Prevent provider throttling with 10 concurrent workers |
+| Public routes mounted before auth middleware | 09-05 | /status/:slug accessible without session, token query param for private pages |
+| Team admin permission check for status page mutations | 09-05 | Consistent with existing permission patterns via permissionService |
+| Subscriber service placeholder returns empty array | 09-05 | Full StatusSubscriberService implementation in future plan |
 
 ### Pending Todos
 
@@ -350,9 +353,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 09-04-PLAN.md (Subscriber Notifications)
+Stopped at: Completed 09-05-PLAN.md (Status Page API Routes)
 Resume file: None
 
 ---
-*Phase 9 In Progress: Status Pages (4/? plans complete)*
-*Ready for: 09-05 - Status Page API Routes*
+*Phase 9 In Progress: Status Pages (5/? plans complete)*
+*Ready for: Next status page plan or frontend integration*
