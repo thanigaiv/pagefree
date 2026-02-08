@@ -45,8 +45,8 @@ See MILESTONES.md for v1.0 completion summary.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Backend: Prisma schema, service layer, REST routes for Service CRUD
-- [ ] 11-02-PLAN.md — Frontend: React Query hooks, types, ServicesPage with filtering and CRUD dialogs
+- [x] 11-01-PLAN.md — Backend: Prisma schema, service layer, REST routes for Service CRUD
+- [x] 11-02-PLAN.md — Frontend: React Query hooks, types, ServicesPage with filtering and CRUD dialogs
 
 ### Phase 12: Service Dependencies & Graph
 **Goal**: Users can model service dependencies and visualize upstream/downstream relationships with cycle detection preventing invalid configurations
@@ -58,11 +58,11 @@ Plans:
   3. System rejects dependency creation that would form a cycle (error displayed to user)
   4. User can view a visual dependency graph showing service relationships
   5. User can see upstream dependencies (what this service depends on) and downstream dependents (what depends on this service) separately
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md — Backend: Prisma schema extension, service-dependency.service.ts with cycle detection, REST endpoints
+- [ ] 12-02-PLAN.md — Frontend: React Query hooks, DependencyGraph component, ServicesPage with dependency management UI
 
 ### Phase 13: Service-Based Alert Routing
 **Goal**: Alerts route to teams via service routing keys, with backward-compatible fallback to existing TeamTag routing for integrations not yet configured with services
@@ -88,8 +88,8 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> 12.1 -> 13
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-10 | v1.0 | 85/85 | Complete | 2026-02-08 |
-| 11. Service Model Foundation | v1.1 | 0/2 | Planned | - |
-| 12. Service Dependencies & Graph | v1.1 | 0/? | Not started | - |
+| 11. Service Model Foundation | v1.1 | 2/2 | Complete | 2026-02-08 |
+| 12. Service Dependencies & Graph | v1.1 | 0/2 | Planned | - |
 | 13. Service-Based Alert Routing | v1.1 | 0/? | Not started | - |
 
 ---
