@@ -114,3 +114,65 @@ export function useWebhookDeliveries(integrationId: string, limit: number = 10) 
     enabled: !!integrationId
   });
 }
+
+export function useCreateIntegration() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      type: 'datadog' | 'newrelic' | 'pagerduty' | 'generic';
+      signatureHeader?: string;
+      signatureAlgorithm?: 'sha256' | 'sha512';
+      signatureFormat?: 'hex' | 'base64';
+      signaturePrefix?: string;
+      deduplicationWindowMinutes?: number;
+    }) => {
+      const res = await apiFetch<Integration & { webhookSecret: string; webhook_url: string }>(
+        '/integrations',
+        {
+          method: 'POST',
+          body: JSON.stringify(data)
+        }
+      );
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+    }
+  });
+}
+
+export function useDeleteIntegration() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiFetch(`/integrations/${id}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+    }
+  });
+}
+
+export function useRotateSecret() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiFetch<{ webhookSecret: string }>(
+        `/integrations/${id}/rotate-secret`,
+        {
+          method: 'POST'
+        }
+      );
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+    }
+  });
+}

@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { useIsPlatformAdmin } from '@/hooks/useCurrentUser';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Calendar, User, Workflow, BarChart3, FileText } from 'lucide-react';
+import { AlertCircle, Calendar, User, Workflow, BarChart3, FileText, Settings } from 'lucide-react';
 
-const navItems = [
+const baseNavItems = [
   {
     to: '/incidents',
     icon: AlertCircle,
@@ -36,11 +37,24 @@ const navItems = [
   },
 ];
 
+const adminNavItem = {
+  to: '/integrations',
+  icon: Settings,
+  label: 'Admin',
+  adminOnly: true
+};
+
 export function BottomNav() {
   const isMobile = useIsMobile();
+  const isPlatformAdmin = useIsPlatformAdmin();
 
   // Only show on mobile (per user decision)
   if (!isMobile) return null;
+
+  // Add admin item if user is platform admin
+  const navItems = isPlatformAdmin
+    ? [...baseNavItems.slice(0, 5), adminNavItem, baseNavItems[5]]
+    : baseNavItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t z-40 pb-safe">
