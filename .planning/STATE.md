@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 9 of 10 (Status Pages)
-Plan: 1 of N in progress
-Status: In progress - Status page schema and types complete
-Last activity: 2026-02-08 — Completed 09-01-PLAN.md (Status Page Schema & Types)
-Progress: [████████████████████████████████████████████████░░] 82% (8.1 of 10 phases)
+Plan: 2 of N in progress
+Status: In progress - Core status services complete
+Last activity: 2026-02-08 — Completed 09-02-PLAN.md (Core Status Services)
+Progress: [████████████████████████████████████████████████░░] 82% (8.2 of 10 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 70
+- Total plans completed: 71
 - Average duration: 3.5 min
-- Total execution time: 4.24 hours
+- Total execution time: 4.29 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [███████████████████████
 | 6. Incident Management Dashboard | 11/11 | 52 min | 4.7 min |
 | 7. External Integrations | 6/6 | 29 min | 4.8 min |
 | 8. Automation & Workflows | 8/8 | 42 min | 5.25 min |
-| 9. Status Pages | 1/? | 2 min | 2 min |
+| 9. Status Pages | 2/? | 5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 7 plans: 08-04 (7 min), 08-05 (4 min), 08-06 (9 min), 08-07 (3 min), 08-08 (6 min), 09-01 (2 min), average 5.2 min
-- Trend: Phase 9 started - Status page foundation complete
+- Last 7 plans: 08-05 (4 min), 08-06 (9 min), 08-07 (3 min), 08-08 (6 min), 09-01 (2 min), 09-02 (3 min), average 4.5 min
+- Trend: Phase 9 progressing - Core status services complete
 
 *Updated after each plan completion*
 
@@ -310,6 +310,9 @@ Recent decisions affecting current work:
 | Component status cached in currentStatus field | 09-01 | Quick reads from database, recompute on incident/maintenance changes |
 | StatusIncident optional incident link | 09-01 | Allow standalone status incidents not tied to platform incidents |
 | Status hierarchy MAJOR > PARTIAL > DEGRADED > MAINTENANCE > OPERATIONAL | 09-01 | Clear severity ordering for component status computation |
+| Redis cache with 5-minute TTL for computed status | 09-02 | Balance between performance and freshness for real-time status |
+| Dual update pattern (cache + DB currentStatus) | 09-02 | Consistency between Redis cache and database for status reads |
+| Component matching by teamId + optional serviceIdentifier | 09-02 | Flexible incident-to-component correlation from alert source |
 
 ### Pending Todos
 
@@ -340,9 +343,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 09-01-PLAN.md (Status Page Schema & Types)
+Stopped at: Completed 09-02-PLAN.md (Core Status Services)
 Resume file: None
 
 ---
-*Phase 9 In Progress: Status Pages (1/? plans complete)*
-*Ready for: 09-02 - Status Page Service Implementation*
+*Phase 9 In Progress: Status Pages (2/? plans complete)*
+*Ready for: 09-03 - Status Page Routes*
