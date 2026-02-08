@@ -1,27 +1,70 @@
 import { prisma } from '../config/database.js';
 import { onCallService } from './oncall.service.js';
 import { logger } from '../config/logger.js';
+import { serviceService } from './service.service.js';
+import type { ServiceWithTeam } from '../types/service.js';
 
 export interface RoutingResult {
   teamId: string;
   escalationPolicyId: string;
   assignedUserId: string | null;
+  serviceId?: string; // Present when routed via service (ROUTE-03)
 }
 
 class RoutingService {
   /**
    * Route alert to appropriate team based on metadata.
-   * Returns team, escalation policy, and initial assignee.
+   * Priority: 1) routing_key -> service, 2) integration default service, 3) TeamTag fallback
+   * Returns team, escalation policy, initial assignee, and optionally serviceId.
    */
-  async routeAlertToTeam(alert: any): Promise<RoutingResult> {
-    // 1. Determine team from alert metadata
+  async routeAlertToTeam(
+    alert: any,
+    integration?: { defaultServiceId?: string | null }
+  ): Promise<RoutingResult> {
+    const metadata = alert.metadata as any;
+
+    // 1. Try routing_key from alert metadata (ROUTE-01)
+    const routingKey = metadata?.routing_key || metadata?.routingKey;
+    if (routingKey) {
+      const service = await serviceService.getByRoutingKey(routingKey);
+      // Filter to only ACTIVE or DEPRECATED services (skip ARCHIVED per research pitfall)
+      if (service && service.status !== 'ARCHIVED') {
+        logger.debug(
+          { alertId: alert.id, routingKey, serviceId: service.id },
+          'Routing via service routing_key'
+        );
+        return this.routeViaService(service, alert.id);
+      }
+      logger.warn(
+        { alertId: alert.id, routingKey },
+        'No active service found for routing_key'
+      );
+    }
+
+    // 2. Try integration default service (ROUTE-04)
+    if (integration?.defaultServiceId) {
+      const service = await serviceService.get(integration.defaultServiceId);
+      if (service && service.status !== 'ARCHIVED') {
+        logger.debug(
+          { alertId: alert.id, defaultServiceId: integration.defaultServiceId, serviceId: service.id },
+          'Routing via integration default service'
+        );
+        return this.routeViaService(service, alert.id);
+      }
+      logger.warn(
+        { alertId: alert.id, defaultServiceId: integration.defaultServiceId },
+        'Integration default service not found or archived'
+      );
+    }
+
+    // 3. Fallback to TeamTag routing (ROUTE-02)
     const team = await this.determineTeamFromAlert(alert);
 
     if (!team) {
       throw new Error(`No team found for alert routing (alertId: ${alert.id})`);
     }
 
-    // 2. Get team's default escalation policy
+    // Get team's default escalation policy
     const policy = await prisma.escalationPolicy.findFirst({
       where: { teamId: team.id, isDefault: true, isActive: true },
       include: { levels: { orderBy: { levelNumber: 'asc' } } }
@@ -31,19 +74,72 @@ class RoutingService {
       throw new Error(`Team ${team.name} has no active escalation policy`);
     }
 
-    // 3. Determine first target from level 1
+    // Determine first target from level 1
     const firstLevel = policy.levels[0];
     const assignedUserId = await this.resolveEscalationTarget(firstLevel, team.id);
 
     logger.info(
       { alertId: alert.id, teamId: team.id, policyId: policy.id, assignedUserId },
-      'Alert routed to team'
+      'Alert routed to team via TeamTag fallback'
     );
 
     return {
       teamId: team.id,
       escalationPolicyId: policy.id,
       assignedUserId
+    };
+  }
+
+  /**
+   * Route via service - uses service's team and optionally its escalation policy (ROUTE-05)
+   */
+  private async routeViaService(service: ServiceWithTeam, alertId: string): Promise<RoutingResult> {
+    const teamId = service.teamId;
+
+    // Determine escalation policy: service-specific if set and active, else team default
+    let policy = null;
+
+    if (service.escalationPolicyId) {
+      // Check if service's escalation policy exists and is active
+      policy = await prisma.escalationPolicy.findFirst({
+        where: { id: service.escalationPolicyId, isActive: true },
+        include: { levels: { orderBy: { levelNumber: 'asc' } } }
+      });
+
+      if (!policy) {
+        logger.warn(
+          { serviceId: service.id, escalationPolicyId: service.escalationPolicyId },
+          'Service escalation policy not found or inactive, falling back to team default'
+        );
+      }
+    }
+
+    // Fall back to team default if no service policy
+    if (!policy) {
+      policy = await prisma.escalationPolicy.findFirst({
+        where: { teamId, isDefault: true, isActive: true },
+        include: { levels: { orderBy: { levelNumber: 'asc' } } }
+      });
+    }
+
+    if (!policy || policy.levels.length === 0) {
+      throw new Error(`No active escalation policy for service ${service.name} or its team`);
+    }
+
+    // Resolve first escalation target
+    const firstLevel = policy.levels[0];
+    const assignedUserId = await this.resolveEscalationTarget(firstLevel, teamId);
+
+    logger.info(
+      { alertId, teamId, serviceId: service.id, policyId: policy.id, assignedUserId },
+      'Alert routed via service'
+    );
+
+    return {
+      teamId,
+      escalationPolicyId: policy.id,
+      assignedUserId,
+      serviceId: service.id
     };
   }
 
