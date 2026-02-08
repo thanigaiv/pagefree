@@ -48,6 +48,7 @@ import { serviceRouter } from './routes/service.routes.js';
 import { statusComputationService } from './services/statusComputation.service.js';
 import { startMaintenanceWorker, stopMaintenanceWorker } from './workers/maintenance.worker.js';
 import { startStatusNotificationWorker, stopStatusNotificationWorker } from './workers/statusNotification.worker.js';
+import { apiRateLimiter, publicRateLimiter } from './middleware/rateLimiter.js';
 
 export const app = express();
 
@@ -102,7 +103,8 @@ app.use('/webhooks/twilio', twilioWebhooksRouter);
 app.use('/magic', magicLinksRouter);
 
 // Public status pages (no auth - access token for private pages)
-app.use('/status', statusPublicRoutes);
+// Rate limit: 100 req/min per IP (public tier)
+app.use('/status', publicRateLimiter, statusPublicRoutes);
 
 // SCIM endpoints (mount before auth middleware - uses its own auth)
 app.use('/scim/v2', scimRouter);
@@ -111,7 +113,8 @@ app.use('/scim/v2', scimRouter);
 app.use(auditMiddleware);
 
 // Health check endpoint
-app.get('/health', async (_req, res) => {
+// Rate limit: 100 req/min per IP (public tier)
+app.get('/health', publicRateLimiter, async (_req, res) => {
   try {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`;
@@ -141,6 +144,9 @@ app.get('/', (_req, res) => {
 });
 
 // API routes
+// Rate limit: 500 req/min per authenticated user (api tier)
+app.use('/api', apiRateLimiter);
+
 app.use('/api/audit', auditRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/keys', apiKeyRouter);

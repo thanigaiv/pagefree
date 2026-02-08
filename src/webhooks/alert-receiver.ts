@@ -10,8 +10,12 @@ import { logger } from '../config/logger.js';
 import { deduplicationService } from '../services/deduplication.service.js';
 import { escalationService } from '../services/escalation.service.js';
 import { generateContentFingerprint } from '../utils/content-fingerprint.js';
+import { webhookRateLimiter } from '../middleware/rateLimiter.js';
 
 export const alertWebhookRouter = Router();
+
+// Rate limit: 1000 req/min per IP (webhook tier for high-volume monitoring tools)
+alertWebhookRouter.use(webhookRateLimiter);
 
 // Apply raw body capture (required for signature verification)
 alertWebhookRouter.use(rawBodyCapture('1mb'));
