@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Phase 12 - Service Dependencies Graph
+**Current focus:** Phase 12 - Service Dependencies Graph (COMPLETE)
 
 ## Current Position
 
 Phase: 12 of 13 (Service Dependencies Graph)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-08 - Completed 12-01-PLAN.md (Backend Service Dependencies)
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase complete
+Last activity: 2026-02-08 - Completed 12-02-PLAN.md (Dependency Graph Visualization Frontend)
 
-Progress: [########################......] 82% (v1.0 complete, v1.1 Phase 12 plan 1 complete)
+Progress: [#########################.....] 85% (v1.0 complete, v1.1 Phase 12 complete)
 
 ## Performance Metrics
 
@@ -39,8 +39,13 @@ Progress: [########################......] 82% (v1.0 complete, v1.1 Phase 12 pla
 | 10. Postmortems | 7/7 | 15 min | 2.1 min |
 
 **v1.1 Metrics:**
-- Plans completed: 3
-- Time elapsed: 9 min
+- Plans completed: 4
+- Time elapsed: 12 min
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 11. Service Model Foundation | 2/2 | 6 min | 3 min |
+| 12. Service Dependencies Graph | 2/2 | 7 min | 3.5 min |
 
 ## Accumulated Context
 
@@ -61,6 +66,9 @@ Recent decisions from Phase 11-12:
 - DFS traversal for cycle detection (O(V+E) complexity)
 - Recursive CTE with depth limit (max 20) for bounded graph queries
 - Edges represent A depends on B (A->B direction)
+- Left-to-right graph layout for dependency visualization
+- Nested dialog pattern for add dependency flow
+- Graph view requires service selection first
 
 ### Pending Todos
 
@@ -76,6 +84,6 @@ Carried from v1.0 (see PROJECT.md "Known Tech Debt"):
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 12-01-PLAN.md (Backend Service Dependencies)
+Stopped at: Completed 12-02-PLAN.md (Dependency Graph Visualization Frontend)
 Resume file: None
-Next action: Continue with 12-02-PLAN.md (Dependency Graph Visualization Frontend)
+Next action: Continue with Phase 13 (Service-based Alert Routing)
