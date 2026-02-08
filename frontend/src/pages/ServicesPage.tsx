@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { useServices, useCreateService, useUpdateService, useUpdateServiceStatus } from '@/hooks/useServices';
 import { useTeams } from '@/hooks/useTeams';
+import {
+  useServiceDependencies,
+  useServiceDependents,
+  useAddDependency,
+  useRemoveDependency
+} from '@/hooks/useServiceDependencies';
+import { DependencyGraph } from '@/components/services/DependencyGraph';
 import type { Service, ServiceStatus, CreateServiceInput } from '@/types/service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +19,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -39,7 +47,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Server, Plus, MoreVertical, Edit, Archive, AlertTriangle, RotateCcw, Loader2, Search } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Server,
+  Plus,
+  MoreVertical,
+  Edit,
+  Archive,
+  AlertTriangle,
+  RotateCcw,
+  Loader2,
+  Search,
+  Network,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Trash2,
+  LayoutGrid
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 const STATUS_OPTIONS: { value: ServiceStatus | 'ALL'; label: string }[] = [
@@ -55,6 +79,196 @@ const STATUS_BADGE_VARIANT: Record<ServiceStatus, 'default' | 'secondary' | 'des
   ARCHIVED: 'outline',
 };
 
+// =============================================================================
+// DEPENDENCIES DIALOG COMPONENT
+// =============================================================================
+
+function DependenciesDialog({
+  service,
+  open,
+  onClose,
+  allServices
+}: {
+  service: Service;
+  open: boolean;
+  onClose: () => void;
+  allServices: Service[];
+}) {
+  const { data: dependencies = [], isLoading: loadingDeps } = useServiceDependencies(service.id);
+  const { data: dependents = [], isLoading: loadingDependents } = useServiceDependents(service.id);
+  const addDependency = useAddDependency();
+  const removeDependency = useRemoveDependency();
+
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [selectedDependsOn, setSelectedDependsOn] = useState('');
+
+  // Filter out services that are already dependencies or self
+  const availableServices = allServices.filter(
+    s => s.id !== service.id && !dependencies.some(d => d.id === s.id)
+  );
+
+  const handleAddDependency = async () => {
+    if (!selectedDependsOn) return;
+    try {
+      await addDependency.mutateAsync({
+        serviceId: service.id,
+        dependsOnId: selectedDependsOn
+      });
+      setAddDialogOpen(false);
+      setSelectedDependsOn('');
+      toast.success('Dependency added');
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      // Handle cycle error
+      if (err?.message?.includes('cycle')) {
+        toast.error('Cannot add dependency: would create a cycle');
+      } else {
+        toast.error('Failed to add dependency');
+      }
+    }
+  };
+
+  const handleRemoveDependency = async (dependsOnId: string) => {
+    try {
+      await removeDependency.mutateAsync({
+        serviceId: service.id,
+        dependsOnId
+      });
+      toast.success('Dependency removed');
+    } catch (error) {
+      toast.error('Failed to remove dependency');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Dependencies: {service.name}</DialogTitle>
+        </DialogHeader>
+
+        <Tabs defaultValue="upstream">
+          <TabsList>
+            <TabsTrigger value="upstream">
+              <ArrowUpRight className="h-4 w-4 mr-1" />
+              Depends On ({dependencies.length})
+            </TabsTrigger>
+            <TabsTrigger value="downstream">
+              <ArrowDownLeft className="h-4 w-4 mr-1" />
+              Depended On By ({dependents.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upstream" className="space-y-4">
+            <div className="flex justify-end">
+              <Button size="sm" onClick={() => setAddDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add Dependency
+              </Button>
+            </div>
+
+            {loadingDeps ? (
+              <div className="text-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+              </div>
+            ) : dependencies.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                This service has no dependencies
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {dependencies.map(dep => (
+                  <div
+                    key={dep.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div>
+                      <div className="font-medium">{dep.name}</div>
+                      <div className="text-sm text-muted-foreground">{dep.team.name}</div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveDependency(dep.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="downstream" className="space-y-4">
+            {loadingDependents ? (
+              <div className="text-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+              </div>
+            ) : dependents.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                No services depend on this service
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {dependents.map(dep => (
+                  <div
+                    key={dep.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div>
+                      <div className="font-medium">{dep.name}</div>
+                      <div className="text-sm text-muted-foreground">{dep.team.name}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Add Dependency Sub-Dialog */}
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Dependency</DialogTitle>
+              <DialogDescription>
+                Select a service that {service.name} depends on
+              </DialogDescription>
+            </DialogHeader>
+            <Select value={selectedDependsOn} onValueChange={setSelectedDependsOn}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a service" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableServices.map(s => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name} ({s.team.name})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddDependency}
+                disabled={!selectedDependsOn || addDependency.isPending}
+              >
+                {addDependency.isPending ? 'Adding...' : 'Add'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// =============================================================================
+// MAIN SERVICES PAGE COMPONENT
+// =============================================================================
+
 export default function ServicesPage() {
   const { data: teamsData } = useTeams();
   const teams = teamsData || [];
@@ -64,12 +278,21 @@ export default function ServicesPage() {
   const [statusFilter, setStatusFilter] = useState<ServiceStatus | 'ALL'>('ACTIVE');
   const [teamFilter, setTeamFilter] = useState<string>('ALL');
 
+  // View mode and selection state
+  const [viewMode, setViewMode] = useState<'grid' | 'graph'>('grid');
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [isDependenciesOpen, setIsDependenciesOpen] = useState(false);
+
   // Query with filters
   const { data, isLoading, error } = useServices({
     search: search || undefined,
     status: statusFilter === 'ALL' ? undefined : statusFilter,
     teamId: teamFilter === 'ALL' ? undefined : teamFilter,
   });
+
+  // Query all services for dependencies dialog (to show available services to add)
+  const { data: allServicesData } = useServices({ status: 'ACTIVE' });
+  const allServices = allServicesData?.services || [];
 
   // Mutations
   const createMutation = useCreateService();
@@ -197,6 +420,22 @@ export default function ServicesPage() {
     setIsStatusOpen(true);
   };
 
+  const openDependenciesDialog = (service: Service) => {
+    setSelectedService(service);
+    setSelectedServiceId(service.id);
+    setIsDependenciesOpen(true);
+  };
+
+  const handleGraphNodeClick = (serviceId: string) => {
+    // Find the service and open its dependencies dialog
+    const service = services.find(s => s.id === serviceId) || allServices.find(s => s.id === serviceId);
+    if (service) {
+      setSelectedServiceId(serviceId);
+      setSelectedService(service);
+      setIsDependenciesOpen(true);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -230,7 +469,7 @@ export default function ServicesPage() {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Filters and View Toggle */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -262,121 +501,184 @@ export default function ServicesPage() {
             ))}
           </SelectContent>
         </Select>
+
+        {/* View Mode Toggle */}
+        <div className="flex gap-2 ml-auto">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+          >
+            <LayoutGrid className="h-4 w-4 mr-1" />
+            Grid
+          </Button>
+          <Button
+            variant={viewMode === 'graph' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('graph')}
+            disabled={!selectedServiceId}
+            title={!selectedServiceId ? 'Select a service to view its dependency graph' : ''}
+          >
+            <Network className="h-4 w-4 mr-1" />
+            Graph
+          </Button>
+        </div>
       </div>
 
-      {/* Service Grid */}
-      {services.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Server className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No services found</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              {search || statusFilter !== 'ACTIVE' || teamFilter !== 'ALL'
-                ? 'Try adjusting your filters'
-                : 'Create your first service to get started'}
-            </p>
-            {!search && statusFilter === 'ACTIVE' && teamFilter === 'ALL' && (
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Create Service
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {services.map(service => (
-            <Card key={service.id} className={service.status === 'ARCHIVED' ? 'opacity-60' : ''}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg truncate">{service.name}</CardTitle>
-                    <CardDescription className="truncate">
-                      {service.team.name}
-                    </CardDescription>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEditDialog(service)}>
-                        <Edit className="mr-2 h-4 w-4" /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {service.status === 'ACTIVE' && (
-                        <>
-                          <DropdownMenuItem onClick={() => openStatusDialog(service, 'DEPRECATED')}>
-                            <AlertTriangle className="mr-2 h-4 w-4" /> Deprecate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openStatusDialog(service, 'ARCHIVED')}
-                            className="text-destructive"
-                          >
-                            <Archive className="mr-2 h-4 w-4" /> Archive
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {service.status === 'DEPRECATED' && (
-                        <>
-                          <DropdownMenuItem onClick={() => openStatusDialog(service, 'ACTIVE')}>
-                            <RotateCcw className="mr-2 h-4 w-4" /> Reactivate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openStatusDialog(service, 'ARCHIVED')}
-                            className="text-destructive"
-                          >
-                            <Archive className="mr-2 h-4 w-4" /> Archive
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {service.status === 'ARCHIVED' && (
-                        <DropdownMenuItem onClick={() => openStatusDialog(service, 'ACTIVE')}>
-                          <RotateCcw className="mr-2 h-4 w-4" /> Reactivate
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={STATUS_BADGE_VARIANT[service.status]}>
-                      {service.status}
-                    </Badge>
-                    {service.escalationPolicy && (
-                      <Badge variant="outline" className="truncate max-w-[120px]">
-                        {service.escalationPolicy.name}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {service.description || 'No description'}
-                  </p>
-                  <p className="text-xs font-mono text-muted-foreground truncate">
-                    {service.routingKey}
-                  </p>
-                  {service.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {service.tags.slice(0, 3).map(tag => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {service.tags.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{service.tags.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
+      {/* Graph View */}
+      {viewMode === 'graph' && selectedServiceId && (
+        <div className="h-[500px] border rounded-lg overflow-hidden mb-6">
+          <DependencyGraph
+            serviceId={selectedServiceId}
+            onNodeClick={handleGraphNodeClick}
+          />
+        </div>
+      )}
+
+      {/* Service Grid (show when grid mode or as fallback) */}
+      {viewMode === 'grid' && (
+        <>
+          {services.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Server className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No services found</h3>
+                <p className="text-muted-foreground text-center mb-4">
+                  {search || statusFilter !== 'ACTIVE' || teamFilter !== 'ALL'
+                    ? 'Try adjusting your filters'
+                    : 'Create your first service to get started'}
+                </p>
+                {!search && statusFilter === 'ACTIVE' && teamFilter === 'ALL' && (
+                  <Button onClick={() => setIsCreateOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" /> Create Service
+                  </Button>
+                )}
               </CardContent>
             </Card>
-          ))}
-        </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {services.map(service => (
+                <Card
+                  key={service.id}
+                  className={`${service.status === 'ARCHIVED' ? 'opacity-60' : ''} ${selectedServiceId === service.id ? 'ring-2 ring-primary' : ''}`}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg truncate">{service.name}</CardTitle>
+                        <CardDescription className="truncate">
+                          {service.team.name}
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openDependenciesDialog(service)}
+                          title="View Dependencies"
+                        >
+                          <Network className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditDialog(service)}>
+                              <Edit className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {service.status === 'ACTIVE' && (
+                              <>
+                                <DropdownMenuItem onClick={() => openStatusDialog(service, 'DEPRECATED')}>
+                                  <AlertTriangle className="mr-2 h-4 w-4" /> Deprecate
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openStatusDialog(service, 'ARCHIVED')}
+                                  className="text-destructive"
+                                >
+                                  <Archive className="mr-2 h-4 w-4" /> Archive
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {service.status === 'DEPRECATED' && (
+                              <>
+                                <DropdownMenuItem onClick={() => openStatusDialog(service, 'ACTIVE')}>
+                                  <RotateCcw className="mr-2 h-4 w-4" /> Reactivate
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openStatusDialog(service, 'ARCHIVED')}
+                                  className="text-destructive"
+                                >
+                                  <Archive className="mr-2 h-4 w-4" /> Archive
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {service.status === 'ARCHIVED' && (
+                              <DropdownMenuItem onClick={() => openStatusDialog(service, 'ACTIVE')}>
+                                <RotateCcw className="mr-2 h-4 w-4" /> Reactivate
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={STATUS_BADGE_VARIANT[service.status]}>
+                          {service.status}
+                        </Badge>
+                        {service.escalationPolicy && (
+                          <Badge variant="outline" className="truncate max-w-[120px]">
+                            {service.escalationPolicy.name}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {service.description || 'No description'}
+                      </p>
+                      <p className="text-xs font-mono text-muted-foreground truncate">
+                        {service.routingKey}
+                      </p>
+                      {service.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {service.tags.slice(0, 3).map(tag => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {service.tags.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{service.tags.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Dependencies Dialog */}
+      {selectedService && (
+        <DependenciesDialog
+          service={selectedService}
+          open={isDependenciesOpen}
+          onClose={() => {
+            setIsDependenciesOpen(false);
+            setSelectedService(null);
+          }}
+          allServices={allServices}
+        />
       )}
 
       {/* Create Dialog */}
