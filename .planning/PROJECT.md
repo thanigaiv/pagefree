@@ -8,16 +8,14 @@ A production-ready Digital Operations Reliability Platform that orchestrates inc
 
 Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds, with clear escalation paths. If alerts don't reach the right person at the right time, nothing else matters.
 
-## Current State: v1.1 Service Catalog (Shipped 2026-02-08)
+## Current Milestone: v1.2 Production Readiness
 
-**What shipped:**
-- Technical service registry with team ownership, lifecycle management (ACTIVE/DEPRECATED/ARCHIVED), and optional escalation policy overrides
-- Service dependency tracking with DFS-based cycle detection, recursive CTE queries, and React Flow + dagre visualization
-- Service-based alert routing with three-tier fallback (routing_key → integration default → TeamTag legacy)
-- Service integration in incident details and integration configuration
-- Admin dashboard navigation for service catalog access
+**Goal:** Make the platform production-ready for team migration while adding runbook automation and partner status page access.
 
-**What's next:** Ready for next milestone planning. Use `/gsd:new-milestone` to define requirements and roadmap.
+**Target features:**
+- Production hardening (PWA icons, VAPID keys, webhook test fixes, socket auth, WebSocket rate limiting)
+- Runbook automation with pre-approved admin-managed scripts
+- Partner/contractor authenticated access to status pages
 
 ## Requirements
 

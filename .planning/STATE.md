@@ -2,20 +2,20 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-08 after v1.1 completion)
+See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Milestone v1.1 complete - Ready for next milestone planning
+**Current focus:** Milestone v1.2 Production Readiness - Defining requirements
 
 ## Current Position
 
-Milestone: v1.1 Service Catalog - COMPLETE
-Phase: 13 of 13 (Service-based Alert Routing)
-Plan: 2 of 2 in current phase
-Status: Milestone archived
-Last activity: 2026-02-08 - Completed v1.1 milestone, archives created
+Milestone: v1.2 Production Readiness
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-08 - Milestone v1.2 started
 
-Progress: [##############################] 100% (v1.0 complete, v1.1 complete, archived)
+Progress: [______________________________] 0% (defining scope)
 
 ## Performance Metrics
 
