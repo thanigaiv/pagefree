@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Planning next milestone
+**Current focus:** Milestone v1.1 (Service Catalog)
 
 ## Current Position
 
-Phase: 10 of 10 (v1.0 complete)
-Plan: All complete
-Status: v1.0 milestone shipped and archived
-Last activity: 2026-02-08 — v1.0 milestone complete
-Progress: [██████████████████████████████████████████████████] 100% (10 of 10 phases)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-08 — Milestone v1.1 started
+Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Performance Metrics
 

@@ -8,6 +8,18 @@ A production-ready Digital Operations Reliability Platform that orchestrates inc
 
 Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds, with clear escalation paths. If alerts don't reach the right person at the right time, nothing else matters.
 
+## Current Milestone: v1.1 Service Catalog
+
+**Goal:** Centralize service ownership and alert routing through a comprehensive service catalog that serves as the single source of truth for the organization's technical ecosystem.
+
+**Target features:**
+- Technical service registry with team ownership and escalation policy mapping
+- Business services aggregating technical services for stakeholder visibility
+- Service dependency tracking with visual graphs, cascade status computation, and auto-notifications
+- Service standards compliance dashboard (metadata completeness, communication channels)
+- Context hub providing runbooks, Slack/Teams channels, and documentation per service
+- Retrofit alert routing to require service-based routing (Alert → Service → Team → Escalation Policy)
+
 ## Requirements
 
 ### Validated
@@ -84,7 +96,6 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 ### Out of Scope
 
 - Conference call bridges — Not needed for initial rollout
-- Service dependency mapping — Complex feature, not critical for v1
 - Multi-tenancy — Internal tool, single organization only
 - Native iOS/Android apps — PWA sufficient for mobile needs
 - Advanced analytics/ML — Basic reporting adequate for v1, requires data accumulation
@@ -140,4 +151,4 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 | Audit events as incident timeline | No separate timeline table, reuse audit infrastructure | ✓ Good — Consistent audit trail across all features |
 
 ---
-*Last updated: 2026-02-08 after v1.0 milestone*
+*Last updated: 2026-02-08 after v1.1 milestone start*
