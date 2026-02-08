@@ -8,6 +8,7 @@ export interface ServerToClientEvents {
   'incident:note_added': (data: IncidentNoteData) => void;
   'authenticated': () => void;
   'auth_error': (message: string) => void;
+  'session_expired': () => void;
 }
 
 export interface ClientToServerEvents {
