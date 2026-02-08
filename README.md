@@ -32,12 +32,57 @@ Built as a mobile-first Progressive Web App (PWA), PageFree can be installed on 
 
 ## Prerequisites
 
-- **Node.js** >= 20
-- **PostgreSQL** 16 (or use the provided Docker Compose)
-- **Redis** (for background job queues)
-- **Okta** account (for authentication) or use break-glass local accounts for development
+### Required
+- **Node.js** >= 20 - [Download](https://nodejs.org/)
+- **Docker** and **Docker Compose** - [Download](https://www.docker.com/get-started) (recommended for PostgreSQL and Redis)
+- **PostgreSQL** 16 - Included in Docker Compose or [install locally](https://www.postgresql.org/download/)
+- **Redis** 7+ - Included in Docker Compose or [install locally](https://redis.io/download)
 
-## Installation
+### Optional
+- **Okta** account - For production authentication (break-glass accounts work for development)
+- **AWS SES** - For email notifications
+- **Twilio** - For SMS and voice call notifications
+- **Slack/Teams** - For chat notifications
+
+## Quick Start (Development)
+
+Get up and running in minutes:
+
+```bash
+# Clone the repository
+git clone <repository-url> pagefree
+cd pagefree
+
+# Install all dependencies
+npm install
+cd frontend && npm install && cd ..
+
+# Copy environment configuration
+cp .env.example .env
+# Note: Default .env works for local development with Docker
+
+# Start PostgreSQL and Redis with Docker
+docker compose up -d
+
+# Push database schema and generate Prisma client
+npm run db:push
+npm run db:generate
+
+# Create admin accounts (non-interactive)
+npx tsx src/scripts/createAdminNonInteractive.ts
+
+# Start the backend (in one terminal)
+npm run dev
+
+# Start the frontend (in another terminal)
+cd frontend && npm run dev
+```
+
+Visit **http://localhost:3001/auth/emergency** and use the admin credentials displayed during account creation.
+
+## Detailed Installation
+
+### 1. Install Dependencies
 
 ```bash
 # Clone the repository
@@ -49,28 +94,109 @@ npm install
 
 # Install frontend dependencies
 cd frontend && npm install && cd ..
-
-# Copy environment configuration
-cp .env.example .env
-# Edit .env with your Okta, AWS, Twilio, and database credentials
 ```
 
-## Database Setup
+### 2. Environment Configuration
 
 ```bash
-# Start PostgreSQL with Docker (optional)
+# Copy environment template
+cp .env.example .env
+```
+
+Edit `.env` with your configuration. For local development, the default values work with Docker Compose:
+
+```env
+# Database (default values for Docker Compose)
+DATABASE_URL="postgresql://oncall:oncall@localhost:5432/oncall"
+
+# Redis (default for Docker Compose)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Session secret (generate a random string)
+SESSION_SECRET=your-secret-here
+
+# Optional: Production services
+# OKTA_ISSUER=https://your-domain.okta.com
+# AWS_SES_REGION=us-east-1
+# TWILIO_ACCOUNT_SID=your-sid
+```
+
+### 3. Database and Redis Setup
+
+#### Option A: Using Docker (Recommended)
+
+```bash
+# Start PostgreSQL and Redis containers
 docker compose up -d
 
-# Push the database schema
+# Verify containers are running
+docker ps
+
+# You should see:
+# - pagefree-postgres (port 5432)
+# - pagefree-redis (port 6379)
+```
+
+#### Option B: Local Installation
+
+**PostgreSQL:**
+```bash
+# macOS (via Homebrew)
+brew install postgresql@16
+brew services start postgresql@16
+
+# Ubuntu/Debian
+sudo apt-get install postgresql-16
+sudo systemctl start postgresql
+
+# Create database
+createdb oncall
+createuser -P oncall  # password: oncall
+```
+
+**Redis:**
+```bash
+# macOS (via Homebrew)
+brew install redis
+brew services start redis
+
+# Ubuntu/Debian
+sudo apt-get install redis-server
+sudo systemctl start redis-server
+```
+
+### 4. Initialize Database
+
+```bash
+# Push the database schema to PostgreSQL
 npm run db:push
 
 # Generate the Prisma client
 npm run db:generate
 ```
 
-## Creating an Admin Account
+## Creating Admin Accounts
 
 PageFree uses Okta for production authentication, but provides break-glass local admin accounts for development and emergency access.
+
+### Option A: Non-Interactive (Recommended for Development)
+
+Creates multiple admin accounts automatically:
+
+```bash
+npx tsx src/scripts/createAdminNonInteractive.ts
+```
+
+This creates 2 admin accounts with randomly generated passwords:
+- `admin1@pagefree.local`
+- `admin2@pagefree.local`
+
+Credentials are displayed in the terminal. Save them securely!
+
+### Option B: Interactive
+
+Create a single admin account with custom details:
 
 ```bash
 npm run create-breakglass
@@ -81,26 +207,39 @@ The script will prompt you for:
 - **First Name** and **Last Name**
 - **Password** -- Choose to generate a random 20-character password, or enter your own (minimum 12 characters)
 
-The account is created with the `PLATFORM_ADMIN` role, which grants full access to all features including the Integrations admin page.
+### Login
 
-To log in with a break-glass account, navigate to `/auth/emergency` in the browser. Store credentials securely -- they cannot be recovered.
+All break-glass accounts have the `PLATFORM_ADMIN` role with full access to all features.
 
-> **Note:** A maximum of 3 break-glass accounts is recommended per deployment.
+To log in, navigate to **http://localhost:3001/auth/emergency** and use your credentials.
+
+> **Security Note:**
+> - Store credentials securely (1Password, LastPass, etc.)
+> - Passwords cannot be recovered
+> - Maximum of 3 break-glass accounts is recommended per deployment
 
 ## Running the Application
 
 ### Development
 
+Start the backend and frontend in separate terminals:
+
 ```bash
-# Start the backend (port 3000)
+# Terminal 1: Start the backend (port 3000)
 npm run dev
 
-# In a separate terminal, start the frontend (port 3001)
+# Terminal 2: Start the frontend (port 3001)
 cd frontend
 npm run dev
 ```
 
-Open `http://localhost:3001` in your browser. The frontend proxies API requests to the backend automatically.
+Open **http://localhost:3001** in your browser. The frontend proxies API requests to the backend automatically.
+
+**Services:**
+- Frontend: http://localhost:3001
+- Backend API: http://localhost:3000
+- Health Check: http://localhost:3000/health
+- Emergency Login: http://localhost:3001/auth/emergency
 
 ### Production Build
 
@@ -152,8 +291,73 @@ cd frontend && npm run test:coverage
 │   │   └── App.tsx         # Router & layout
 │   └── index.html
 ├── prisma/                 # Database schema
-├── docker-compose.yml      # PostgreSQL dev setup
+├── docker-compose.yml      # PostgreSQL & Redis dev setup
 └── .env.example            # Environment template
+```
+
+## Troubleshooting
+
+### Redis Connection Errors
+
+If you see Redis reconnection warnings in the backend logs:
+
+```bash
+# Check if Redis is running
+docker ps | grep redis
+
+# If not running, start it
+docker compose up -d redis
+
+# Or install and start Redis locally
+brew install redis && brew services start redis  # macOS
+```
+
+Without Redis, background jobs (notifications, escalations, workflows) won't process, but the core application will work.
+
+### Database Connection Errors
+
+```bash
+# Check if PostgreSQL is running
+docker ps | grep postgres
+
+# View PostgreSQL logs
+docker logs pagefree-postgres
+
+# Reset database (WARNING: destroys all data)
+docker compose down -v
+docker compose up -d
+npm run db:push
+```
+
+### Port Already in Use
+
+If ports 3000, 3001, 5432, or 6379 are already in use:
+
+```bash
+# Find process using port
+lsof -i :3000  # Replace with the port number
+
+# Kill process
+kill -9 <PID>
+
+# Or change ports in .env and vite.config.ts
+```
+
+### Module Import Errors
+
+If you encounter module import errors after installation:
+
+```bash
+# Regenerate Prisma client
+npm run db:generate
+
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+cd frontend
+rm -rf node_modules package-lock.json
+npm install
 ```
 
 ## Documentation
