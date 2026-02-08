@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Phase 11 - Service Model Foundation
+**Current focus:** Phase 12 - Service Dependencies Graph
 
 ## Current Position
 
-Phase: 11 of 13 (Service Model Foundation)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-08 — Completed 11-02-PLAN.md (Service Directory Frontend)
+Phase: 12 of 13 (Service Dependencies Graph)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-08 - Completed 12-01-PLAN.md (Backend Service Dependencies)
 
-Progress: [#######################.......] 80% (v1.0 complete, v1.1 Phase 11 complete)
+Progress: [########################......] 82% (v1.0 complete, v1.1 Phase 12 plan 1 complete)
 
 ## Performance Metrics
 
@@ -39,15 +39,15 @@ Progress: [#######################.......] 80% (v1.0 complete, v1.1 Phase 11 com
 | 10. Postmortems | 7/7 | 15 min | 2.1 min |
 
 **v1.1 Metrics:**
-- Plans completed: 2
-- Time elapsed: 5 min
+- Plans completed: 3
+- Time elapsed: 9 min
 
 ## Accumulated Context
 
 ### Decisions
 
 See PROJECT.md Key Decisions table for full list.
-Recent decisions from Phase 11:
+Recent decisions from Phase 11-12:
 
 - Service routing with team-based fallback for backward compatibility
 - PostgreSQL sufficient for dependency graphs (no graph DB needed)
@@ -57,6 +57,10 @@ Recent decisions from Phase 11:
 - Routing key regex: alphanumeric, underscores, hyphens only
 - Status filter defaults to ACTIVE in UI to show relevant services first
 - Routing key cannot be changed after service creation (UI enforces this)
+- Implicit Prisma join table (_ServiceDependency) instead of explicit model
+- DFS traversal for cycle detection (O(V+E) complexity)
+- Recursive CTE with depth limit (max 20) for bounded graph queries
+- Edges represent A depends on B (A->B direction)
 
 ### Pending Todos
 
@@ -72,6 +76,6 @@ Carried from v1.0 (see PROJECT.md "Known Tech Debt"):
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 11-02-PLAN.md (Service Directory Frontend)
+Stopped at: Completed 12-01-PLAN.md (Backend Service Dependencies)
 Resume file: None
-Next action: Phase 11 complete. Ready for Phase 12 (Service Dependencies) or Phase 13 (Service Routing).
+Next action: Continue with 12-02-PLAN.md (Dependency Graph Visualization Frontend)
