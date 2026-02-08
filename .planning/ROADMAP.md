@@ -92,11 +92,11 @@ Plans:
   4. Every runbook execution logs with full audit trail (who triggered, when, parameters used, result payload)
   5. Failed webhook requests retry with exponential backoff (3 retries) before marking execution as FAILED
 
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 15-01: TBD
-- [ ] 15-02: TBD
+- [ ] 15-01-PLAN.md - Database models and CRUD service with approval state machine
+- [ ] 15-02-PLAN.md - REST API routes, webhook executor, and BullMQ queue infrastructure
 
 **Rationale:** Extends existing workflow system with new action type. Workflow infrastructure (triggers, templating, execution tracking) already exists. Lower risk than partner pages because it's internal-only (no auth surface).
 
