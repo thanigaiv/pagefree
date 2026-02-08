@@ -5,6 +5,7 @@ import { auditService } from './audit.service.js';
 import { socketService } from './socket.service.js';
 import { logger } from '../config/logger.js';
 import { onIncidentStateChanged } from './workflow/workflow-integration.js';
+import { statusComputationService } from './statusComputation.service.js';
 
 interface IncidentFilter {
   teamId?: string;
@@ -198,6 +199,11 @@ class IncidentService {
       );
     }
 
+    // Trigger status page recomputation (async, don't block)
+    statusComputationService.recomputeForIncident(incidentId).catch(err => {
+      logger.warn({ error: (err as Error).message, incidentId }, 'Failed to recompute status for incident');
+    });
+
     return updated;
   }
 
@@ -297,6 +303,11 @@ class IncidentService {
       );
     }
 
+    // Trigger status page recomputation (async, don't block)
+    statusComputationService.recomputeForIncident(incidentId).catch(err => {
+      logger.warn({ error: (err as Error).message, incidentId }, 'Failed to recompute status for incident');
+    });
+
     return updated;
   }
 
@@ -350,6 +361,11 @@ class IncidentService {
         'Failed to trigger workflows on close'
       );
     }
+
+    // Trigger status page recomputation (async, don't block)
+    statusComputationService.recomputeForIncident(incidentId).catch(err => {
+      logger.warn({ error: (err as Error).message, incidentId }, 'Failed to recompute status for incident');
+    });
 
     return updated;
   }
