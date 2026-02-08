@@ -68,6 +68,25 @@ npm run db:push
 npm run db:generate
 ```
 
+## Creating an Admin Account
+
+PageFree uses Okta for production authentication, but provides break-glass local admin accounts for development and emergency access.
+
+```bash
+npm run create-breakglass
+```
+
+The script will prompt you for:
+- **Email** -- Admin email address (e.g., `admin@pagefree.local`)
+- **First Name** and **Last Name**
+- **Password** -- Choose to generate a random 20-character password, or enter your own (minimum 12 characters)
+
+The account is created with the `PLATFORM_ADMIN` role, which grants full access to all features including the Integrations admin page.
+
+To log in with a break-glass account, navigate to `/auth/emergency` in the browser. Store credentials securely -- they cannot be recovered.
+
+> **Note:** A maximum of 3 break-glass accounts is recommended per deployment.
+
 ## Running the Application
 
 ### Development
