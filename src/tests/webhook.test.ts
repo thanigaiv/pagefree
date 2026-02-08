@@ -417,4 +417,106 @@ describe('Webhook Receiver', () => {
       expect(res.body.message).toContain('reachable');
     });
   });
+
+  describe('Timestamp Validation', () => {
+    let timestampIntegration: any;
+    let timestampSecret: string;
+
+    beforeAll(async () => {
+      // Create integration with timestamp header configured (5 minute max age)
+      timestampSecret = crypto.randomBytes(32).toString('hex');
+      timestampIntegration = await prisma.integration.create({
+        data: {
+          name: 'timestamp-test-integration',
+          type: 'generic',
+          webhookSecret: timestampSecret,
+          signatureHeader: 'X-Webhook-Signature',
+          signatureAlgorithm: 'sha256',
+          signatureFormat: 'hex',
+          deduplicationWindowMinutes: 15,
+          defaultServiceId: testService.id,
+          timestampHeader: 'X-Webhook-Timestamp',
+          timestampMaxAge: 300 // 5 minutes
+        }
+      });
+    });
+
+    afterAll(async () => {
+      await prisma.integration.deleteMany({ where: { name: 'timestamp-test-integration' } });
+    });
+
+    it('should reject webhook with expired timestamp (> 5 minutes old)', async () => {
+      const expiredTimestamp = Math.floor(Date.now() / 1000) - 400; // 6+ minutes ago
+      const payload = {
+        title: 'Expired Webhook Test',
+        severity: 'low',
+        timestamp: new Date().toISOString() // payload timestamp doesn't matter
+      };
+
+      const payloadString = JSON.stringify(payload);
+      const signature = crypto
+        .createHmac('sha256', timestampSecret)
+        .update(payloadString)
+        .digest('hex');
+
+      const res = await request(app)
+        .post(`/webhooks/alerts/${timestampIntegration.name}`)
+        .set('Content-Type', 'application/json')
+        .set('X-Webhook-Signature', signature)
+        .set('X-Webhook-Timestamp', expiredTimestamp.toString())
+        .send(payload);
+
+      expect(res.status).toBe(401);
+      expect(res.body.type).toContain('webhook-expired');
+    });
+
+    it('should accept webhook with fresh timestamp', async () => {
+      const freshTimestamp = Math.floor(Date.now() / 1000); // now
+      const payload = {
+        title: 'Fresh Webhook Test',
+        severity: 'low',
+        timestamp: new Date().toISOString()
+      };
+
+      const payloadString = JSON.stringify(payload);
+      const signature = crypto
+        .createHmac('sha256', timestampSecret)
+        .update(payloadString)
+        .digest('hex');
+
+      const res = await request(app)
+        .post(`/webhooks/alerts/${timestampIntegration.name}`)
+        .set('Content-Type', 'application/json')
+        .set('X-Webhook-Signature', signature)
+        .set('X-Webhook-Timestamp', freshTimestamp.toString())
+        .send(payload);
+
+      expect(res.status).toBe(201);
+    });
+
+    it('should reject webhook with timestamp from the future', async () => {
+      const futureTimestamp = Math.floor(Date.now() / 1000) + 120; // 2 minutes in future
+      const payload = {
+        title: 'Future Webhook Test',
+        severity: 'low',
+        timestamp: new Date().toISOString()
+      };
+
+      const payloadString = JSON.stringify(payload);
+      const signature = crypto
+        .createHmac('sha256', timestampSecret)
+        .update(payloadString)
+        .digest('hex');
+
+      const res = await request(app)
+        .post(`/webhooks/alerts/${timestampIntegration.name}`)
+        .set('Content-Type', 'application/json')
+        .set('X-Webhook-Signature', signature)
+        .set('X-Webhook-Timestamp', futureTimestamp.toString())
+        .send(payload);
+
+      expect(res.status).toBe(401);
+      expect(res.body.type).toContain('webhook-timestamp-future');
+    });
+  });
 });
