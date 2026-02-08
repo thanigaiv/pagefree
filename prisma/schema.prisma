@@ -197,6 +197,12 @@ model Service {
   // Metadata (SVC-02)
   tags                String[]      @default([])
 
+  // Self-referential many-to-many for dependencies (DEP-01, DEP-02)
+  // "dependsOn" = services THIS service depends on (upstream)
+  // "dependedOnBy" = services that depend on THIS service (downstream)
+  dependsOn           Service[]     @relation("ServiceDependency")
+  dependedOnBy        Service[]     @relation("ServiceDependency")
+
   createdAt           DateTime      @default(now()) @db.Timestamptz
   updatedAt           DateTime      @updatedAt @db.Timestamptz
 
