@@ -211,11 +211,23 @@ The script will prompt you for:
 
 All break-glass accounts have the `PLATFORM_ADMIN` role with full access to all features.
 
-To log in, navigate to **http://localhost:3001/auth/emergency** and use your credentials.
+**To log in:**
+1. Start the application (both backend and frontend)
+2. Navigate to **http://localhost:3001/auth/emergency**
+3. Enter your break-glass email and password
+4. Click "Sign In"
+
+You'll see an emergency login page with:
+- Email and password fields
+- A warning that all break-glass logins are logged
+- A link to use Okta for normal authentication
+
+Upon successful login, you'll be redirected to the incidents dashboard.
 
 > **Security Note:**
 > - Store credentials securely (1Password, LastPass, etc.)
 > - Passwords cannot be recovered
+> - All break-glass logins are logged with HIGH severity
 > - Maximum of 3 break-glass accounts is recommended per deployment
 
 ## Running the Application

@@ -14,6 +14,7 @@ import { StatusPagesPage } from './pages/StatusPagesPage';
 import { StatusPageDetailPage } from './pages/StatusPageDetailPage';
 import PostmortemsPage from './pages/PostmortemsPage';
 import PostmortemDetailPage from './pages/PostmortemDetailPage';
+import EmergencyLoginPage from './pages/EmergencyLoginPage';
 
 export default function App() {
   const { isOnline } = usePWA();
@@ -21,8 +22,9 @@ export default function App() {
   return (
     <>
       <Routes>
-        {/* Public status page (no auth required, outside MobileLayout) */}
+        {/* Public routes (no auth required, outside MobileLayout) */}
         <Route path="/status/:slug" element={<PublicStatusPage />} />
+        <Route path="/auth/emergency" element={<EmergencyLoginPage />} />
 
         {/* Authenticated routes with mobile navigation */}
         <Route
