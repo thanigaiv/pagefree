@@ -233,18 +233,15 @@ export class ServiceDependencyService {
 
         UNION
 
-        -- Get upstream dependencies (services this one depends on)
-        SELECT sd."B" as id, c.depth + 1
+        -- Get both upstream dependencies and downstream dependents in one recursive term
+        SELECT
+          CASE
+            WHEN sd."A" = c.id THEN sd."B"  -- upstream: services this one depends on
+            ELSE sd."A"  -- downstream: services that depend on this one
+          END as id,
+          c.depth + 1
         FROM "_ServiceDependency" sd
-        JOIN connected c ON sd."A" = c.id
-        WHERE c.depth < ${maxDepth}
-
-        UNION
-
-        -- Get downstream dependents (services that depend on this one)
-        SELECT sd."A" as id, c.depth + 1
-        FROM "_ServiceDependency" sd
-        JOIN connected c ON sd."B" = c.id
+        JOIN connected c ON (sd."A" = c.id OR sd."B" = c.id)
         WHERE c.depth < ${maxDepth}
       )
       SELECT DISTINCT id FROM connected LIMIT 100
