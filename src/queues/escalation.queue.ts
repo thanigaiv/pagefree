@@ -30,7 +30,8 @@ export async function scheduleEscalation(
   repeatNumber: number,
   timeoutMinutes: number
 ): Promise<string> {
-  const jobId = `incident:${incidentId}:level:${currentLevel + 1}:repeat:${repeatNumber}`;
+  // BullMQ doesn't allow colons in custom job IDs, use dashes instead
+  const jobId = `incident-${incidentId}-level-${currentLevel + 1}-repeat-${repeatNumber}`;
   const delayMs = timeoutMinutes * 60 * 1000;
 
   await escalationQueue.add(

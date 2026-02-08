@@ -260,7 +260,7 @@ alertWebhookRouter.post(
         }
       });
 
-      logger.error({ error }, 'Webhook processing failed');
+      logger.error({ err: error, errorMessage: error instanceof Error ? error.message : String(error), errorStack: error instanceof Error ? error.stack : undefined }, 'Webhook processing failed');
 
       res.status(500).json(createProblemDetails(
         'processing-failed',

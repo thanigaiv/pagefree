@@ -7,9 +7,70 @@ import { prisma } from '../config/database.js';
 describe('Webhook Receiver', () => {
   let integration: any;
   let webhookSecret: string;
+  let testTeam: any;
+  let testUser: any;
+  let testService: any;
+  let testPolicy: any;
 
   beforeAll(async () => {
-    // Create test integration directly (bypass API to get secret)
+    // Create test user for escalation target
+    testUser = await prisma.user.create({
+      data: {
+        email: 'webhook-test-user@test.com',
+        firstName: 'Webhook',
+        lastName: 'Test',
+        platformRole: 'USER',
+        isActive: true
+      }
+    });
+
+    // Create test team for alert routing
+    testTeam = await prisma.team.create({
+      data: {
+        name: 'webhook-test-team',
+        description: 'Team for webhook tests'
+      }
+    });
+
+    // Add user as team member (RESPONDER role required by routing)
+    await prisma.teamMember.create({
+      data: {
+        userId: testUser.id,
+        teamId: testTeam.id,
+        role: 'RESPONDER'
+      }
+    });
+
+    // Create escalation policy for the team (required for incident creation)
+    testPolicy = await prisma.escalationPolicy.create({
+      data: {
+        teamId: testTeam.id,
+        name: 'Webhook Test Policy',
+        isDefault: true,
+        isActive: true,
+        repeatCount: 1,
+        levels: {
+          create: {
+            levelNumber: 1,
+            targetType: 'user',
+            targetId: testUser.id,
+            timeoutMinutes: 30
+          }
+        }
+      }
+    });
+
+    // Create a service owned by the team for routing
+    testService = await prisma.service.create({
+      data: {
+        name: 'webhook-test-service',
+        routingKey: 'webhook-test-service',
+        teamId: testTeam.id,
+        status: 'ACTIVE'
+      }
+    });
+
+    // Create test integration with defaultServiceId for routing
     webhookSecret = crypto.randomBytes(32).toString('hex');
 
     integration = await prisma.integration.create({
@@ -20,21 +81,31 @@ describe('Webhook Receiver', () => {
         signatureHeader: 'X-Webhook-Signature',
         signatureAlgorithm: 'sha256',
         signatureFormat: 'hex',
-        deduplicationWindowMinutes: 15
+        deduplicationWindowMinutes: 15,
+        defaultServiceId: testService.id
       }
     });
   });
 
   afterAll(async () => {
-    // Cleanup in order (respect foreign keys)
+    // Cleanup in reverse dependency order (respect foreign keys)
     await prisma.webhookDelivery.deleteMany({});
+    await prisma.incident.deleteMany({});
     await prisma.alert.deleteMany({});
-    await prisma.integration.deleteMany({});
+    await prisma.integration.deleteMany({ where: { name: 'test-webhook-integration' } });
+    await prisma.service.deleteMany({ where: { id: testService?.id } });
+    await prisma.escalationLevel.deleteMany({ where: { escalationPolicyId: testPolicy?.id } });
+    await prisma.escalationPolicy.deleteMany({ where: { id: testPolicy?.id } });
+    await prisma.teamMember.deleteMany({ where: { teamId: testTeam?.id } });
+    await prisma.team.deleteMany({ where: { id: testTeam?.id } });
+    await prisma.user.deleteMany({ where: { id: testUser?.id } });
   });
 
   beforeEach(async () => {
-    // Clean alerts and deliveries between tests
+    // Clean alerts, incidents, escalation jobs, and deliveries between tests
     await prisma.webhookDelivery.deleteMany({});
+    await prisma.escalationJob.deleteMany({});
+    await prisma.incident.deleteMany({});
     await prisma.alert.deleteMany({});
   });
 
