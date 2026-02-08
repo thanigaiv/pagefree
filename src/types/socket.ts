@@ -8,6 +8,9 @@ export interface ServerToClientEvents {
   'incident:reassigned': (data: IncidentReassignData) => void;
   'incident:note_added': (data: IncidentNoteData) => void;
 
+  // Status page events
+  'status:changed': (data: StatusChangeData) => void;
+
   // Connection events
   'authenticated': () => void;
   'auth_error': (message: string) => void;
@@ -68,4 +71,15 @@ export interface IncidentNoteData {
     user: { firstName: string; lastName: string };
     createdAt: string;
   };
+}
+
+// Status page change event data
+export interface StatusChangeData {
+  statusPageId: string;
+  componentId: string;
+  componentName: string;
+  status: string;
+  incidentId?: string;
+  maintenanceId?: string;
+  updatedAt: string;
 }

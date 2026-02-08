@@ -6,6 +6,9 @@ import {
 } from '../queues/maintenance.queue.js';
 import { logger } from '../config/logger.js';
 import type { CreateMaintenanceWindowInput, MaintenanceStatus } from '../types/statusPage.js';
+import { statusComputationService } from './statusComputation.service.js';
+import { statusNotificationService } from './statusNotification.service.js';
+import { socketService } from './socket.service.js';
 
 /**
  * MaintenanceService handles scheduling and management of maintenance windows.
@@ -194,6 +197,32 @@ class MaintenanceService {
         maintenance.components.map((c) => c.id),
         'UNDER_MAINTENANCE'
       );
+
+      // Invalidate cache and broadcast for each component
+      for (const component of maintenance.components) {
+        await statusComputationService.invalidateStatus(component.id);
+
+        // Broadcast via WebSocket for real-time UI
+        try {
+          socketService.broadcast('status:changed', {
+            statusPageId: maintenance.statusPageId,
+            componentId: component.id,
+            componentName: component.name,
+            status: 'UNDER_MAINTENANCE',
+            maintenanceId: id,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (err) {
+          logger.warn({ error: (err as Error).message }, 'Failed to broadcast maintenance start');
+        }
+      }
+    }
+
+    // Notify subscribers that maintenance has started (best-effort)
+    try {
+      await statusNotificationService.notifyMaintenanceStarted(id);
+    } catch (err) {
+      logger.warn({ error: (err as Error).message, maintenanceId: id }, 'Failed to notify maintenance started');
     }
 
     logger.info(
@@ -230,12 +259,33 @@ class MaintenanceService {
     });
 
     // If autoUpdateStatus, recompute affected component statuses
-    // For now, set back to OPERATIONAL (future: statusComputation service will handle this)
     if (maintenance.autoUpdateStatus) {
-      await this.updateComponentStatuses(
-        maintenance.components.map((c) => c.id),
-        'OPERATIONAL'
-      );
+      // Recompute status for each affected component (may have active incidents)
+      for (const component of maintenance.components) {
+        await statusComputationService.invalidateStatus(component.id);
+        const newStatus = await statusComputationService.getStatus(component.id);
+
+        // Broadcast via WebSocket for real-time UI
+        try {
+          socketService.broadcast('status:changed', {
+            statusPageId: maintenance.statusPageId,
+            componentId: component.id,
+            componentName: component.name,
+            status: newStatus,
+            maintenanceId: id,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (err) {
+          logger.warn({ error: (err as Error).message }, 'Failed to broadcast maintenance complete');
+        }
+      }
+    }
+
+    // Notify subscribers that maintenance has completed (best-effort)
+    try {
+      await statusNotificationService.notifyMaintenanceCompleted(id);
+    } catch (err) {
+      logger.warn({ error: (err as Error).message, maintenanceId: id }, 'Failed to notify maintenance completed');
     }
 
     logger.info(

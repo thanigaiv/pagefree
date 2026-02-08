@@ -6,6 +6,8 @@ import {
   STATUS_SEVERITY_ORDER,
   INCIDENT_PRIORITY_TO_STATUS,
 } from '../types/statusPage.js';
+import { statusNotificationService } from './statusNotification.service.js';
+import { socketService } from './socket.service.js';
 
 // Cache constants
 const STATUS_CACHE_PREFIX = 'status:component:';
@@ -192,7 +194,33 @@ class StatusComputationService {
           'Component status changed due to incident'
         );
 
-        // NOTE: Notification dispatch will be added in a later plan (statusNotification.service.ts)
+        // Notify subscribers (async, best-effort)
+        try {
+          await statusNotificationService.notifyStatusChange({
+            statusPageId: component.statusPage.id,
+            componentId: component.id,
+            componentName: component.name,
+            previousStatus: oldStatus,
+            newStatus: newStatus,
+            incidentId
+          });
+        } catch (err) {
+          logger.warn({ error: (err as Error).message, componentId: component.id }, 'Failed to notify subscribers');
+        }
+
+        // Broadcast via WebSocket for real-time UI (best-effort)
+        try {
+          socketService.broadcast('status:changed', {
+            statusPageId: component.statusPage.id,
+            componentId: component.id,
+            componentName: component.name,
+            status: newStatus,
+            incidentId,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (err) {
+          logger.warn({ error: (err as Error).message }, 'Failed to broadcast status change');
+        }
       }
     }
   }

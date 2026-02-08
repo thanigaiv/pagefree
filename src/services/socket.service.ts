@@ -5,6 +5,8 @@ import type {
   IncidentResolveData,
   IncidentReassignData,
   IncidentNoteData,
+  StatusChangeData,
+  ServerToClientEvents,
 } from '../types/socket.js';
 import { logger } from '../config/logger.js';
 
@@ -85,6 +87,39 @@ class SocketService {
       io.to('incidents:all').emit('incident:note_added', data);
     } catch (error) {
       logger.warn({ error }, 'Failed to broadcast incident:note_added');
+    }
+  }
+
+  // Broadcast status change for status page components
+  broadcastStatusChange(data: StatusChangeData): void {
+    try {
+      const io = getIO();
+      io.emit('status:changed', data);
+
+      logger.debug(
+        { statusPageId: data.statusPageId, componentId: data.componentId },
+        'Broadcasted status:changed'
+      );
+    } catch (error) {
+      // Socket not initialized - log but don't fail
+      logger.warn({ error }, 'Failed to broadcast status:changed');
+    }
+  }
+
+  // Generic broadcast to all connected clients (for any valid server event)
+  broadcast(event: keyof ServerToClientEvents, data: unknown): void {
+    try {
+      const io = getIO();
+      // Type assertion needed because emit expects specific event data types
+      (io as any).emit(event, data);
+
+      logger.debug(
+        { event },
+        `Broadcasted ${event}`
+      );
+    } catch (error) {
+      // Socket not initialized - log but don't fail
+      logger.warn({ error, event }, `Failed to broadcast ${event}`);
     }
   }
 }
