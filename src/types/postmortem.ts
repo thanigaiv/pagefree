@@ -87,7 +87,7 @@ export interface CreateActionItemInput {
 
 export interface UpdateActionItemInput {
   title?: string;
-  description?: string;
+  description?: string | null;
   status?: ActionItemStatus;
   priority?: ActionItemPriority;
   assigneeId?: string;
