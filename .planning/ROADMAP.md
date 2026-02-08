@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: External Integrations** - DataDog, New Relic, Slack bidirectional sync
 - [x] **Phase 8: Automation & Workflows** - Response plays and runbook automation
 - [x] **Phase 9: Status Pages** - Internal status pages with automatic updates
-- [ ] **Phase 10: Postmortems** - Timeline generation and documentation
+- [x] **Phase 10: Postmortems** - Timeline generation and documentation
 
 ## Phase Details
 
@@ -235,7 +235,7 @@ Plans:
 - [x] 09-06-PLAN.md - Integration with incident lifecycle and startup
 - [x] 09-07-PLAN.md - Frontend admin UI (list, detail, create)
 - [x] 09-08-PLAN.md - Public status page UI and integration tests
-- [ ] 09-09-PLAN.md - Wire public subscription endpoints (gap closure)
+- [x] 09-09-PLAN.md - Wire public subscription endpoints (gap closure)
 
 ### Phase 10: Postmortems
 **Goal**: Users can generate postmortems from incident data with action item tracking
@@ -250,13 +250,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 10-01-PLAN.md - Database schema and TypeScript types for postmortems
-- [ ] 10-02-PLAN.md - Postmortem service with CRUD and timeline generation
-- [ ] 10-03-PLAN.md - Action item service with state machine
-- [ ] 10-04-PLAN.md - REST API endpoints for postmortems and action items
-- [ ] 10-05-PLAN.md - Frontend hooks and TypeScript types
-- [ ] 10-06-PLAN.md - Postmortems list page with create dialog
-- [ ] 10-07-PLAN.md - Postmortem detail page with editor, timeline, and action items
+- [x] 10-01-PLAN.md - Database schema and TypeScript types for postmortems
+- [x] 10-02-PLAN.md - Postmortem service with CRUD and timeline generation
+- [x] 10-03-PLAN.md - Action item service with state machine
+- [x] 10-04-PLAN.md - REST API endpoints for postmortems and action items
+- [x] 10-05-PLAN.md - Frontend hooks and TypeScript types
+- [x] 10-06-PLAN.md - Postmortems list page with create dialog
+- [x] 10-07-PLAN.md - Postmortem detail page with editor, timeline, and action items
 
 ## Progress
 
@@ -274,8 +274,8 @@ Phases execute in numeric order: 1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 10
 | 7. External Integrations | 6/6 | Complete | 2026-02-07 |
 | 8. Automation & Workflows | 8/8 | Complete | 2026-02-07 |
 | 9. Status Pages | 9/9 | Complete | 2026-02-08 |
-| 10. Postmortems | 0/7 | Not started | - |
+| 10. Postmortems | 7/7 | Complete | 2026-02-07 |
 
 ---
 *Roadmap created: 2026-02-06*
-*Last updated: 2026-02-08 (Phase 9 complete)*
+*Last updated: 2026-02-07 (Phase 10 complete — MILESTONE COMPLETE)*
