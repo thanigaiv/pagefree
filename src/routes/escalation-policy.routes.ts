@@ -57,9 +57,16 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     const { teamId, name, description, isDefault, repeatCount, levels } = req.body;
     const user = req.user as AuthenticatedUser;
 
-    if (!teamId || !name || !levels || !Array.isArray(levels)) {
+    if (!teamId || !name) {
       return res.status(400).json({
-        error: 'teamId, name, and levels array are required'
+        error: 'teamId and name are required'
+      });
+    }
+
+    // Validate levels array if provided
+    if (levels && !Array.isArray(levels)) {
+      return res.status(400).json({
+        error: 'levels must be an array'
       });
     }
 
@@ -70,7 +77,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 
     const policy = await escalationPolicyService.create(
-      { teamId, name, description, isDefault, repeatCount, levels },
+      { teamId, name, description, isDefault, repeatCount, levels: levels || [] },
       user.id
     );
 

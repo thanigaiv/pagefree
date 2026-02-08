@@ -141,6 +141,29 @@ export function useCloseIncident() {
   });
 }
 
+// Archive mutation
+export function useArchiveIncident() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ incidentId }: { incidentId: string }) => {
+      const response = await apiFetch<ResolveResponse>(
+        `/incidents/${incidentId}/archive`,
+        { method: 'POST' }
+      );
+      return response.incident;
+    },
+    onSuccess: (data) => {
+      toast.success('Incident archived');
+      queryClient.invalidateQueries({ queryKey: ['incidents', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to archive: ${error.message}`);
+    },
+  });
+}
+
 // Reassign mutation
 export function useReassignIncident() {
   const queryClient = useQueryClient();

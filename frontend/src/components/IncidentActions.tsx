@@ -4,10 +4,11 @@ import {
   useAcknowledgeIncident,
   useResolveIncident,
   useCloseIncident,
+  useArchiveIncident,
 } from '@/hooks/useIncidentMutations';
 import { Button } from '@/components/ui/button';
 import { ResolveDialog } from './ResolveDialog';
-import { Check, CheckCheck, XCircle, Loader2 } from 'lucide-react';
+import { Check, CheckCheck, XCircle, Loader2, Archive } from 'lucide-react';
 
 interface IncidentActionsProps {
   incident: Incident;
@@ -27,6 +28,7 @@ export function IncidentActions({
   });
   const resolveMutation = useResolveIncident();
   const closeMutation = useCloseIncident();
+  const archiveMutation = useArchiveIncident();
 
   const handleAcknowledge = () => {
     acknowledgeMutation.mutate({ incidentId: incident.id });
@@ -41,10 +43,15 @@ export function IncidentActions({
     closeMutation.mutate({ incidentId: incident.id });
   };
 
+  const handleArchive = () => {
+    archiveMutation.mutate({ incidentId: incident.id });
+  };
+
   const isLoading =
     acknowledgeMutation.isPending ||
     resolveMutation.isPending ||
-    closeMutation.isPending;
+    closeMutation.isPending ||
+    archiveMutation.isPending;
 
   // Different layouts for inline (row) vs full (detail page)
   if (variant === 'inline') {
@@ -77,6 +84,23 @@ export function IncidentActions({
             >
               <CheckCheck className="h-4 w-4 mr-1" />
               Resolve
+            </Button>
+          )}
+          {incident.status === 'CLOSED' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleArchive}
+              disabled={isLoading}
+            >
+              {archiveMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Archive className="h-4 w-4 mr-1" />
+                  Archive
+                </>
+              )}
             </Button>
           )}
         </div>
@@ -122,6 +146,16 @@ export function IncidentActions({
               <XCircle className="h-4 w-4 mr-2" />
             )}
             Close
+          </Button>
+        )}
+        {incident.status === 'CLOSED' && (
+          <Button variant="outline" onClick={handleArchive} disabled={isLoading}>
+            {archiveMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Archive className="h-4 w-4 mr-2" />
+            )}
+            Archive
           </Button>
         )}
       </div>

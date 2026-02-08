@@ -7,6 +7,9 @@ import IncidentDetailPage from './pages/IncidentDetailPage';
 import SchedulePage from './pages/SchedulePage';
 import ProfilePage from './pages/ProfilePage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import AdminPage from './pages/AdminPage';
+import TeamsAdminPage from './pages/TeamsAdminPage';
+import EscalationPoliciesPage from './pages/EscalationPoliciesPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
 import { PublicStatusPage } from './pages/PublicStatusPage';
@@ -38,6 +41,11 @@ export default function App() {
                 <Route path="/incidents/:id" element={<IncidentDetailPage />} />
                 <Route path="/schedule" element={<SchedulePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+
+                {/* Admin routes */}
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/admin/teams" element={<TeamsAdminPage />} />
+                <Route path="/admin/escalation-policies" element={<EscalationPoliciesPage />} />
                 <Route path="/integrations" element={<IntegrationsPage />} />
 
                 {/* Workflow routes */}

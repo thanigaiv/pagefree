@@ -240,6 +240,34 @@ router.post('/:id/close', async (req: Request, res: Response, next: NextFunction
   }
 });
 
+// POST /api/incidents/:id/archive - Archive incident
+router.post('/:id/archive', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const incident = await incidentService.getById(req.params.id);
+
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+
+    const permission = permissionService.canRespondToIncident(
+      (req as any).user,
+      incident.teamId
+    );
+
+    if (!permission.allowed) {
+      return res.status(403).json({ error: permission.reason });
+    }
+
+    const updated = await incidentService.archive(req.params.id, (req as any).user.id);
+    return res.json({ incident: updated });
+  } catch (error: any) {
+    if (error.message.includes('Cannot archive') || error.message.includes('must be')) {
+      return res.status(400).json({ error: error.message });
+    }
+    return next(error);
+  }
+});
+
 // POST /api/incidents/:id/reassign - Reassign incident (ROUTE-04)
 router.post('/:id/reassign', async (req: Request, res: Response, next: NextFunction) => {
   try {

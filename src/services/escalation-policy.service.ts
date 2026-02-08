@@ -304,8 +304,9 @@ class EscalationPolicyService {
 
   // Validation helpers
   private validateLevels(levels: CreateEscalationLevelInput[]): void {
+    // Allow empty levels array - levels can be added later via addLevel()
     if (levels.length === 0) {
-      throw new Error('At least one escalation level is required');
+      return;
     }
 
     if (levels.length > this.MAX_LEVELS) {

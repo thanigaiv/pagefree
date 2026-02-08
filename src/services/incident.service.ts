@@ -4,7 +4,7 @@ import { cancelEscalation } from '../queues/escalation.queue.js';
 import { auditService } from './audit.service.js';
 import { socketService } from './socket.service.js';
 import { logger } from '../config/logger.js';
-import { onIncidentStateChanged } from './workflow/workflow-integration.js';
+import { onIncidentCreated, onIncidentStateChanged } from './workflow/workflow-integration.js';
 import { statusComputationService } from './statusComputation.service.js';
 
 interface IncidentFilter {
@@ -24,7 +24,7 @@ interface PaginationOptions {
 class IncidentService {
   // Get incident by ID with related data
   async getById(id: string): Promise<any> {
-    return prisma.incident.findUnique({
+    const incident = await prisma.incident.findUnique({
       where: { id },
       include: {
         team: { select: { id: true, name: true } },
@@ -34,6 +34,7 @@ class IncidentService {
           select: {
             id: true,
             title: true,
+            description: true,
             severity: true,
             triggeredAt: true,
             externalId: true
@@ -46,6 +47,17 @@ class IncidentService {
         }
       }
     });
+
+    if (!incident) {
+      return null;
+    }
+
+    // Add title and description from first alert
+    return {
+      ...incident,
+      title: incident.alerts[0]?.title || 'Untitled Incident',
+      description: incident.alerts[0]?.description || incident.description
+    };
   }
 
   // List incidents with filters and pagination
@@ -65,6 +77,9 @@ class IncidentService {
       where.status = Array.isArray(filters.status)
         ? { in: filters.status }
         : filters.status;
+    } else {
+      // By default, exclude archived incidents
+      where.status = { not: 'ARCHIVED' };
     }
 
     if (filters.assignedUserId) {
@@ -93,12 +108,24 @@ class IncidentService {
       include: {
         team: { select: { id: true, name: true } },
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
-        _count: { select: { alerts: true } }
+        _count: { select: { alerts: true } },
+        alerts: {
+          take: 1,
+          orderBy: { triggeredAt: 'desc' },
+          select: { id: true, title: true, description: true }
+        }
       }
     });
 
+    // Map incidents to include title and description from first alert
+    const incidentsWithTitles = incidents.map(incident => ({
+      ...incident,
+      title: incident.alerts[0]?.title || 'Untitled Incident',
+      description: incident.alerts[0]?.description || incident.description
+    }));
+
     return {
-      incidents,
+      incidents: incidentsWithTitles,
       nextCursor: incidents.length === limit ? incidents[incidents.length - 1].id : null
     };
   }
@@ -370,6 +397,46 @@ class IncidentService {
     return updated;
   }
 
+  // Archive incident - removes from active view
+  async archive(incidentId: string, userId: string): Promise<any> {
+    const incident = await prisma.incident.findUnique({
+      where: { id: incidentId }
+    });
+
+    if (!incident) {
+      throw new Error('Incident not found');
+    }
+
+    // Can only archive closed incidents
+    if (incident.status !== 'CLOSED') {
+      throw new Error('Only closed incidents can be archived');
+    }
+
+    const updated = await prisma.incident.update({
+      where: { id: incidentId },
+      data: {
+        status: 'ARCHIVED'
+      },
+      include: {
+        team: { select: { id: true, name: true } },
+        assignedUser: { select: { id: true, firstName: true, lastName: true } }
+      }
+    });
+
+    await auditService.log({
+      action: 'incident.archived',
+      userId,
+      teamId: incident.teamId,
+      resourceType: 'incident',
+      resourceId: incidentId,
+      severity: 'INFO'
+    });
+
+    logger.info({ incidentId, userId }, 'Incident archived');
+
+    return updated;
+  }
+
   // Reassign incident to different user (ROUTE-04)
   async reassign(
     incidentId: string,
@@ -544,8 +611,9 @@ class IncidentService {
         status: 'OPEN',
         source: 'manual',
         triggeredAt: new Date(),
-        incidentId: incident.id,
-        fingerprint: incident.fingerprint,
+        incident: {
+          connect: { id: incident.id }
+        }
       }
     });
 
@@ -564,17 +632,30 @@ class IncidentService {
       }
     });
 
-    // Broadcast via WebSocket
-    socketService.broadcastIncidentCreated(incident);
+    // Add title and description to incident object for response and broadcast
+    const incidentWithTitle = {
+      ...incident,
+      title: data.title,
+      description: data.description
+    };
 
-    // Trigger workflow execution (async)
-    onIncidentStateChanged(incident.id, 'created', data.createdByUserId).catch(err => {
+    // Broadcast via WebSocket
+    socketService.broadcastIncidentCreated(incidentWithTitle);
+
+    // Trigger workflow execution (async) - use onIncidentCreated for new incidents
+    onIncidentCreated({
+      id: incident.id,
+      priority: incident.priority,
+      status: incident.status,
+      teamId: incident.teamId,
+      createdAt: incident.createdAt
+    }).catch(err => {
       logger.warn({ error: (err as Error).message, incidentId: incident.id }, 'Failed to trigger workflows for manual incident');
     });
 
     logger.info({ incidentId: incident.id, teamId: data.teamId }, 'Manual incident created');
 
-    return incident;
+    return incidentWithTitle;
   }
 
   // Get incident timeline (audit events for this incident)

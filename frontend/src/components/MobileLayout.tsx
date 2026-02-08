@@ -20,7 +20,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
     { to: '/status-pages', icon: BarChart3, label: 'Status' },
     { to: '/postmortems', icon: FileText, label: 'Postmortems' },
     { to: '/schedule', icon: Calendar, label: 'Schedule' },
-    ...(isPlatformAdmin ? [{ to: '/integrations', icon: Settings, label: 'Admin' }] : []),
+    ...(isPlatformAdmin ? [{ to: '/admin', icon: Settings, label: 'Admin' }] : []),
     { to: '/profile', icon: User, label: 'Profile' },
   ];
 
