@@ -203,6 +203,10 @@ model Service {
   dependsOn           Service[]     @relation("ServiceDependency")
   dependedOnBy        Service[]     @relation("ServiceDependency")
 
+  // Reverse relations (Phase 13)
+  incidents           Incident[]    // Incidents routed via this service
+  integrationsDefaulting Integration[] @relation("IntegrationDefaultService") // Integrations using as default
+
   createdAt           DateTime      @default(now()) @db.Timestamptz
   updatedAt           DateTime      @updatedAt @db.Timestamptz
 
@@ -467,6 +471,10 @@ model Integration {
   // Idempotency configuration
   deduplicationWindowMinutes Int @default(15)
 
+  // Default service for routing (Phase 13 - ROUTE-04)
+  defaultServiceId String?
+  defaultService   Service? @relation("IntegrationDefaultService", fields: [defaultServiceId], references: [id])
+
   // Relations
   alerts            Alert[]
   webhookDeliveries WebhookDelivery[]
@@ -599,6 +607,10 @@ model Incident {
   currentLevel       Int              @default(1) // Current escalation level
   currentRepeat      Int              @default(1) // Current repeat cycle
 
+  // Service routing (Phase 13 - ROUTE-03)
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id])
+
   // Assignment
   assignedUserId String?
   assignedUser   User?   @relation(fields: [assignedUserId], references: [id])
@@ -627,6 +639,7 @@ model Incident {
   @@index([fingerprint, status, createdAt])
   @@index([assignedUserId, status])
   @@index([status, createdAt])
+  @@index([serviceId])
 }
 
 model EscalationJob {
