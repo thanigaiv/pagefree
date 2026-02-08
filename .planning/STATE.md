@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 Milestone: v1.2 Production Readiness
 Phase: Phase 14 (Production Hardening) - In progress
-Plan: 2 of 6 complete
+Plan: 3 of 6 complete
 Status: Executing Phase 14 plans
-Last activity: 2026-02-08 - Completed 14-03 (Socket.IO Session Validation)
+Last activity: 2026-02-08 - Completed 14-01 (Web Push VAPID Implementation)
 
-Progress: [##____________________________] 33% (2/6 plans complete in Phase 14)
+Progress: [###___________________________] 50% (3/6 plans complete in Phase 14)
 
 ## Performance Metrics
 
@@ -50,12 +50,12 @@ Progress: [##____________________________] 33% (2/6 plans complete in Phase 14)
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 **v1.2 Metrics:**
-- Plans completed: 2
-- Time elapsed: 5 min
+- Plans completed: 3
+- Time elapsed: 9 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 14. Production Hardening | 2/6 | 5 min | 2.5 min |
+| 14. Production Hardening | 3/6 | 9 min | 3 min |
 
 ## Accumulated Context
 
@@ -71,6 +71,11 @@ See PROJECT.md Key Decisions table for full list.
 - Phase numbering continues from v1.1 (starts at Phase 14)
 - All 14 requirements mapped (6 HARD, 4 AUTO, 4 PARTNER)
 - Depth: comprehensive (research-driven phase boundaries)
+
+**Phase 14-01 Decisions:**
+- Use web-push library for VAPID signing (standard approach, not hand-rolling crypto)
+- Store full PushSubscription JSON in UserDevice.pushSubscription field
+- Route web platform through pushService, iOS/Android continue via SNS
 
 **Phase 14-03 Decisions:**
 - Cookie-based auth via withCredentials rather than auth token payload
@@ -101,12 +106,12 @@ See PROJECT.md Key Decisions table for full list.
 
 Continue Phase 14 execution.
 
-**Next action:** Execute remaining Phase 14 plans (14-01, 14-02, 14-04, 14-06)
+**Next action:** Execute remaining Phase 14 plans (14-02, 14-04, 14-06)
 
 ### Blockers/Concerns
 
 Known tech debt to address in Phase 14:
-- VAPID keys are placeholders (HARD-01)
+- ~~VAPID keys are placeholders (HARD-01)~~ DONE (14-01)
 - PWA icons are SVG placeholders (HARD-02)
 - ~~Socket.IO session validation incomplete (HARD-03)~~ DONE (14-03)
 - 10 failing Phase 2 webhook tests (HARD-04)
@@ -122,6 +127,6 @@ Research notes:
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed plan 14-03 (Socket.IO Session Validation)
-Resume file: .planning/phases/14-production-hardening/14-03-SUMMARY.md
-Next action: Execute remaining Phase 14 plans (14-01, 14-02, 14-04, 14-06)
+Stopped at: Completed plan 14-01 (Web Push VAPID Implementation)
+Resume file: .planning/phases/14-production-hardening/14-01-SUMMARY.md
+Next action: Execute remaining Phase 14 plans (14-02, 14-04, 14-06)
