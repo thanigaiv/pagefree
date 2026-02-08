@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 Milestone: v1.2 Production Readiness
 Phase: Phase 14 (Production Hardening) - In progress
-Plan: 5 of 6 complete
+Plan: 2 of 6 complete
 Status: Executing Phase 14 plans
-Last activity: 2026-02-08 - Completed 14-05 (Redis Rate Limiting)
+Last activity: 2026-02-08 - Completed 14-03 (Socket.IO Session Validation)
 
-Progress: [#####_________________________] 17% (1/6 plans complete in Phase 14)
+Progress: [##____________________________] 33% (2/6 plans complete in Phase 14)
 
 ## Performance Metrics
 
@@ -50,12 +50,12 @@ Progress: [#####_________________________] 17% (1/6 plans complete in Phase 14)
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 **v1.2 Metrics:**
-- Plans completed: 1
-- Time elapsed: 2 min
+- Plans completed: 2
+- Time elapsed: 5 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 14. Production Hardening | 1/6 | 2 min | 2 min |
+| 14. Production Hardening | 2/6 | 5 min | 2.5 min |
 
 ## Accumulated Context
 
@@ -71,6 +71,13 @@ See PROJECT.md Key Decisions table for full list.
 - Phase numbering continues from v1.1 (starts at Phase 14)
 - All 14 requirements mapped (6 HARD, 4 AUTO, 4 PARTNER)
 - Depth: comprehensive (research-driven phase boundaries)
+
+**Phase 14-03 Decisions:**
+- Cookie-based auth via withCredentials rather than auth token payload
+- 5-minute session check interval for active connections
+- Session refresh within 5 minutes of expiry extends by 24 hours
+- HIGH severity for internal auth errors, WARN for auth failures
+- Frontend callback pattern: setSessionExpiredHandler for app-level handling
 
 **Phase 14-05 Decisions:**
 - Redis-backed rate limiting using rate-limiter-flexible RateLimiterRedis
@@ -94,14 +101,14 @@ See PROJECT.md Key Decisions table for full list.
 
 Continue Phase 14 execution.
 
-**Next action:** Execute remaining Phase 14 plans (14-01, 14-02, 14-03, 14-04, 14-06)
+**Next action:** Execute remaining Phase 14 plans (14-01, 14-02, 14-04, 14-06)
 
 ### Blockers/Concerns
 
 Known tech debt to address in Phase 14:
 - VAPID keys are placeholders (HARD-01)
 - PWA icons are SVG placeholders (HARD-02)
-- Socket.IO session validation incomplete (HARD-03)
+- ~~Socket.IO session validation incomplete (HARD-03)~~ DONE (14-03)
 - 10 failing Phase 2 webhook tests (HARD-04)
 - ~~No Redis-backed rate limiting (HARD-05)~~ DONE (14-05)
 - No WebSocket event rate limiting (HARD-06)
@@ -115,6 +122,6 @@ Research notes:
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed plan 14-05 (Redis Rate Limiting)
-Resume file: .planning/phases/14-production-hardening/14-05-SUMMARY.md
-Next action: Execute remaining Phase 14 plans
+Stopped at: Completed plan 14-03 (Socket.IO Session Validation)
+Resume file: .planning/phases/14-production-hardening/14-03-SUMMARY.md
+Next action: Execute remaining Phase 14 plans (14-01, 14-02, 14-04, 14-06)
