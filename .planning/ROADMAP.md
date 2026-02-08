@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 MVP** - Phases 1-10 (shipped 2026-02-08)
-- [ ] **v1.1 Service Catalog** - Phases 11-13 (in progress)
+- [x] **v1.1 Service Catalog** - Phases 11-13 (shipped 2026-02-08)
 
 ## Phases
 
@@ -28,7 +28,7 @@ See MILESTONES.md for v1.0 completion summary.
 
 - [x] **Phase 11: Service Model Foundation** - Technical services with team ownership and lifecycle management
 - [x] **Phase 12: Service Dependencies & Graph** - Dependency relationships with visualization and cycle detection
-- [ ] **Phase 13: Service-Based Alert Routing** - Alerts route through services with team-based fallback
+- [x] **Phase 13: Service-Based Alert Routing** - Alerts route through services with team-based fallback
 
 ## Phase Details
 
@@ -77,8 +77,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Backend: Schema extensions (serviceId, defaultServiceId), routing service with service-first logic
-- [ ] 13-02-PLAN.md — Frontend: Incident detail service display, integration default service selector
+- [x] 13-01-PLAN.md — Backend: Schema extensions (serviceId, defaultServiceId), routing service with service-first logic
+- [x] 13-02-PLAN.md — Frontend: Incident detail service display, integration default service selector
 
 ## Progress
 
@@ -90,8 +90,8 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> 12.1 -> 13
 | 1-10 | v1.0 | 85/85 | Complete | 2026-02-08 |
 | 11. Service Model Foundation | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 12. Service Dependencies & Graph | v1.1 | 2/2 | Complete | 2026-02-08 |
-| 13. Service-Based Alert Routing | v1.1 | 0/2 | Not started | - |
+| 13. Service-Based Alert Routing | v1.1 | 2/2 | Complete | 2026-02-08 |
 
 ---
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-08 (Phase 13 planned)*
+*Last updated: 2026-02-08 (Phase 13 complete - v1.1 Service Catalog milestone complete)*
