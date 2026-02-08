@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Bell, Workflow, Settings, Shield, BarChart3 } from 'lucide-react';
+import { Users, Bell, Workflow, Settings, Shield, BarChart3, Server } from 'lucide-react';
 
 export default function AdminPage() {
   const adminSections = [
@@ -19,6 +19,14 @@ export default function AdminPage() {
       link: '/admin/escalation-policies',
       color: 'text-orange-500',
       bgColor: 'bg-orange-50',
+    },
+    {
+      title: 'Services',
+      description: 'Manage service catalog and alert routing keys',
+      icon: Server,
+      link: '/admin/services',
+      color: 'text-cyan-500',
+      bgColor: 'bg-cyan-50',
     },
     {
       title: 'Integrations',
