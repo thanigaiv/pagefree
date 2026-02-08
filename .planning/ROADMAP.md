@@ -42,11 +42,11 @@ See MILESTONES.md for v1.0 completion summary.
   3. User can archive or deprecate a service and see its lifecycle state reflected in the directory
   4. User can browse service directory and filter by team, status, or search term
   5. Service creation fails if no owning team is specified (required field)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
+- [ ] 11-01-PLAN.md — Backend: Prisma schema, service layer, REST routes for Service CRUD
+- [ ] 11-02-PLAN.md — Frontend: React Query hooks, types, ServicesPage with filtering and CRUD dialogs
 
 ### Phase 12: Service Dependencies & Graph
 **Goal**: Users can model service dependencies and visualize upstream/downstream relationships with cycle detection preventing invalid configurations
@@ -88,7 +88,7 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> 12.1 -> 13
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-10 | v1.0 | 85/85 | Complete | 2026-02-08 |
-| 11. Service Model Foundation | v1.1 | 0/? | Not started | - |
+| 11. Service Model Foundation | v1.1 | 0/2 | Planned | - |
 | 12. Service Dependencies & Graph | v1.1 | 0/? | Not started | - |
 | 13. Service-Based Alert Routing | v1.1 | 0/? | Not started | - |
 
