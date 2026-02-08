@@ -133,7 +133,7 @@ app.get('/health', async (_req, res) => {
 // Root endpoint
 app.get('/', (_req, res) => {
   res.json({
-    message: 'OnCall Platform API',
+    message: 'PageFree API',
     version: '1.0.0',
     status: 'running'
   });

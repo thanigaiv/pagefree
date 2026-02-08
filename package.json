@@ -1,7 +1,7 @@
 {
-  "name": "oncall-platform",
+  "name": "pagefree",
   "version": "1.0.0",
-  "description": "Digital Operations Reliability Platform for incident response orchestration",
+  "description": "PageFree - Incident management and on-call platform",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -16,6 +16,7 @@
     "test:watch": "vitest"
   },
   "keywords": [
+    "pagefree",
     "oncall",
     "incident-management",
     "alerting"

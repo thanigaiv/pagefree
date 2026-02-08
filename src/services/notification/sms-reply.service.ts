@@ -32,7 +32,7 @@ class SMSReplyService {
 
     if (!user) {
       logger.warn({ from }, 'SMS reply from unknown phone number');
-      return 'Your phone number is not registered with OnCall Platform.';
+      return 'Your phone number is not registered with PageFree.';
     }
 
     // Parse incident ID from reply

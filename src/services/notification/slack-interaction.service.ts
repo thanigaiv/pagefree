@@ -75,7 +75,7 @@ class SlackInteractionService {
     });
 
     if (!slackConnection) {
-      await this.sendErrorResponse(payload.response_url, 'Your Slack account is not connected to OnCall Platform');
+      await this.sendErrorResponse(payload.response_url, 'Your Slack account is not connected to PageFree');
       return;
     }
 
@@ -234,7 +234,7 @@ class SlackInteractionService {
     });
 
     if (!slackConnection) {
-      await this.sendErrorResponse(responseUrl, 'Your Slack account is not connected to OnCall Platform. Visit /settings to connect.');
+      await this.sendErrorResponse(responseUrl, 'Your Slack account is not connected to PageFree. Visit /settings to connect.');
       return;
     }
 

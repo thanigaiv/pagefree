@@ -146,7 +146,7 @@ authRouter.post('/webauthn/register-challenge', (_req, res) => {
   res.json({
     challenge: Buffer.from(crypto.randomUUID()).toString('base64'),
     rpId: process.env.WEBAUTHN_RP_ID || 'localhost',
-    rpName: 'OnCall Platform',
+    rpName: 'PageFree',
   });
 });
 

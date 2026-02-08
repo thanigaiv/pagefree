@@ -1,4 +1,4 @@
-// OnCall Platform Database Schema
+// PageFree Database Schema
 // Phase 1: Foundation & User Management
 
 generator client {

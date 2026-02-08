@@ -14,9 +14,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
       manifest: {
-        name: 'OnCall Platform',
-        short_name: 'OnCall',
-        description: 'Incident Management Dashboard',
+        name: 'PageFree',
+        short_name: 'PageFree',
+        description: 'Incident Management & On-Call Platform',
         theme_color: '#0f172a',
         background_color: '#ffffff',
         display: 'standalone',

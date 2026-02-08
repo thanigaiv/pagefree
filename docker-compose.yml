@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16
-    container_name: oncall-postgres
+    container_name: pagefree-postgres
     environment:
       POSTGRES_USER: oncall
       POSTGRES_PASSWORD: oncall

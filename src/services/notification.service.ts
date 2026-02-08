@@ -68,7 +68,7 @@ export class NotificationService {
   // Format verification email
   buildVerificationEmail(code: string): { subject: string; body: string } {
     return {
-      subject: 'OnCall Platform - Email Verification Code',
+      subject: 'PageFree - Email Verification Code',
       body: `
 Your verification code is: ${code}
 
@@ -76,14 +76,14 @@ This code will expire in 15 minutes.
 
 If you did not request this code, please ignore this email.
 
--- OnCall Platform
+-- PageFree
       `.trim()
     };
   }
 
   // Format verification SMS
   buildVerificationSMS(code: string): string {
-    return `OnCall Platform verification code: ${code}. Expires in 15 minutes.`;
+    return `PageFree verification code: ${code}. Expires in 15 minutes.`;
   }
 }
 
