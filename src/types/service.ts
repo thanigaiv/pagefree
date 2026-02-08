@@ -52,3 +52,29 @@ export interface ListServicesParams {
   limit?: number;
   offset?: number;
 }
+
+// Service dependency types (Phase 12)
+export interface ServiceDependency {
+  id: string;
+  name: string;
+  status: ServiceStatus;
+  team: { id: string; name: string };
+}
+
+export interface ServiceGraphNode {
+  id: string;
+  name: string;
+  status: ServiceStatus;
+  teamName: string;
+  isFocused?: boolean;
+}
+
+export interface ServiceGraphEdge {
+  source: string;
+  target: string;
+}
+
+export interface ServiceGraph {
+  nodes: ServiceGraphNode[];
+  edges: ServiceGraphEdge[];
+}
