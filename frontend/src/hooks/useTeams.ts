@@ -27,7 +27,10 @@ export interface TeamWithMembers extends Team {
 export function useTeams() {
   return useQuery({
     queryKey: ['teams'],
-    queryFn: () => apiFetch<Team[]>('/teams'),
+    queryFn: async () => {
+      const response = await apiFetch<{ teams: Team[]; total: number }>('/teams');
+      return response.teams;
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

@@ -29,7 +29,7 @@ import { formatDistanceToNow } from 'date-fns';
 import type { Postmortem } from '@/types/postmortem';
 
 export default function PostmortemsPage() {
-  const [teamFilter, setTeamFilter] = useState<string>('');
+  const [teamFilter, setTeamFilter] = useState<string>('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -37,7 +37,7 @@ export default function PostmortemsPage() {
     teamId: '',
   });
 
-  const { data: postmortems, isLoading, error } = usePostmortems(teamFilter || undefined);
+  const { data: postmortems, isLoading, error } = usePostmortems(teamFilter === 'all' ? undefined : teamFilter);
   const { data: teams } = useTeams();
   const { data: incidentsData } = useIncidents({
     status: ['RESOLVED', 'CLOSED'],
@@ -226,7 +226,7 @@ export default function PostmortemsPage() {
               <SelectValue placeholder="All teams" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All teams</SelectItem>
+              <SelectItem value="all">All teams</SelectItem>
               {teams?.map((team) => (
                 <SelectItem key={team.id} value={team.id}>
                   {team.name}
