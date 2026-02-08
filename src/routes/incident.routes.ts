@@ -70,10 +70,15 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       }
     }
 
+    // Parse comma-separated status values
+    const statusFilter = status
+      ? (status as string).split(',').map(s => s.trim())
+      : undefined;
+
     const result = await incidentService.list(
       {
         teamId: teamId as string,
-        status: status as string,
+        status: statusFilter,
         assignedUserId: assignedUserId as string,
         priority: priority as string,
         startDate: startDate ? new Date(startDate as string) : undefined,

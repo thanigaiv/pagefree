@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -39,15 +40,20 @@ export default function PostmortemsPage() {
 
   const { data: postmortems, isLoading, error } = usePostmortems(teamFilter === 'all' ? undefined : teamFilter);
   const { data: teams } = useTeams();
-  const { data: incidentsData } = useIncidents({
+  const { data: incidentsData, isLoading: incidentsLoading } = useIncidents({
     status: ['RESOLVED', 'CLOSED'],
     teamId: formData.teamId || undefined,
   });
   const createMutation = useCreatePostmortem();
 
   const resolvedIncidents = useMemo(() => {
+    console.log('[PostmortemsPage] Incidents data updated:', {
+      teamId: formData.teamId,
+      incidentsCount: incidentsData?.incidents?.length || 0,
+      incidents: incidentsData?.incidents?.map(i => ({ id: i.id, title: i.title, teamId: i.team?.id }))
+    });
     return incidentsData?.incidents || [];
-  }, [incidentsData]);
+  }, [incidentsData, formData.teamId]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +133,9 @@ export default function PostmortemsPage() {
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Create Postmortem</DialogTitle>
+                <DialogDescription>
+                  Create a postmortem to document and learn from resolved incidents.
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
                 <div>
@@ -165,7 +174,11 @@ export default function PostmortemsPage() {
                   <div>
                     <Label>Related Incidents</Label>
                     <div className="mt-2 max-h-48 overflow-y-auto border rounded-md p-2 space-y-2">
-                      {resolvedIncidents.length === 0 ? (
+                      {incidentsLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : resolvedIncidents.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-2 text-center">
                           No resolved incidents for this team
                         </p>

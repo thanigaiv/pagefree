@@ -18,5 +18,10 @@ export async function apiFetch<T>(
     throw new Error(error.error || `HTTP ${response.status}`);
   }
 
+  // Handle 204 No Content responses (e.g., DELETE requests)
+  if (response.status === 204) {
+    return {} as T;
+  }
+
   return response.json();
 }

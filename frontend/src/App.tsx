@@ -12,6 +12,7 @@ import WorkflowBuilderPage from './pages/WorkflowBuilderPage';
 import { PublicStatusPage } from './pages/PublicStatusPage';
 import { StatusPagesPage } from './pages/StatusPagesPage';
 import { StatusPageDetailPage } from './pages/StatusPageDetailPage';
+import { StatusPageEditPage } from './pages/StatusPageEditPage';
 import PostmortemsPage from './pages/PostmortemsPage';
 import PostmortemDetailPage from './pages/PostmortemDetailPage';
 import EmergencyLoginPage from './pages/EmergencyLoginPage';
@@ -46,6 +47,7 @@ export default function App() {
 
                 {/* Status page admin routes */}
                 <Route path="/status-pages" element={<StatusPagesPage />} />
+                <Route path="/status-pages/:id/edit" element={<StatusPageEditPage />} />
                 <Route path="/status-pages/:id" element={<StatusPageDetailPage />} />
 
                 {/* Postmortem routes */}

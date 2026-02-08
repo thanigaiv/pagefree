@@ -565,10 +565,7 @@ class IncidentService {
     });
 
     // Broadcast via WebSocket
-    socketService.broadcastIncidentUpdate({
-      incident,
-      event: 'created'
-    }, data.teamId);
+    socketService.broadcastIncidentCreated(incident);
 
     // Trigger workflow execution (async)
     onIncidentStateChanged(incident.id, 'created', data.createdByUserId).catch(err => {

@@ -36,7 +36,7 @@ export function usePublicStatusPage(slug: string, token?: string) {
     queryKey: ['public-status', slug, token],
     queryFn: async () => {
       const params = token ? `?token=${token}` : '';
-      const res = await fetch(`/api/status/${slug}${params}`);
+      const res = await fetch(`/status/${slug}${params}`);
       if (!res.ok) {
         if (res.status === 404) throw new Error('Status page not found');
         if (res.status === 401) throw new Error('Access denied - invalid token');
@@ -55,7 +55,7 @@ export function useStatusHistory(slug: string, token?: string, days: number = 7)
       const params = new URLSearchParams();
       if (token) params.set('token', token);
       params.set('days', String(days));
-      const res = await fetch(`/api/status/${slug}/history?${params}`);
+      const res = await fetch(`/status/${slug}/history?${params}`);
       if (!res.ok) throw new Error('Failed to load history');
       return res.json() as Promise<StatusHistory>;
     },

@@ -158,8 +158,25 @@ class StatusPageService {
         slug: true,
         description: true,
         isPublic: true,
+        teamId: true,
         createdAt: true,
         updatedAt: true,
+        team: {
+          select: { id: true, name: true },
+        },
+        components: {
+          orderBy: { displayOrder: 'asc' },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            displayOrder: true,
+            currentStatus: true,
+            statusUpdatedAt: true,
+            teamId: true,
+            serviceIdentifier: true,
+          },
+        },
         _count: {
           select: { components: true },
         },

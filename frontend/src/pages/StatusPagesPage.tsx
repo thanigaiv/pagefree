@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,6 +29,8 @@ export function StatusPagesPage() {
   const { data: statusPages, isLoading, error } = useStatusPages();
   const { data: teams } = useTeams();
   const createMutation = useCreateStatusPage();
+
+  console.log('[StatusPagesPage] statusPages:', statusPages, 'isLoading:', isLoading, 'error:', error);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -38,6 +41,13 @@ export function StatusPagesPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.name || !formData.teamId) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     try {
       const result = await createMutation.mutateAsync(formData);
       toast.success('Status page created');
@@ -46,8 +56,10 @@ export function StatusPagesPage() {
       }
       setIsCreateOpen(false);
       setFormData({ name: '', description: '', teamId: '', isPublic: false });
-    } catch {
-      toast.error('Failed to create status page');
+    } catch (error: any) {
+      console.error('Failed to create status page:', error);
+      const errorMessage = error?.message || error?.error || 'Failed to create status page';
+      toast.error(errorMessage);
     }
   };
 
@@ -70,10 +82,13 @@ export function StatusPagesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create Status Page</DialogTitle>
+              <DialogDescription>
+                Create a new status page to display the health of your services.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -90,7 +105,7 @@ export function StatusPagesPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="team">Team</Label>
+                <Label htmlFor="team">Team *</Label>
                 <Select value={formData.teamId} onValueChange={v => setFormData({ ...formData, teamId: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select team" />

@@ -69,6 +69,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as AuthenticatedUser;
     const { teamId } = req.query;
 
+    console.log('[STATUS-PAGES] GET request - User:', user.id, 'TeamMembers:', user.teamMembers?.length, 'PlatformAdmin:', permissionService.isPlatformAdmin(user));
+
     // If teamId specified, check access
     if (teamId) {
       const permission = permissionService.canViewTeam(user, teamId as string);
@@ -77,18 +79,60 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       }
 
       const statusPages = await statusPageService.listByTeam(teamId as string);
+      console.log('[STATUS-PAGES] Found pages for team', teamId, ':', statusPages.length);
       return res.json({ statusPages });
+    }
+
+    // Platform admins can see all status pages
+    if (permissionService.isPlatformAdmin(user)) {
+      const allPages = await prisma.statusPage.findMany({
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          isPublic: true,
+          teamId: true,
+          createdAt: true,
+          updatedAt: true,
+          team: {
+            select: { id: true, name: true },
+          },
+          components: {
+            orderBy: { displayOrder: 'asc' },
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              displayOrder: true,
+              currentStatus: true,
+              statusUpdatedAt: true,
+              teamId: true,
+              serviceIdentifier: true,
+            },
+          },
+          _count: {
+            select: { components: true },
+          },
+        },
+      });
+      console.log('[STATUS-PAGES] Platform admin - returning all pages:', allPages.length);
+      return res.json({ statusPages: allPages });
     }
 
     // Return pages from all user's teams
     const allPages: any[] = [];
     for (const membership of user.teamMembers || []) {
       const pages = await statusPageService.listByTeam(membership.teamId);
+      console.log('[STATUS-PAGES] Found pages for team', membership.teamId, ':', pages.length);
       allPages.push(...pages);
     }
 
+    console.log('[STATUS-PAGES] Total pages returned:', allPages.length);
     return res.json({ statusPages: allPages });
   } catch (error) {
+    console.error('[STATUS-PAGES] Error:', error);
     return next(error);
   }
 });

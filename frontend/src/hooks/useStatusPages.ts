@@ -43,8 +43,11 @@ export function useStatusPages(teamId?: string) {
   return useQuery({
     queryKey: ['status-pages', teamId],
     queryFn: async () => {
+      console.log('[useStatusPages] Fetching status pages, teamId:', teamId);
       const params = teamId ? `?teamId=${teamId}` : '';
-      return apiFetch<StatusPage[]>(`/status-pages${params}`);
+      const response = await apiFetch<{ statusPages: StatusPage[] }>(`/status-pages${params}`);
+      console.log('[useStatusPages] Response:', response);
+      return response.statusPages;
     }
   });
 }
@@ -52,7 +55,10 @@ export function useStatusPages(teamId?: string) {
 export function useStatusPage(id: string) {
   return useQuery({
     queryKey: ['status-page', id],
-    queryFn: () => apiFetch<StatusPage>(`/status-pages/${id}`),
+    queryFn: async () => {
+      const response = await apiFetch<{ statusPage: StatusPage }>(`/status-pages/${id}`);
+      return response.statusPage;
+    },
     enabled: !!id
   });
 }
@@ -60,11 +66,13 @@ export function useStatusPage(id: string) {
 export function useCreateStatusPage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateStatusPageInput) =>
-      apiFetch<StatusPage>('/status-pages', {
+    mutationFn: async (data: CreateStatusPageInput) => {
+      const response = await apiFetch<{ statusPage: StatusPage }>('/status-pages', {
         method: 'POST',
         body: JSON.stringify(data)
-      }),
+      });
+      return response.statusPage;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['status-pages'] });
     }
@@ -74,11 +82,13 @@ export function useCreateStatusPage() {
 export function useUpdateStatusPage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<StatusPage> }) =>
-      apiFetch<StatusPage>(`/status-pages/${id}`, {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<StatusPage> }) => {
+      const response = await apiFetch<{ statusPage: StatusPage }>(`/status-pages/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data)
-      }),
+      });
+      return response.statusPage;
+    },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['status-page', id] });
       queryClient.invalidateQueries({ queryKey: ['status-pages'] });
@@ -100,11 +110,13 @@ export function useDeleteStatusPage() {
 export function useCreateComponent() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ statusPageId, data }: { statusPageId: string; data: CreateComponentInput }) =>
-      apiFetch<StatusPageComponent>(`/status-pages/${statusPageId}/components`, {
+    mutationFn: async ({ statusPageId, data }: { statusPageId: string; data: CreateComponentInput }) => {
+      const response = await apiFetch<{ component: StatusPageComponent }>(`/status-pages/${statusPageId}/components`, {
         method: 'POST',
         body: JSON.stringify(data)
-      }),
+      });
+      return response.component;
+    },
     onSuccess: (_, { statusPageId }) => {
       queryClient.invalidateQueries({ queryKey: ['status-page', statusPageId] });
     }

@@ -18,6 +18,7 @@ export function useIncidents(filters: IncidentFilters) {
   return useQuery({
     queryKey: ['incidents', filters],
     queryFn: async () => {
+      console.log('[useIncidents] Fetching with filters:', filters);
       const params = new URLSearchParams();
 
       if (filters.status?.length) {
@@ -41,9 +42,11 @@ export function useIncidents(filters: IncidentFilters) {
         params.set('offset', String((filters.page - 1) * PAGE_SIZE));
       }
 
+      console.log('[useIncidents] Request URL:', `/incidents?${params.toString()}`);
       const response = await apiFetch<IncidentListResponse>(
         `/incidents?${params.toString()}`
       );
+      console.log('[useIncidents] Response:', { count: response.incidents?.length || 0 });
 
       return response;
     },
