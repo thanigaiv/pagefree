@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Loader2, Settings, ShieldAlert, Plus, Trash2, RotateCw, Copy, Check } from 'lucide-react';
+import { Loader2, Settings, ShieldAlert, Plus, Trash2, RotateCw, Copy, Check, Pencil } from 'lucide-react';
 import {
   useIntegrations,
   useCreateIntegration,
   useUpdateIntegration,
   useDeleteIntegration,
-  useRotateSecret
+  useRotateSecret,
+  type Integration
 } from '@/hooks/useIntegrations';
+import { useServices } from '@/hooks/useServices';
 import { IntegrationCard } from '@/components/IntegrationCard';
 import { IntegrationTestDialog } from '@/components/IntegrationTestDialog';
 import { WebhookAttempts } from '@/components/WebhookAttempts';
@@ -50,9 +52,21 @@ export default function IntegrationsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [secretDialogOpen, setSecretDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedIntegrationId, setSelectedIntegrationId] = useState<string | null>(null);
+  const [editingIntegration, setEditingIntegration] = useState<Integration | null>(null);
   const [newSecret, setNewSecret] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Fetch active services for default service dropdown (Phase 13: ROUTE-04)
+  const { data: servicesData } = useServices({ status: 'ACTIVE' });
+
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    deduplicationWindowMinutes: 5,
+    defaultServiceId: 'none' as string
+  });
 
   // Form state for create dialog
   const [formData, setFormData] = useState({
@@ -107,6 +121,35 @@ export default function IntegrationsPage() {
       setSecretDialogOpen(true);
     } catch (error) {
       console.error('Failed to rotate secret:', error);
+    }
+  };
+
+  const handleOpenEditDialog = (integration: Integration) => {
+    setEditingIntegration(integration);
+    setEditFormData({
+      name: integration.name,
+      deduplicationWindowMinutes: integration.deduplicationWindowMinutes,
+      defaultServiceId: integration.defaultServiceId || 'none'
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateIntegration = async () => {
+    if (!editingIntegration) return;
+
+    try {
+      await updateIntegration.mutateAsync({
+        id: editingIntegration.id,
+        data: {
+          name: editFormData.name,
+          deduplicationWindowMinutes: editFormData.deduplicationWindowMinutes,
+          defaultServiceId: editFormData.defaultServiceId === 'none' ? null : editFormData.defaultServiceId
+        }
+      });
+      setEditDialogOpen(false);
+      setEditingIntegration(null);
+    } catch (error) {
+      console.error('Failed to update integration:', error);
     }
   };
 
@@ -204,6 +247,14 @@ export default function IntegrationsPage() {
               onViewLogs={() => {}}
             />
             <div className="mt-4 flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleOpenEditDialog(integration)}
+              >
+                <Pencil className="h-3 w-3 mr-1" />
+                Edit
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -414,6 +465,88 @@ export default function IntegrationsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Integration Dialog (Phase 13: ROUTE-04) */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Integration</DialogTitle>
+            <DialogDescription>
+              Update integration settings including default service for alert routing.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editName">Integration Name</Label>
+              <Input
+                id="editName"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="editDedup">Deduplication Window (minutes)</Label>
+              <Input
+                id="editDedup"
+                type="number"
+                min={1}
+                max={1440}
+                value={editFormData.deduplicationWindowMinutes}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, deduplicationWindowMinutes: parseInt(e.target.value) })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="defaultService">Default Service</Label>
+              <Select
+                value={editFormData.defaultServiceId}
+                onValueChange={(value) => setEditFormData({
+                  ...editFormData,
+                  defaultServiceId: value
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No default service" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No default service</SelectItem>
+                  {servicesData?.services?.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name} ({service.team.name})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Alerts without explicit routing_key will route to this service
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateIntegration}
+              disabled={!editFormData.name || updateIntegration.isPending}
+            >
+              {updateIntegration.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

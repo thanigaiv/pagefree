@@ -17,6 +17,13 @@ export interface Integration {
   webhookCount: number;
   lastWebhookAt: string | null;
   errorCount: number;
+  // Default service for routing (Phase 13)
+  defaultServiceId?: string | null;
+  defaultService?: {
+    id: string;
+    name: string;
+    team: { id: string; name: string };
+  } | null;
 }
 
 export interface WebhookDelivery {
@@ -77,7 +84,7 @@ export function useUpdateIntegration() {
       data
     }: {
       id: string;
-      data: Partial<Pick<Integration, 'name' | 'isActive' | 'deduplicationWindowMinutes'>>
+      data: Partial<Pick<Integration, 'name' | 'isActive' | 'deduplicationWindowMinutes' | 'defaultServiceId'>>
     }) => {
       const res = await apiFetch<Integration>(`/integrations/${id}`, {
         method: 'PATCH',
