@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database.js';
 import { auditService } from './audit.service.js';
 import type {
@@ -262,7 +263,7 @@ export class ServiceDependencyService {
 
     const result = await prisma.$queryRaw<{ A: string; B: string }[]>`
       SELECT "A", "B" FROM "_ServiceDependency"
-      WHERE "A" = ANY(${serviceIds}) AND "B" = ANY(${serviceIds})
+      WHERE "A" IN (${Prisma.join(serviceIds)}) AND "B" IN (${Prisma.join(serviceIds)})
     `;
 
     // A depends on B, so edge goes from A (source) to B (target)
