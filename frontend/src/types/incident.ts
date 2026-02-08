@@ -28,6 +28,14 @@ export interface Incident {
     triggeredAt: string;
     externalId?: string;
   }>;
+  // Service-based routing (Phase 13)
+  serviceId?: string;
+  service?: {
+    id: string;
+    name: string;
+    routingKey: string;
+    team: { id: string; name: string };
+  };
 }
 
 export interface TimelineEvent {

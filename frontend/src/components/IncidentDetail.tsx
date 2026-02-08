@@ -8,6 +8,9 @@ import { MetadataEditor } from './MetadataEditor';
 import { IncidentActions } from './IncidentActions';
 import { useUpdateMetadata } from '@/hooks/useUpdateMetadata';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Server } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 
 interface IncidentDetailProps {
@@ -35,6 +38,24 @@ export function IncidentDetail({
       <div className="mb-4">
         <ExternalLinks service={service} metadata={incident.metadata} />
       </div>
+
+      {/* Service routing info (Phase 13: ROUTE-03) */}
+      {incident.service && (
+        <div className="mb-4">
+          <span className="text-sm text-muted-foreground">Service</span>
+          <div className="flex items-center gap-2 mt-1">
+            <Link to={`/admin/services?selected=${incident.service.id}`}>
+              <Badge variant="outline" className="hover:bg-accent cursor-pointer">
+                <Server className="h-3 w-3 mr-1" />
+                {incident.service.name}
+              </Badge>
+            </Link>
+            <span className="text-xs text-muted-foreground font-mono">
+              {incident.service.routingKey}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Incident info */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
