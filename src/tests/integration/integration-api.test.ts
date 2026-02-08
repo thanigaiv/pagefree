@@ -27,7 +27,7 @@ describe('Integration API Extensions', () => {
 
     // Authenticate
     const authRes = await request(app)
-      .post('/auth/emergency')
+      .post('/api/auth/emergency')
       .send({ email: 'admin-api@test.com', password: 'testpass123' });
 
     adminAuthCookie = authRes.headers['set-cookie']?.[0] || '';
@@ -229,21 +229,24 @@ describe('Provider-Specific Webhooks', () => {
 
     // Authenticate
     const authRes = await request(app)
-      .post('/auth/emergency')
+      .post('/api/auth/emergency')
       .send({ email: 'webhook-test@test.com', password: 'testpass123' });
+
     adminAuthCookie = authRes.headers['set-cookie']?.[0] || '';
 
-    // Create DataDog integration
-    const createRes = await request(app)
-      .post('/api/integrations')
-      .set('Cookie', adminAuthCookie)
-      .send({
+    // Create DataDog integration directly in DB to get secret (API doesn't return it reliably in tests)
+    webhookSecret = crypto.randomBytes(32).toString('hex');
+    const int = await prisma.integration.create({
+      data: {
         name: 'webhook-test-dd',
-        type: 'datadog'
-      });
-
-    integrationId = createRes.body.id;
-    webhookSecret = createRes.body.webhookSecret;
+        type: 'datadog',
+        webhookSecret,
+        signatureHeader: 'X-Datadog-Signature',
+        signatureAlgorithm: 'sha256',
+        signatureFormat: 'hex'
+      }
+    });
+    integrationId = int.id;
   });
 
   afterAll(async () => {
