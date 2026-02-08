@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import {
   Dialog,
   DialogContent,
@@ -179,7 +180,9 @@ function validateWorkflow(
   name: string,
   description: string,
   nodes: Node[],
-  edges: Edge[]
+  edges: Edge[],
+  scopeType: WorkflowScope,
+  teamId: string | undefined
 ): string[] {
   const errors: string[] = [];
 
@@ -189,6 +192,11 @@ function validateWorkflow(
   }
   if (!description.trim()) {
     errors.push('Workflow description is required');
+  }
+
+  // Team-scoped workflows require a teamId
+  if (scopeType === 'team' && !teamId) {
+    errors.push('Team selection is required for team-scoped workflows');
   }
 
   // Must have at least one trigger
@@ -419,7 +427,11 @@ export default function WorkflowBuilderPage() {
   const navigate = useNavigate();
 
   const isNew = !id || id === 'new';
-  const teamId = searchParams.get('teamId') || undefined;
+  const teamIdFromUrl = searchParams.get('teamId') || undefined;
+
+  // Get current user to check admin status
+  const { data: currentUser } = useCurrentUser();
+  const isPlatformAdmin = currentUser?.platformRole === 'PLATFORM_ADMIN';
 
   // Data fetching
   const { data: workflowData, isLoading } = useWorkflow(isNew ? undefined : id);
@@ -434,13 +446,17 @@ export default function WorkflowBuilderPage() {
   const rollbackWorkflow = useRollbackWorkflow();
   const createFromTemplate = useCreateFromTemplate();
 
+  // Determine default scope: if admin and no teamId, default to global; otherwise team
+  const defaultScope: WorkflowScope = isNew && isPlatformAdmin && !teamIdFromUrl ? 'global' : 'team';
+
   // UI State
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [scopeType, setScopeType] = useState<WorkflowScope>('team');
+  const [scopeType, setScopeType] = useState<WorkflowScope>(defaultScope);
+  const [teamId, setTeamId] = useState<string | undefined>(teamIdFromUrl);
   const [isDirty, setIsDirty] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
@@ -457,6 +473,7 @@ export default function WorkflowBuilderPage() {
       setName(workflow.name);
       setDescription(workflow.description);
       setScopeType(workflow.scopeType);
+      setTeamId(workflow.teamId || undefined);
       setNodes(workflow.definition.nodes as Node[]);
       setEdges(workflow.definition.edges as Edge[]);
       setIsDirty(false);
@@ -465,9 +482,9 @@ export default function WorkflowBuilderPage() {
 
   // Validate on changes
   useEffect(() => {
-    const errors = validateWorkflow(name, description, nodes, edges);
+    const errors = validateWorkflow(name, description, nodes, edges, scopeType, teamId);
     setValidationErrors(errors);
-  }, [name, description, nodes, edges]);
+  }, [name, description, nodes, edges, scopeType, teamId]);
 
   // Selected node
   const selectedNode = useMemo(
@@ -559,14 +576,14 @@ export default function WorkflowBuilderPage() {
 
     try {
       if (isNew) {
-        const result = await createWorkflow.mutateAsync({
+        await createWorkflow.mutateAsync({
           name,
           description,
           definition,
           scopeType,
           teamId,
         });
-        navigate(`/workflows/${result.workflow.id}/edit`, { replace: true });
+        navigate('/workflows', { replace: true });
       } else {
         await updateWorkflow.mutateAsync({
           id: id!,
@@ -605,8 +622,8 @@ export default function WorkflowBuilderPage() {
   // Duplicate
   const handleDuplicate = async () => {
     if (!workflow) return;
-    const result = await duplicateWorkflow.mutateAsync(workflow.id);
-    navigate(`/workflows/${result.workflow.id}/edit`);
+    await duplicateWorkflow.mutateAsync(workflow.id);
+    navigate('/workflows');
   };
 
   // Rollback
@@ -618,13 +635,13 @@ export default function WorkflowBuilderPage() {
 
   // Template selection
   const handleSelectTemplate = async (templateId: string) => {
-    const result = await createFromTemplate.mutateAsync({
+    await createFromTemplate.mutateAsync({
       templateId,
       name: 'New Workflow from Template',
       description: 'Created from template',
       teamId,
     });
-    navigate(`/workflows/${result.workflow.id}/edit`, { replace: true });
+    navigate('/workflows', { replace: true });
     setShowTemplateDialog(false);
   };
 
@@ -715,19 +732,49 @@ export default function WorkflowBuilderPage() {
                 value={scopeType}
                 onValueChange={(v: WorkflowScope) => {
                   setScopeType(v);
+                  // Clear teamId when switching to global
+                  if (v === 'global') {
+                    setTeamId(undefined);
+                  }
                   setIsDirty(true);
                 }}
-                disabled={!isNew}
+                disabled={!isNew || !isPlatformAdmin}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="team">Team Scope</SelectItem>
-                  <SelectItem value="global">Global Scope</SelectItem>
+                  {isPlatformAdmin && <SelectItem value="global">Global Scope</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
+            {/* Team selector for admins creating team-scoped workflows */}
+            {isNew && isPlatformAdmin && scopeType === 'team' && (
+              <div>
+                <Label htmlFor="workflow-team" className="sr-only">
+                  Team
+                </Label>
+                <Select
+                  value={teamId}
+                  onValueChange={(v) => {
+                    setTeamId(v);
+                    setIsDirty(true);
+                  }}
+                >
+                  <SelectTrigger className={cn(!teamId && 'border-red-300')}>
+                    <SelectValue placeholder="Select team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentUser?.teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="flex-1">
             <Input

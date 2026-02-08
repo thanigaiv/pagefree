@@ -254,6 +254,25 @@ export function WorkflowCanvas({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [showPerformanceWarning, setShowPerformanceWarning] = useState(false);
 
+  // Track the previous initialNodes/initialEdges to detect when they change
+  const prevInitialNodesRef = useRef(initialNodes);
+  const prevInitialEdgesRef = useRef(initialEdges);
+
+  // Update internal state when initialNodes/initialEdges change (e.g., when loading a workflow)
+  useEffect(() => {
+    if (prevInitialNodesRef.current !== initialNodes) {
+      prevInitialNodesRef.current = initialNodes;
+      setNodes(initialNodes);
+    }
+  }, [initialNodes, setNodes]);
+
+  useEffect(() => {
+    if (prevInitialEdgesRef.current !== initialEdges) {
+      prevInitialEdgesRef.current = initialEdges;
+      setEdges(initialEdges);
+    }
+  }, [initialEdges, setEdges]);
+
   // Check for performance warning
   useEffect(() => {
     setShowPerformanceWarning(nodes.length > MAX_RECOMMENDED_NODES);

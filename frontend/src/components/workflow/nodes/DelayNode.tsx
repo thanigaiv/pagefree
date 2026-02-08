@@ -36,14 +36,21 @@ function formatDuration(minutes: number): string {
 
 type DelayNodeProps = NodeProps<Node<DelayData>>;
 
-export function DelayNode({ data, selected }: DelayNodeProps) {
+export function DelayNode({ id, data, selected }: DelayNodeProps) {
   const hasValidationError = !data.name || !data.durationMinutes || data.durationMinutes <= 0;
   const formattedDuration = data.durationMinutes ? formatDuration(data.durationMinutes) : 'Not set';
 
+  const handleClick = () => {
+    window.dispatchEvent(
+      new CustomEvent('workflow-node-click', { detail: { nodeId: id } })
+    );
+  };
+
   return (
     <Card
+      onClick={handleClick}
       className={cn(
-        'min-w-[160px] p-3 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-900 dark:to-slate-900',
+        'min-w-[160px] p-3 cursor-pointer bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-900 dark:to-slate-900',
         'border-2 border-gray-200 dark:border-gray-700',
         selected && 'ring-2 ring-gray-500 ring-offset-2',
         hasValidationError && 'border-red-300 dark:border-red-700'

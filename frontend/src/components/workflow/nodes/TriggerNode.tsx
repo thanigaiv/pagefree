@@ -33,15 +33,22 @@ const triggerLabels: Record<TriggerType, string> = {
 
 type TriggerNodeProps = NodeProps<Node<TriggerData>>;
 
-export function TriggerNode({ data, selected }: TriggerNodeProps) {
+export function TriggerNode({ id, data, selected }: TriggerNodeProps) {
   const Icon = triggerIcons[data.triggerType] || Zap;
   const label = triggerLabels[data.triggerType] || data.triggerType;
   const hasValidationError = !data.name || !data.triggerType;
 
+  const handleClick = () => {
+    window.dispatchEvent(
+      new CustomEvent('workflow-node-click', { detail: { nodeId: id } })
+    );
+  };
+
   return (
     <Card
+      onClick={handleClick}
       className={cn(
-        'min-w-[200px] p-3 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950',
+        'min-w-[200px] p-3 cursor-pointer bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950',
         'border-2 border-purple-200 dark:border-purple-800',
         selected && 'ring-2 ring-purple-500 ring-offset-2',
         hasValidationError && 'border-red-300 dark:border-red-700'

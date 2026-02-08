@@ -65,11 +65,17 @@ const actionConfig: Record<ActionType, {
 
 type ActionNodeProps = NodeProps<Node<ActionData>>;
 
-export function ActionNode({ data, selected }: ActionNodeProps) {
+export function ActionNode({ id, data, selected }: ActionNodeProps) {
   const config = actionConfig[data.actionType] || actionConfig.webhook;
   const Icon = config.icon;
   const hasValidationError = !data.name || !data.config;
   const hasRetry = data.retry && data.retry.attempts > 1;
+
+  const handleClick = () => {
+    window.dispatchEvent(
+      new CustomEvent('workflow-node-click', { detail: { nodeId: id } })
+    );
+  };
 
   // Get config summary based on action type
   const getConfigSummary = () => {
@@ -106,8 +112,9 @@ export function ActionNode({ data, selected }: ActionNodeProps) {
 
   return (
     <Card
+      onClick={handleClick}
       className={cn(
-        'min-w-[220px] p-3',
+        'min-w-[220px] p-3 cursor-pointer',
         config.bgColor,
         'border-2',
         config.borderColor,

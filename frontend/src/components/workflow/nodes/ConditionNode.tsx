@@ -16,13 +16,20 @@ import type { ConditionData } from '@/types/workflow';
 
 type ConditionNodeProps = NodeProps<Node<ConditionData>>;
 
-export function ConditionNode({ data, selected }: ConditionNodeProps) {
+export function ConditionNode({ id, data, selected }: ConditionNodeProps) {
   const hasValidationError = !data.name || !data.field || !data.value;
+
+  const handleClick = () => {
+    window.dispatchEvent(
+      new CustomEvent('workflow-node-click', { detail: { nodeId: id } })
+    );
+  };
 
   return (
     <Card
+      onClick={handleClick}
       className={cn(
-        'min-w-[180px] p-3 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950 dark:to-yellow-950',
+        'min-w-[180px] p-3 cursor-pointer bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950 dark:to-yellow-950',
         'border-2 border-amber-200 dark:border-amber-800',
         // Diamond shape hint with rotated clip
         'relative',
