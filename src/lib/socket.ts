@@ -12,6 +12,63 @@ export type TypedIO = Server<ClientToServerEvents, ServerToClientEvents>;
 
 let io: TypedIO | null = null;
 
+// ======== Event Rate Limiting ========
+// Track events per socket (in-memory, per connection - no Redis needed)
+const socketEventCounts = new Map<string, { count: number; resetAt: number; warned: boolean }>();
+
+const EVENT_LIMIT = 100;        // events per minute
+const WARNING_THRESHOLD = 80;   // warn at 80%
+const WINDOW_MS = 60 * 1000;    // 1 minute window
+
+// System events exempt from rate limiting
+const SYSTEM_EVENTS = new Set([
+  'ping',
+  'pong',
+  'disconnect',
+  'disconnecting',
+  'error',
+  // Internal Socket.IO events that don't trigger client middleware
+]);
+
+/**
+ * Check if an event is a system event (exempt from rate limiting)
+ */
+function isSystemEvent(eventName: string): boolean {
+  return SYSTEM_EVENTS.has(eventName);
+}
+
+/**
+ * Emit rate limit warning to client (placeholder - implemented in Task 2)
+ */
+function emitRateLimitWarning(socket: TypedSocket, current: number, limit: number): void {
+  // Placeholder - full implementation in Task 2
+  logger.warn({
+    socketId: socket.id,
+    userId: (socket as any).userId,
+    eventCount: current,
+    limit
+  }, 'Socket rate limit warning threshold reached');
+}
+
+/**
+ * Handle rate limit exceeded - disconnect socket (placeholder - implemented in Task 2)
+ */
+function handleRateLimitExceeded(socket: TypedSocket, eventCount: number): void {
+  // Placeholder - full implementation in Task 2
+  const userId = (socket as any).userId;
+
+  logger.warn({
+    socketId: socket.id,
+    userId,
+    eventCount
+  }, 'Socket disconnected for rate limit violation');
+
+  // Disconnect after brief delay to allow error to be sent
+  setTimeout(() => {
+    socket.disconnect(true);
+  }, 100);
+}
+
 // Session check interval in ms (5 minutes)
 const SESSION_CHECK_INTERVAL = 5 * 60 * 1000;
 // Session refresh threshold (5 minutes before expiry)
@@ -303,6 +360,44 @@ export function initializeSocket(httpServer: HttpServer): TypedIO {
 
     socket.emit('authenticated');
 
+    // ======== Event Rate Limiting Middleware ========
+    // Intercept all incoming events and count them
+    socket.use((packet, next) => {
+      const eventName = packet[0] as string;
+
+      // Skip rate limiting for system events
+      if (isSystemEvent(eventName)) {
+        return next();
+      }
+
+      const socketId = socket.id;
+      const now = Date.now();
+      let tracker = socketEventCounts.get(socketId);
+
+      // Reset counter if window expired
+      if (!tracker || now > tracker.resetAt) {
+        tracker = { count: 0, resetAt: now + WINDOW_MS, warned: false };
+        socketEventCounts.set(socketId, tracker);
+      }
+
+      tracker.count++;
+
+      // Check thresholds
+      if (tracker.count >= EVENT_LIMIT) {
+        // Rate limit exceeded - disconnect
+        handleRateLimitExceeded(socket, tracker.count);
+        return next(new Error('Rate limit exceeded'));
+      }
+
+      if (tracker.count >= WARNING_THRESHOLD && !tracker.warned) {
+        // Warning threshold - notify client
+        emitRateLimitWarning(socket, tracker.count, EVENT_LIMIT);
+        tracker.warned = true;
+      }
+
+      next();
+    });
+
     // Handle subscription to incident updates
     socket.on('subscribe:incidents', (filters) => {
       const room = filters.teamId ? `team:${filters.teamId}` : 'incidents:all';
@@ -331,6 +426,9 @@ export function initializeSocket(httpServer: HttpServer): TypedIO {
     socket.on('disconnect', (reason) => {
       // Clear session monitor
       clearInterval(sessionMonitor);
+
+      // Clean up rate limiter tracker
+      socketEventCounts.delete(socket.id);
 
       logger.info({
         socketId: socket.id,
