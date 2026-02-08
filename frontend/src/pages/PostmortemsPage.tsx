@@ -237,7 +237,7 @@ export default function PostmortemsPage() {
         </div>
       </div>
 
-      {postmortems?.length === 0 ? (
+      {!postmortems || postmortems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FileText className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium">No postmortems yet</h3>
@@ -247,7 +247,7 @@ export default function PostmortemsPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {postmortems?.map((postmortem) => (
+          {postmortems.map((postmortem) => (
             <PostmortemCard key={postmortem.id} postmortem={postmortem} />
           ))}
         </div>

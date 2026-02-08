@@ -119,16 +119,19 @@ export function StatusPagesPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {statusPages?.map(page => (
-          <StatusPageCard key={page.id} statusPage={page} />
-        ))}
-        {statusPages?.length === 0 && (
-          <p className="text-muted-foreground col-span-full text-center py-8">
+      {!statusPages || statusPages.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
             No status pages yet. Create one to get started.
           </p>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {statusPages.map(page => (
+            <StatusPageCard key={page.id} statusPage={page} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
