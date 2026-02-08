@@ -43,6 +43,9 @@ import { workflowRoutes } from './routes/workflow.routes.js';
 import { workflowTemplateRoutes } from './routes/workflow-template.routes.js';
 import { statusPageRoutes } from './routes/statusPage.routes.js';
 import { statusPublicRoutes } from './routes/statusPublic.routes.js';
+import { statusComputationService } from './services/statusComputation.service.js';
+import { startMaintenanceWorker, stopMaintenanceWorker } from './workers/maintenance.worker.js';
+import { startStatusNotificationWorker, stopStatusNotificationWorker } from './workers/statusNotification.worker.js';
 
 export const app = express();
 
@@ -201,13 +204,20 @@ if (process.env.NODE_ENV !== 'test') {
       await startEscalationWorker();
       await startNotificationWorker();
       await startWorkflowWorker();
+      await startMaintenanceWorker();
+      await startStatusNotificationWorker();
       setupWorkflowTriggers();
       setupGracefulShutdown();
-      console.log('⚙️  Background workers started (escalation + notification + workflow)');
+      console.log('⚙️  Background workers started (escalation + notification + workflow + maintenance + status notification)');
     } catch (error) {
       console.error('❌ Failed to start background workers - continuing in degraded mode', error);
       // Don't crash server if Redis unavailable, just log
     }
+
+    // Warm status cache in background (don't block startup)
+    statusComputationService.warmCache().catch(err => {
+      console.warn('⚠️  Failed to warm status cache on startup:', err.message);
+    });
   });
 
   // Graceful shutdown
@@ -231,6 +241,20 @@ if (process.env.NODE_ENV !== 'test') {
         console.log('✅ Workflow worker stopped');
       } catch (error) {
         console.error('⚠️  Error stopping workflow worker:', error);
+      }
+
+      try {
+        await stopMaintenanceWorker();
+        console.log('✅ Maintenance worker stopped');
+      } catch (error) {
+        console.error('⚠️  Error stopping maintenance worker:', error);
+      }
+
+      try {
+        await stopStatusNotificationWorker();
+        console.log('✅ Status notification worker stopped');
+      } catch (error) {
+        console.error('⚠️  Error stopping status notification worker:', error);
       }
 
       await disconnectDatabase();
