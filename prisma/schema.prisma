@@ -270,14 +270,15 @@ model RefreshToken {
 }
 
 model UserDevice {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  platform    String // "ios", "android", "web"
-  deviceToken String // Push notification token
-  deviceName  String? // User-friendly device name
-  lastSeenAt  DateTime @db.Timestamptz
-  createdAt   DateTime @default(now()) @db.Timestamptz
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform         String // "ios", "android", "web"
+  deviceToken      String // Push notification token
+  deviceName       String? // User-friendly device name
+  pushSubscription Json? // Full PushSubscription object {endpoint, keys: {p256dh, auth}} for web push
+  lastSeenAt       DateTime @db.Timestamptz
+  createdAt        DateTime @default(now()) @db.Timestamptz
 
   @@unique([userId, deviceToken])
   @@index([userId])
