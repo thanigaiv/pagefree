@@ -1,3 +1,10 @@
+// Rate limit warning data
+export interface RateLimitWarningData {
+  current: number;
+  limit: number;
+  message: string;
+}
+
 // Mirror backend socket types for type safety
 export interface ServerToClientEvents {
   'incident:created': (incident: IncidentBroadcast) => void;
@@ -9,6 +16,8 @@ export interface ServerToClientEvents {
   'authenticated': () => void;
   'auth_error': (message: string) => void;
   'session_expired': () => void;
+  // Rate limiting events
+  'rate_limit_warning': (data: RateLimitWarningData) => void;
 }
 
 export interface ClientToServerEvents {

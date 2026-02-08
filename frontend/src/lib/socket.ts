@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { toast } from 'sonner';
 import type { ServerToClientEvents, ClientToServerEvents } from '@/types/socket';
 
 // Socket.io client singleton
@@ -39,6 +40,17 @@ function handleSessionExpired() {
 
 // Set up event handlers
 socket.on('session_expired', handleSessionExpired);
+
+// Handle rate limit warnings from server
+socket.on('rate_limit_warning', (data) => {
+  console.warn('Socket rate limit warning:', data);
+
+  // Show user-friendly notification
+  toast.warning(data.message, {
+    duration: 5000,
+    id: 'socket-rate-limit'  // Prevent duplicate toasts
+  });
+});
 
 socket.on('auth_error', (message) => {
   console.error('Socket auth error:', message);
