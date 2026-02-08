@@ -26,8 +26,16 @@ router.post('/subscribe', async (req: Request, res: Response, next: NextFunction
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    if (!subscription?.endpoint || !subscription?.keys) {
-      return res.status(400).json({ error: 'Invalid subscription' });
+    // Validate full PushSubscription object including required keys
+    if (!subscription?.endpoint) {
+      return res.status(400).json({ error: 'Invalid subscription: missing endpoint' });
+    }
+
+    if (!subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+      return res.status(400).json({
+        error: 'Invalid subscription: missing keys.p256dh or keys.auth',
+        hint: 'The subscription must include the full PushSubscription object with encryption keys'
+      });
     }
 
     await pushService.subscribe(
@@ -36,7 +44,11 @@ router.post('/subscribe', async (req: Request, res: Response, next: NextFunction
       req.headers['user-agent']
     );
 
-    return res.status(201).json({ success: true });
+    // Return success with VAPID public key for client reference
+    return res.status(201).json({
+      success: true,
+      vapidPublicKey: pushService.getVapidPublicKey()
+    });
   } catch (error) {
     return next(error);
   }
