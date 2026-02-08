@@ -145,6 +145,9 @@ function DependenciesDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Dependencies: {service.name}</DialogTitle>
+          <DialogDescription>
+            Manage upstream dependencies and downstream dependents for this service
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="upstream">
