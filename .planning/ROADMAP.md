@@ -224,10 +224,17 @@ Plans:
   2. System automatically updates status based on active incidents
   3. User can manually update status for maintenance windows
   4. User can notify subscribers of status changes
-**Plans**: TBD
+**Plans**: 8 plans
 
 Plans:
-- [ ] 09-01: TBD during phase planning
+- [ ] 09-01-PLAN.md - Database schema and TypeScript types for status pages
+- [ ] 09-02-PLAN.md - Status page and component services with auto-computation
+- [ ] 09-03-PLAN.md - Maintenance windows and status incidents
+- [ ] 09-04-PLAN.md - Subscriber management and notifications
+- [ ] 09-05-PLAN.md - Admin and public REST API endpoints
+- [ ] 09-06-PLAN.md - Integration with incident lifecycle and startup
+- [ ] 09-07-PLAN.md - Frontend admin UI (list, detail, create)
+- [ ] 09-08-PLAN.md - Public status page UI and integration tests
 
 ### Phase 10: Postmortems
 **Goal**: Users can generate postmortems from incident data with action item tracking
