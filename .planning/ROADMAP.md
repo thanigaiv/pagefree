@@ -26,8 +26,8 @@ See MILESTONES.md for v1.0 completion summary.
 - Integer phases (11, 12, 13): Planned milestone work
 - Decimal phases (11.1, 12.1): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 11: Service Model Foundation** - Technical services with team ownership and lifecycle management
-- [ ] **Phase 12: Service Dependencies & Graph** - Dependency relationships with visualization and cycle detection
+- [x] **Phase 11: Service Model Foundation** - Technical services with team ownership and lifecycle management
+- [x] **Phase 12: Service Dependencies & Graph** - Dependency relationships with visualization and cycle detection
 - [ ] **Phase 13: Service-Based Alert Routing** - Alerts route through services with team-based fallback
 
 ## Phase Details
@@ -61,8 +61,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Backend: Prisma schema extension, service-dependency.service.ts with cycle detection, REST endpoints
-- [ ] 12-02-PLAN.md — Frontend: React Query hooks, DependencyGraph component, ServicesPage with dependency management UI
+- [x] 12-01-PLAN.md — Backend: Prisma schema extension, service-dependency.service.ts with cycle detection, REST endpoints
+- [x] 12-02-PLAN.md — Frontend: React Query hooks, DependencyGraph component, ServicesPage with dependency management UI
 
 ### Phase 13: Service-Based Alert Routing
 **Goal**: Alerts route to teams via service routing keys, with backward-compatible fallback to existing TeamTag routing for integrations not yet configured with services
@@ -89,9 +89,9 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> 12.1 -> 13
 |-------|-----------|----------------|--------|-----------|
 | 1-10 | v1.0 | 85/85 | Complete | 2026-02-08 |
 | 11. Service Model Foundation | v1.1 | 2/2 | Complete | 2026-02-08 |
-| 12. Service Dependencies & Graph | v1.1 | 0/2 | Planned | - |
+| 12. Service Dependencies & Graph | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 13. Service-Based Alert Routing | v1.1 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-08*
+*Last updated: 2026-02-08 (Phase 12 complete)*
