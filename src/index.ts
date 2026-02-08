@@ -41,6 +41,8 @@ import { setupWorkflowTriggers, stopWorkflowTriggers } from './services/workflow
 import { initializeSocket } from './lib/socket.js';
 import { workflowRoutes } from './routes/workflow.routes.js';
 import { workflowTemplateRoutes } from './routes/workflow-template.routes.js';
+import { statusPageRoutes } from './routes/statusPage.routes.js';
+import { statusPublicRoutes } from './routes/statusPublic.routes.js';
 
 export const app = express();
 
@@ -93,6 +95,9 @@ app.use('/webhooks/twilio', twilioWebhooksRouter);
 
 // Magic links (public routes - token is the authorization)
 app.use('/magic', magicLinksRouter);
+
+// Public status pages (no auth - access token for private pages)
+app.use('/status', statusPublicRoutes);
 
 // SCIM endpoints (mount before auth middleware - uses its own auth)
 app.use('/scim/v2', scimRouter);
@@ -149,6 +154,7 @@ app.use('/api/preferences', preferencesRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/workflow-templates', workflowTemplateRoutes);
+app.use('/api/status-pages', statusPageRoutes);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
