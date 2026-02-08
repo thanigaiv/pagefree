@@ -35,6 +35,7 @@ interface SubscribeResult {
     isVerified: boolean;
     isActive: boolean;
     createdAt: Date;
+    verifyToken: string | null;
   };
   requiresVerification: boolean;
 }

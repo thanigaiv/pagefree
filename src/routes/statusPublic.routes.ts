@@ -3,7 +3,8 @@ import { statusPageService } from '../services/statusPage.service.js';
 import { statusComputationService } from '../services/statusComputation.service.js';
 import { statusIncidentService } from '../services/statusIncident.service.js';
 import { maintenanceService } from '../services/maintenance.service.js';
-import type { ComponentStatus } from '../types/statusPage.js';
+import { statusSubscriberService } from '../services/statusSubscriber.service.js';
+import type { ComponentStatus, SubscriberChannel } from '../types/statusPage.js';
 
 const router = Router();
 
@@ -153,7 +154,7 @@ router.post('/:slug/subscribe', async (req: Request, res: Response, next: NextFu
   try {
     const { slug } = req.params;
     const { token } = req.query;
-    const { channel, destination, componentIds: _componentIds, notifyOn: _notifyOn } = req.body;
+    const { channel, destination, componentIds, notifyOn } = req.body;
 
     // Verify access (private pages still need token)
     const statusPage = await statusPageService.getBySlug(slug, token as string);
@@ -174,18 +175,29 @@ router.post('/:slug/subscribe', async (req: Request, res: Response, next: NextFu
       });
     }
 
-    // Note: statusSubscriberService.subscribe() will be implemented in a later plan
-    // For now, return a placeholder response
-    const requiresVerification = channel === 'EMAIL';
+    // Call the subscriber service
+    const result = await statusSubscriberService.subscribe(
+      statusPage.id,
+      channel as SubscriberChannel,
+      destination,
+      {
+        componentIds,
+        notifyOn
+      }
+    );
 
     return res.status(201).json({
       success: true,
-      requiresVerification,
-      message: requiresVerification
+      subscriberId: result.subscriber.id,
+      requiresVerification: result.requiresVerification,
+      message: result.requiresVerification
         ? 'Please check your email to verify your subscription'
         : 'Subscription created successfully'
     });
   } catch (error) {
+    if (error instanceof Error && error.message === 'Already subscribed') {
+      return res.status(409).json({ error: 'Already subscribed to this status page' });
+    }
     return next(error);
   }
 });
@@ -202,8 +214,15 @@ router.get('/subscribe/verify', async (req: Request, res: Response, next: NextFu
       return res.status(400).json({ error: 'Verification token is required' });
     }
 
-    // Note: statusSubscriberService.verify() will be implemented in a later plan
-    // For now, return a placeholder response
+    const verified = await statusSubscriberService.verify(token as string);
+
+    if (!verified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or expired verification token'
+      });
+    }
+
     return res.json({
       success: true,
       message: 'Email verified successfully. You are now subscribed to status updates.'
@@ -215,18 +234,28 @@ router.get('/subscribe/verify', async (req: Request, res: Response, next: NextFu
 
 /**
  * GET /status/unsubscribe - Unsubscribe link handler
- * Query: token or subscriberId
+ * Query: statusPageId and destination
  */
 router.get('/unsubscribe', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { token, subscriberId } = req.query;
+    const { statusPageId, destination } = req.query;
 
-    if (!token && !subscriberId) {
-      return res.status(400).json({ error: 'token or subscriberId is required' });
+    if (!statusPageId || !destination) {
+      return res.status(400).json({ error: 'statusPageId and destination are required' });
     }
 
-    // Note: statusSubscriberService.unsubscribe() will be implemented in a later plan
-    // For now, return a placeholder response
+    const unsubscribed = await statusSubscriberService.unsubscribeByDestination(
+      statusPageId as string,
+      destination as string
+    );
+
+    if (!unsubscribed) {
+      return res.status(404).json({
+        success: false,
+        error: 'Subscription not found'
+      });
+    }
+
     return res.json({
       success: true,
       message: 'You have been unsubscribed from status updates.'
