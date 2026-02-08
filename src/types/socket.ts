@@ -14,6 +14,7 @@ export interface ServerToClientEvents {
   // Connection events
   'authenticated': () => void;
   'auth_error': (message: string) => void;
+  'session_expired': () => void;
 }
 
 // Events sent from client to server
