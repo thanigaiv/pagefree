@@ -75,3 +75,50 @@ export interface ServiceListResponse {
 export interface ServiceResponse {
   service: Service;
 }
+
+// =============================================================================
+// DEPENDENCY TYPES
+// =============================================================================
+
+// Simple service info for dependency lists
+export interface ServiceDependency {
+  id: string;
+  name: string;
+  status: ServiceStatus;
+  team: {
+    id: string;
+    name: string;
+  };
+}
+
+// Graph visualization types
+export interface ServiceGraphNode {
+  id: string;
+  name: string;
+  status: ServiceStatus;
+  teamName: string;
+  isFocused?: boolean;
+}
+
+export interface ServiceGraphEdge {
+  source: string;
+  target: string;
+}
+
+export interface ServiceGraph {
+  nodes: ServiceGraphNode[];
+  edges: ServiceGraphEdge[];
+}
+
+// API response types for dependencies
+export interface DependenciesResponse {
+  dependencies: ServiceDependency[];
+}
+
+export interface DependentsResponse {
+  dependents: ServiceDependency[];
+}
+
+export interface GraphResponse {
+  graph: ServiceGraph;
+}
