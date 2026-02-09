@@ -15,6 +15,7 @@ import { buildTemplateContext } from './template.service.js';
 import { executeWebhookWithRetry, type WebhookConfig } from '../actions/webhook.action.js';
 import { createJiraTicket, type JiraConfig, type JiraCredentials } from '../actions/jira.action.js';
 import { createLinearTicket, type LinearConfig } from '../actions/linear.action.js';
+import { scheduleRunbook } from '../../queues/runbook.queue.js';
 import type {
   WorkflowDefinition,
   WorkflowNode,
@@ -24,6 +25,7 @@ import type {
   DelayData,
   NodeResult,
   WorkflowExecutionResult,
+  RunbookActionData,
   isActionData,
   isConditionData,
   isDelayData
@@ -140,7 +142,8 @@ export async function executeWorkflow(
         context,
         secrets,
         remainingTimeout,
-        currentPath
+        currentPath,
+        execution
       );
 
       // Update path if condition node
@@ -215,7 +218,7 @@ export async function executeWorkflow(
  *
  * Routes to appropriate handler based on node type:
  * - trigger: No-op (start marker)
- * - action: Execute webhook/jira/linear
+ * - action: Execute webhook/jira/linear/runbook
  * - condition: Evaluate condition
  * - delay: Wait for duration
  */
@@ -224,7 +227,8 @@ async function executeNode(
   context: Awaited<ReturnType<typeof buildTemplateContext>>,
   secrets: Map<string, string>,
   remainingTimeout: number,
-  _currentPath: string[]
+  _currentPath: string[],
+  execution: WorkflowExecution
 ): Promise<NodeResult> {
   const startedAt = new Date();
 
@@ -239,7 +243,7 @@ async function executeNode(
       };
 
     case 'action':
-      return executeActionNode(node, context, secrets, remainingTimeout);
+      return executeActionNode(node, context, secrets, remainingTimeout, execution);
 
     case 'condition':
       return executeConditionNode(node, context);
@@ -259,13 +263,14 @@ async function executeNode(
 }
 
 /**
- * Execute an action node (webhook, jira, linear).
+ * Execute an action node (webhook, jira, linear, runbook).
  */
 async function executeActionNode(
   node: WorkflowNode,
   context: Awaited<ReturnType<typeof buildTemplateContext>>,
   secrets: Map<string, string>,
-  remainingTimeout: number
+  remainingTimeout: number,
+  execution: WorkflowExecution
 ): Promise<NodeResult> {
   const startedAt = new Date();
   const data = node.data as ActionData;
@@ -286,6 +291,9 @@ async function executeActionNode(
 
       case 'linear':
         return await executeLinearAction(node.id, data, context, secrets);
+
+      case 'runbook':
+        return await executeRunbookAction(node.id, data as RunbookActionData, context, execution);
 
       default:
         return {
@@ -444,6 +452,105 @@ async function executeLinearAction(
     startedAt,
     completedAt: new Date()
   };
+}
+
+/**
+ * Execute a runbook action via async queue (AUTO-09).
+ *
+ * Creates RunbookExecution record linked to workflow execution,
+ * then schedules for async processing via BullMQ queue.
+ * Returns immediately (non-blocking) since runbook executes async.
+ */
+async function executeRunbookAction(
+  nodeId: string,
+  data: RunbookActionData,
+  _context: Awaited<ReturnType<typeof buildTemplateContext>>,
+  execution: WorkflowExecution
+): Promise<NodeResult> {
+  const startedAt = new Date();
+
+  try {
+    // Get runbook directly from DB (system-level access for workflow execution)
+    const runbook = await prisma.runbook.findUnique({
+      where: { id: data.config.runbookId }
+    });
+
+    if (!runbook) {
+      return {
+        nodeId,
+        status: 'failed',
+        error: `Runbook not found: ${data.config.runbookId}`,
+        startedAt,
+        completedAt: new Date()
+      };
+    }
+
+    if (runbook.approvalStatus !== 'APPROVED') {
+      return {
+        nodeId,
+        status: 'failed',
+        error: `Runbook is ${runbook.approvalStatus}, not APPROVED`,
+        startedAt,
+        completedAt: new Date()
+      };
+    }
+
+    // Create RunbookExecution record with workflow execution link (AUTO-09)
+    const runbookExecution = await prisma.runbookExecution.create({
+      data: {
+        runbookId: data.config.runbookId,
+        incidentId: execution.incidentId,
+        runbookVersion: runbook.version,
+        definitionSnapshot: {
+          name: runbook.name,
+          description: runbook.description,
+          webhookUrl: runbook.webhookUrl,
+          webhookMethod: runbook.webhookMethod,
+          webhookHeaders: runbook.webhookHeaders,
+          webhookAuth: runbook.webhookAuth,
+          parameters: runbook.parameters,
+          payloadTemplate: runbook.payloadTemplate,
+          timeoutSeconds: runbook.timeoutSeconds
+        } as Prisma.InputJsonValue,
+        parameters: data.config.parameters as Prisma.InputJsonValue,
+        status: 'PENDING',
+        triggeredBy: 'workflow',
+        // Link to workflow execution for traceability (AUTO-09)
+        workflowExecutionId: execution.id
+      }
+    });
+
+    // Schedule for async execution
+    await scheduleRunbook(runbookExecution.id, data.config.runbookId, execution.incidentId);
+
+    logger.info({
+      nodeId,
+      runbookId: data.config.runbookId,
+      runbookExecutionId: runbookExecution.id,
+      workflowExecutionId: execution.id
+    }, 'Runbook action scheduled from workflow');
+
+    return {
+      nodeId,
+      status: 'completed',
+      result: {
+        runbookExecutionId: runbookExecution.id,
+        runbookName: runbook.name,
+        status: 'scheduled'
+      },
+      startedAt,
+      completedAt: new Date()
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Runbook action failed';
+    return {
+      nodeId,
+      status: 'failed',
+      error: errorMessage,
+      startedAt,
+      completedAt: new Date()
+    };
+  }
 }
 
 /**

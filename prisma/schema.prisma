@@ -858,6 +858,9 @@ model WorkflowExecution {
   failedAt    DateTime? @db.Timestamptz
   createdAt   DateTime  @default(now()) @db.Timestamptz
 
+  // Runbook executions triggered by this workflow (AUTO-09)
+  runbookExecutions RunbookExecution[]
+
   @@index([workflowId, status])
   @@index([incidentId])
   @@index([status, createdAt])
@@ -1093,6 +1096,10 @@ model RunbookExecution {
   // Incident link (optional - can be manual trigger without incident)
   incidentId         String?
   incident           Incident? @relation(fields: [incidentId], references: [id])
+
+  // Workflow link for traceability (AUTO-09)
+  workflowExecutionId String?
+  workflowExecution   WorkflowExecution? @relation(fields: [workflowExecutionId], references: [id])
 
   // Parameters used for this execution
   parameters         Json      @default("{}")
