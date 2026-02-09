@@ -117,11 +117,11 @@ Plans:
   4. Incident detail page shows "Run Runbook" button that opens modal with runbook selection
   5. Responders can manually trigger runbooks with confirmation dialog and see execution status in incident timeline
 
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 16-01: TBD
-- [ ] 16-02: TBD
+- [ ] 16-01-PLAN.md - Backend: Workflow types, executor integration, and manual trigger API
+- [ ] 16-02-PLAN.md - Frontend: Workflow builder runbook node and incident Run Runbook modal
 
 **Rationale:** Completes runbook automation by connecting to existing trigger points (workflows and manual incident actions). Delivers competitive differentiator against PagerDuty (which requires separate Runner agent).
 
@@ -172,10 +172,10 @@ Plans:
 | 13. Service-based Alert Routing | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 14. Production Hardening | v1.2 | 0/6 | Planned | - |
 | 15. Runbook Automation Foundation | v1.2 | 0/? | Not started | - |
-| 16. Runbook Integration | v1.2 | 0/? | Not started | - |
+| 16. Runbook Integration | v1.2 | 0/2 | Planned | - |
 | 17. Partner Status Pages | v1.2 | 0/? | Not started | - |
 
 ---
 
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-08 (Phase 14 planned with 6 plans)*
+*Last updated: 2026-02-09 (Phase 16 planned with 2 plans)*
