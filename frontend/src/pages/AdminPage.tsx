@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Bell, Workflow, Settings, Shield, BarChart3, Server } from 'lucide-react';
+import { Users, Users2, Bell, Workflow, Settings, Shield, BarChart3, Server } from 'lucide-react';
 
 export default function AdminPage() {
   const adminSections = [
@@ -43,6 +43,14 @@ export default function AdminPage() {
       link: '/status-pages',
       color: 'text-green-500',
       bgColor: 'bg-green-50',
+    },
+    {
+      title: 'Partners',
+      description: 'Manage partner access to status pages',
+      icon: Users2,
+      link: '/admin/partners',
+      color: 'text-indigo-500',
+      bgColor: 'bg-indigo-50',
     },
     {
       title: 'Users',
