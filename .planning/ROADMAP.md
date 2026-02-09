@@ -142,12 +142,12 @@ Plans:
   4. Partner users cannot subscribe to updates, view internal incidents, or access admin functions
   5. All partner access logs to audit system (login, status page view, access denial) with 90-day retention
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 17-01: TBD
-- [ ] 17-02: TBD
-- [ ] 17-03: TBD
+- [ ] 17-01-PLAN.md — Database models (PartnerUser, PartnerSession, PartnerMagicToken) and partner services
+- [ ] 17-02-PLAN.md — Partner magic link authentication with parallel session management
+- [ ] 17-03-PLAN.md — Partner status page access control, admin UI, and partner frontend
 
 **Rationale:** Adds authentication layer on top of existing status page system. StatusPage model and status computation already exist. Isolated risk—only affects new partner users, doesn't impact internal or existing private pages.
 
@@ -173,9 +173,9 @@ Plans:
 | 14. Production Hardening | v1.2 | 6/6 | Complete | 2026-02-09 |
 | 15. Runbook Automation Foundation | v1.2 | 2/2 | Complete | 2026-02-09 |
 | 16. Runbook Integration | v1.2 | 2/2 | Complete | 2026-02-09 |
-| 17. Partner Status Pages | v1.2 | 0/? | Not started | - |
+| 17. Partner Status Pages | v1.2 | 0/3 | Planned | - |
 
 ---
 
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-09 (Phase 16 planned with 2 plans)*
+*Last updated: 2026-02-09 (Phase 17 planned with 3 plans)*
