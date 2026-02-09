@@ -3,7 +3,7 @@ import { BottomNav } from './BottomNav';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useIsPlatformAdmin } from '@/hooks/useCurrentUser';
 import { Link, NavLink } from 'react-router-dom';
-import { Bell, Settings, AlertCircle, Workflow, BarChart3, FileText, Calendar, User } from 'lucide-react';
+import { Bell, Settings, AlertCircle, Workflow, BookOpen, BarChart3, FileText, Calendar, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MobileLayoutProps {
@@ -17,6 +17,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   const desktopNavItems = [
     { to: '/incidents', icon: AlertCircle, label: 'Incidents' },
     { to: '/workflows', icon: Workflow, label: 'Workflows' },
+    { to: '/workflows', icon: BookOpen, label: 'Runbooks' },
     { to: '/status-pages', icon: BarChart3, label: 'Status' },
     { to: '/postmortems', icon: FileText, label: 'Postmortems' },
     { to: '/schedule', icon: Calendar, label: 'Schedule' },
