@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-02-09 after v1.2 milestone completion)
 
 Milestone: v1.2 Production Readiness - COMPLETE
 Status: All 4 phases, 13 plans complete
-Last activity: 2026-02-09 - Completed quick task 3: build the full UI for managing levels for escalation policies
+Last activity: 2026-02-09 - Completed quick task 4: Implement all the schedule management features including viewing who's on-call, manage overrides, and swap shifts
 Git tag: v1.2
 
 Progress: [##############################] 100% (13/13 plans complete across 4 phases)
@@ -175,6 +175,7 @@ Research notes:
 | 1 | add a card for partners setup in the admin page. Also, make the runbook page accessible from the header | 2026-02-09 | afcefd3 | [1-add-a-card-for-partners-setup-in-the-adm](./quick/1-add-a-card-for-partners-setup-in-the-adm/) |
 | 2 | create a dedicated RunbooksPage with list, filters, create/edit, and execution history | 2026-02-09 | 8f7063a | [2-create-a-dedicated-runbookspage-with-lis](./quick/2-create-a-dedicated-runbookspage-with-lis/) |
 | 3 | build the full UI for managing levels for escalation policies | 2026-02-09 | ac89988 | [3-build-the-full-ui-for-managing-levels-fo](./quick/3-build-the-full-ui-for-managing-levels-fo/) |
+| 4 | Implement all the schedule management features including viewing who's on-call, manage overrides, and swap shifts | 2026-02-09 | 5249e36 | [4-implement-all-the-schedule-management-fe](./quick/4-implement-all-the-schedule-management-fe/) |
 
 ## Session Continuity
 
