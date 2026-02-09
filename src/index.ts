@@ -37,9 +37,11 @@ import { twilioWebhooksRouter } from './routes/webhooks/twilio-webhooks.js';
 import { startEscalationWorker, setupGracefulShutdown } from './workers/escalation.worker.js';
 import { startNotificationWorker, stopNotificationWorker } from './workers/notification.worker.js';
 import { startWorkflowWorker, stopWorkflowWorker } from './workers/workflow.worker.js';
+import { startRunbookWorker, stopRunbookWorker } from './workers/runbook.worker.js';
 import { setupWorkflowTriggers, stopWorkflowTriggers } from './services/workflow/workflow-integration.js';
 import { initializeSocket } from './lib/socket.js';
 import { workflowRoutes } from './routes/workflow.routes.js';
+import { runbookRoutes } from './routes/runbook.routes.js';
 import { workflowTemplateRoutes } from './routes/workflow-template.routes.js';
 import { statusPageRoutes } from './routes/statusPage.routes.js';
 import { statusPublicRoutes } from './routes/statusPublic.routes.js';
@@ -165,6 +167,7 @@ app.use('/api/preferences', preferencesRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/workflow-templates', workflowTemplateRoutes);
+app.use('/api/runbooks', runbookRoutes);
 app.use('/api/status-pages', statusPageRoutes);
 app.use('/api/postmortems', postmortemRouter);
 app.use('/api/services', serviceRouter);
@@ -214,11 +217,12 @@ if (process.env.NODE_ENV !== 'test') {
       await startEscalationWorker();
       await startNotificationWorker();
       await startWorkflowWorker();
+      await startRunbookWorker();
       await startMaintenanceWorker();
       await startStatusNotificationWorker();
       setupWorkflowTriggers();
       setupGracefulShutdown();
-      console.log('⚙️  Background workers started (escalation + notification + workflow + maintenance + status notification)');
+      console.log('⚙️  Background workers started (escalation + notification + workflow + runbook + maintenance + status notification)');
     } catch (error) {
       console.error('❌ Failed to start background workers - continuing in degraded mode', error);
       // Don't crash server if Redis unavailable, just log
@@ -251,6 +255,13 @@ if (process.env.NODE_ENV !== 'test') {
         console.log('✅ Workflow worker stopped');
       } catch (error) {
         console.error('⚠️  Error stopping workflow worker:', error);
+      }
+
+      try {
+        await stopRunbookWorker();
+        console.log('✅ Runbook worker stopped');
+      } catch (error) {
+        console.error('⚠️  Error stopping runbook worker:', error);
       }
 
       try {
