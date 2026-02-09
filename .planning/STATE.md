@@ -13,7 +13,7 @@ Milestone: v1.2 Production Readiness
 Phase: Phase 17 (Partner Status Pages)
 Plan: 3 of 3 complete
 Status: Phase Complete
-Last activity: 2026-02-09 - Completed 17-03 (Partner Access Control and Frontend)
+Last activity: 2026-02-09 - Completed quick task 1: add a card for partners setup in the admin page. Also, make the runbook page accessible from the header
 
 Progress: [##############################] 100% (3/3 plans complete in Phase 17)
 
@@ -168,6 +168,12 @@ Research notes:
 - Phase 15: Extends workflow system - skip research
 - Phase 16: Integration patterns - skip research
 - Phase 17: Magic link auth standard, but consider light research for session scoping patterns if team unfamiliar
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | add a card for partners setup in the admin page. Also, make the runbook page accessible from the header | 2026-02-09 | afcefd3 | [1-add-a-card-for-partners-setup-in-the-adm](./quick/1-add-a-card-for-partners-setup-in-the-adm/) |
 
 ## Session Continuity
 
