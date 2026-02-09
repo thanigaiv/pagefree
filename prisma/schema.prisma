@@ -114,6 +114,7 @@ model User {
   runbooksApproved            Runbook[]                @relation("RunbookApprovedBy")
   runbookVersions             RunbookVersion[]
   runbookExecutions           RunbookExecution[]
+  partnersCreated             PartnerUser[]            @relation("PartnerCreatedBy")
 
   @@index([email])
   @@index([oktaId])
@@ -904,6 +905,7 @@ model StatusPage {
   subscribers        StatusSubscriber[]
   maintenanceWindows MaintenanceWindow[]
   statusIncidents    StatusIncident[]
+  partnerAccess      PartnerStatusPageAccess[]
 
   @@index([teamId])
   @@index([slug])
@@ -1188,4 +1190,65 @@ model ActionItem {
 
   @@index([postmortemId])
   @@index([assigneeId, status])
+}
+
+// ============================================================================
+// PARTNER ACCESS MODELS (Phase 17)
+// ============================================================================
+
+model PartnerUser {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  isActive    Boolean  @default(true)
+  createdById String
+  createdBy   User     @relation("PartnerCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  // Relations
+  statusPageAccess PartnerStatusPageAccess[]
+  sessions         PartnerSession[]
+  magicTokens      PartnerMagicToken[]
+
+  @@index([email])
+  @@index([isActive])
+}
+
+model PartnerStatusPageAccess {
+  id            String      @id @default(cuid())
+  partnerUserId String
+  partnerUser   PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+  statusPageId  String
+  statusPage    StatusPage  @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+  grantedById   String      // User who granted access
+  grantedAt     DateTime    @default(now()) @db.Timestamptz
+
+  @@unique([partnerUserId, statusPageId])
+  @@index([partnerUserId])
+  @@index([statusPageId])
+}
+
+model PartnerSession {
+  sid          String      @id
+  sess         Json
+  expire       DateTime    @db.Timestamptz
+  partnerUserId String?
+  partnerUser   PartnerUser? @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+
+  @@index([expire])
+}
+
+model PartnerMagicToken {
+  id            String      @id @default(cuid())
+  tokenHash     String      @unique // SHA-256 hash, never plaintext
+  partnerUserId String
+  partnerUser   PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+  used          Boolean     @default(false)
+  usedAt        DateTime?   @db.Timestamptz
+  expiresAt     DateTime    @db.Timestamptz
+  createdAt     DateTime    @default(now()) @db.Timestamptz
+
+  @@index([tokenHash])
+  @@index([expiresAt])
 }
