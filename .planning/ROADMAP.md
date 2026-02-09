@@ -170,9 +170,9 @@ Plans:
 | 11. Service Model Foundation | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 12. Service Dependencies Graph | v1.1 | 2/2 | Complete | 2026-02-08 |
 | 13. Service-based Alert Routing | v1.1 | 2/2 | Complete | 2026-02-08 |
-| 14. Production Hardening | v1.2 | 0/6 | Planned | - |
-| 15. Runbook Automation Foundation | v1.2 | 0/? | Not started | - |
-| 16. Runbook Integration | v1.2 | 0/2 | Planned | - |
+| 14. Production Hardening | v1.2 | 6/6 | Complete | 2026-02-09 |
+| 15. Runbook Automation Foundation | v1.2 | 2/2 | Complete | 2026-02-09 |
+| 16. Runbook Integration | v1.2 | 2/2 | Complete | 2026-02-09 |
 | 17. Partner Status Pages | v1.2 | 0/? | Not started | - |
 
 ---
