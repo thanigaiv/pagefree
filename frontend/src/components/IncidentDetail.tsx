@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Incident } from '@/types/incident';
 import { useTimeline } from '@/hooks/useTimeline';
 import { IncidentTimeline } from './IncidentTimeline';
@@ -6,10 +7,12 @@ import { ExternalLinks } from './ExternalLinks';
 import { AddNoteForm } from './AddNoteForm';
 import { MetadataEditor } from './MetadataEditor';
 import { IncidentActions } from './IncidentActions';
+import { RunbookExecutionModal } from './RunbookExecutionModal';
 import { useUpdateMetadata } from '@/hooks/useUpdateMetadata';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Server } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Server, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 
@@ -27,6 +30,7 @@ export function IncidentDetail({
   const { data: timeline, isLoading: timelineLoading } = useTimeline(incident.id);
   const service = incident.metadata?.service as string || incident.team.name;
   const updateMetadata = useUpdateMetadata(incident.id);
+  const [showRunbookModal, setShowRunbookModal] = useState(false);
 
   const handleMetadataUpdate = (newMetadata: Record<string, unknown>) => {
     updateMetadata.mutate({ metadata: newMetadata });
@@ -98,12 +102,23 @@ export function IncidentDetail({
       )}
 
       {/* Actions */}
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-2">
         <IncidentActions
           incident={incident}
           variant={isInline ? 'inline' : 'full'}
           onAcknowledgeSuccess={onAcknowledgeSuccess}
         />
+        {/* Run Runbook button (AUTO-10) */}
+        {!isInline && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowRunbookModal(true)}
+          >
+            <BookOpen className="h-4 w-4 mr-2" />
+            Run Runbook
+          </Button>
+        )}
       </div>
 
       {/* Metadata editor (per user decision: inline editing) */}
@@ -138,6 +153,16 @@ export function IncidentDetail({
         metadata={incident.metadata}
         alerts={incident.alerts}
       />
+
+      {/* Runbook execution modal */}
+      {!isInline && (
+        <RunbookExecutionModal
+          incidentId={incident.id}
+          teamId={incident.teamId}
+          isOpen={showRunbookModal}
+          onClose={() => setShowRunbookModal(false)}
+        />
+      )}
     </div>
   );
 }
