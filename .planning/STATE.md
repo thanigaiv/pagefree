@@ -174,6 +174,7 @@ Research notes:
 |---|-------------|------|--------|-----------|
 | 1 | add a card for partners setup in the admin page. Also, make the runbook page accessible from the header | 2026-02-09 | afcefd3 | [1-add-a-card-for-partners-setup-in-the-adm](./quick/1-add-a-card-for-partners-setup-in-the-adm/) |
 | 2 | create a dedicated RunbooksPage with list, filters, create/edit, and execution history | 2026-02-09 | 8f7063a | [2-create-a-dedicated-runbookspage-with-lis](./quick/2-create-a-dedicated-runbookspage-with-lis/) |
+| 3 | build the full UI for managing levels for escalation policies | 2026-02-09 | ac89988 | [3-build-the-full-ui-for-managing-levels-fo](./quick/3-build-the-full-ui-for-managing-levels-fo/) |
 
 ## Session Continuity
 
