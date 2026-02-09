@@ -1,7 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../config/database.js';
 import { incidentService } from '../services/incident.service.js';
 import { permissionService } from '../services/permission.service.js';
+import { validateParameters } from '../services/runbook/runbook-executor.service.js';
+import { scheduleRunbook } from '../queues/runbook.queue.js';
+import { auditService } from '../services/audit.service.js';
+import type { RunbookParameterSchema } from '../types/runbook.js';
 
 const router = Router();
 
@@ -359,6 +365,143 @@ router.get('/:id/timeline', async (req: Request, res: Response, next: NextFuncti
 
     const timeline = await incidentService.getTimeline(req.params.id);
     return res.json({ timeline });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// GET /api/incidents/:id/runbooks/executions - List runbook executions for incident
+router.get('/:id/runbooks/executions', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const incident = await incidentService.getById(req.params.id);
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+
+    const permission = permissionService.canViewTeam((req as any).user, incident.teamId);
+    if (!permission.allowed) {
+      return res.status(403).json({ error: permission.reason });
+    }
+
+    const executions = await prisma.runbookExecution.findMany({
+      where: { incidentId: req.params.id },
+      include: {
+        runbook: { select: { name: true, description: true } },
+        executedBy: { select: { id: true, firstName: true, lastName: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return res.json({ executions });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// POST /api/incidents/:id/runbooks/:runbookId/execute - Manual runbook trigger (AUTO-10)
+router.post('/:id/runbooks/:runbookId/execute', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id: incidentId, runbookId } = req.params;
+    const { parameters } = req.body;
+    const user = (req as any).user;
+
+    // Get incident for team check
+    const incident = await incidentService.getById(incidentId);
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+
+    // Check team access - must be able to respond to incident
+    const permission = permissionService.canRespondToIncident(user, incident.teamId);
+    if (!permission.allowed) {
+      return res.status(403).json({ error: permission.reason });
+    }
+
+    // Get runbook
+    const runbook = await prisma.runbook.findUnique({
+      where: { id: runbookId }
+    });
+    if (!runbook) {
+      return res.status(404).json({ error: 'Runbook not found' });
+    }
+
+    // Check runbook is APPROVED
+    if (runbook.approvalStatus !== 'APPROVED') {
+      return res.status(400).json({
+        error: `Runbook is ${runbook.approvalStatus}, only APPROVED runbooks can be executed`
+      });
+    }
+
+    // Check runbook team scope (if team-scoped, must match incident team)
+    if (runbook.teamId && runbook.teamId !== incident.teamId) {
+      return res.status(403).json({
+        error: 'Runbook is scoped to a different team'
+      });
+    }
+
+    // Validate parameters against runbook schema
+    const validation = validateParameters(
+      runbook.parameters as unknown as RunbookParameterSchema,
+      parameters || {}
+    );
+    if (!validation.valid) {
+      return res.status(400).json({
+        error: 'Invalid parameters',
+        details: validation.errors
+      });
+    }
+
+    // Create RunbookExecution record
+    const execution = await prisma.runbookExecution.create({
+      data: {
+        runbookId,
+        incidentId,
+        runbookVersion: runbook.version,
+        definitionSnapshot: {
+          name: runbook.name,
+          description: runbook.description,
+          webhookUrl: runbook.webhookUrl,
+          webhookMethod: runbook.webhookMethod,
+          webhookHeaders: runbook.webhookHeaders,
+          webhookAuth: runbook.webhookAuth,
+          parameters: runbook.parameters,
+          payloadTemplate: runbook.payloadTemplate,
+          timeoutSeconds: runbook.timeoutSeconds
+        } as Prisma.InputJsonValue,
+        parameters: (parameters || {}) as Prisma.InputJsonValue,
+        status: 'PENDING',
+        triggeredBy: 'manual',
+        executedById: user.id
+      }
+    });
+
+    // Schedule for execution
+    await scheduleRunbook(execution.id, runbookId, incidentId);
+
+    // Audit log (AUTO-10 requirement)
+    await auditService.log({
+      action: 'runbook.manual_trigger',
+      resourceType: 'runbook',
+      resourceId: runbookId,
+      userId: user.id,
+      severity: 'INFO',
+      metadata: {
+        executionId: execution.id,
+        incidentId,
+        runbookName: runbook.name,
+        parameters
+      }
+    });
+
+    return res.status(201).json({
+      execution: {
+        id: execution.id,
+        runbookId,
+        runbookName: runbook.name,
+        status: execution.status,
+        triggeredBy: execution.triggeredBy
+      }
+    });
   } catch (error) {
     return next(error);
   }
