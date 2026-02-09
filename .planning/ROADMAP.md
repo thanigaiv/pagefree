@@ -173,9 +173,9 @@ Plans:
 | 14. Production Hardening | v1.2 | 6/6 | Complete | 2026-02-09 |
 | 15. Runbook Automation Foundation | v1.2 | 2/2 | Complete | 2026-02-09 |
 | 16. Runbook Integration | v1.2 | 2/2 | Complete | 2026-02-09 |
-| 17. Partner Status Pages | v1.2 | 0/3 | Planned | - |
+| 17. Partner Status Pages | v1.2 | 3/3 | Complete | 2026-02-09 |
 
 ---
 
 *Roadmap created: 2026-02-08*
-*Last updated: 2026-02-09 (Phase 17 planned with 3 plans)*
+*Last updated: 2026-02-09 (Phase 17 complete - milestone v1.2 complete)*
