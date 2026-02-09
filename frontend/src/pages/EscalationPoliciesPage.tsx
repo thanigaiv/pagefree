@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTeams, useTeamWithMembers } from '@/hooks/useTeams';
 import {
   useEscalationPoliciesByTeam,
@@ -69,7 +69,15 @@ const defaultLevelForm: LevelFormData = {
 
 export default function EscalationPoliciesPage() {
   const { data: teams } = useTeams();
-  const [selectedTeamId, setSelectedTeamId] = useState<string>('');
+  const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(undefined);
+
+  // Default to first team when teams load
+  useEffect(() => {
+    if (teams && teams.length > 0 && !selectedTeamId) {
+      setSelectedTeamId(teams[0].id);
+    }
+  }, [teams, selectedTeamId]);
+
   const { data: policies, isLoading } = useEscalationPoliciesByTeam(selectedTeamId);
   const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
   const { data: selectedPolicy, refetch: refetchPolicy } = useEscalationPolicy(selectedPolicyId || undefined);
