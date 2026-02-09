@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Milestone v1.2 Production Readiness - Phase 16 in progress
+**Current focus:** Milestone v1.2 Production Readiness - Phase 17 in progress
 
 ## Current Position
 
 Milestone: v1.2 Production Readiness
-Phase: Phase 16 (Runbook Integration)
-Plan: 2 of 2 complete
-Status: Phase Complete
-Last activity: 2026-02-09 - Completed 16-02 (Runbook Execution UI)
+Phase: Phase 17 (Partner Status Pages)
+Plan: 1 of 3 complete
+Status: In Progress
+Last activity: 2026-02-09 - Completed 17-01 (Partner Data Models)
 
-Progress: [##############################] 100% (2/2 plans complete in Phase 16)
+Progress: [##########--------------------] 33% (1/3 plans complete in Phase 17)
 
 ## Performance Metrics
 
@@ -50,14 +50,15 @@ Progress: [##############################] 100% (2/2 plans complete in Phase 16)
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 **v1.2 Metrics:**
-- Plans completed: 10
-- Time elapsed: 47 min
+- Plans completed: 11
+- Time elapsed: 50 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 14. Production Hardening | 6/6 | 28 min | 4.7 min |
 | 15. Runbook Automation Foundation | 2/2 | 10 min | 5 min |
 | 16. Runbook Integration | 2/2 | 9 min | 4.5 min |
+| 17. Partner Status Pages | 1/3 | 3 min | 3 min |
 
 ## Accumulated Context
 
@@ -124,6 +125,11 @@ See PROJECT.md Key Decisions table for full list.
 - Team-scoped filtering shows team + global runbooks
 - Confirmation dialog required before execution (AUTO-10)
 
+**Phase 17-01 Decisions:**
+- Separate PartnerSession table from internal Session for isolation
+- PartnerMagicToken stores tokenHash (SHA-256) never plaintext
+- PartnerStatusPageAccess uses composite unique on partnerUserId+statusPageId
+
 **Coverage validation:**
 - Production Hardening: HARD-01, HARD-02, HARD-03, HARD-04, HARD-05, HARD-06 (6 reqs)
 - Runbook Foundation: AUTO-07, AUTO-08 (2 reqs)
@@ -138,9 +144,9 @@ See PROJECT.md Key Decisions table for full list.
 
 ### Pending Todos
 
-Phase 16 (Runbook Integration) - COMPLETE (2/2 plans).
+Phase 17 (Partner Status Pages) - IN PROGRESS (1/3 plans).
 
-**Next action:** Start Phase 17 (Partner Pages)
+**Next action:** Execute 17-02 (Partner Authentication)
 
 ### Blockers/Concerns
 
@@ -161,6 +167,6 @@ Research notes:
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 16-02 (Runbook Execution UI) - Phase 16 complete
-Resume file: .planning/phases/16-runbook-integration/16-02-SUMMARY.md
-Next action: Start Phase 17 (Partner Pages)
+Stopped at: Completed 17-01 (Partner Data Models)
+Resume file: .planning/phases/17-partner-status-pages/17-01-SUMMARY.md
+Next action: Execute 17-02 (Partner Authentication)
