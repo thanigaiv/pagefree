@@ -518,12 +518,15 @@ export default function ServicesPage() {
           <Button
             variant={viewMode === 'graph' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewMode('graph')}
+            onClick={() => {
+              console.log('Graph button clicked, selectedServiceId:', selectedServiceId);
+              setViewMode('graph');
+            }}
             disabled={!selectedServiceId}
-            title={!selectedServiceId ? 'Select a service to view its dependency graph' : ''}
+            title={!selectedServiceId ? 'Select a service to view its dependency graph' : `View graph for selected service`}
           >
             <Network className="h-4 w-4 mr-1" />
-            Graph
+            Graph {selectedServiceId && `(${selectedServiceId.substring(0, 8)}...)`}
           </Button>
         </div>
       </div>
@@ -564,7 +567,10 @@ export default function ServicesPage() {
                 <Card
                   key={service.id}
                   className={`${service.status === 'ARCHIVED' ? 'opacity-60' : ''} ${selectedServiceId === service.id ? 'ring-2 ring-primary' : ''} cursor-pointer transition-all hover:shadow-md`}
-                  onClick={() => setSelectedServiceId(service.id)}
+                  onClick={() => {
+                    console.log('Card clicked, setting selectedServiceId to:', service.id);
+                    setSelectedServiceId(service.id);
+                  }}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">

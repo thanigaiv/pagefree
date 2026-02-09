@@ -41,6 +41,8 @@ On desktop, the bottom navigation is hidden. Use the top-level links or navigate
 
 The Incidents Dashboard is the primary screen for on-call engineers. It provides a real-time view of all incidents in the system.
 
+![Incidents Dashboard Overview](screenshots/incidents/dashboard-overview.png)
+
 ### Connection Status
 
 A banner at the top indicates your real-time connection status. PageFree uses WebSockets to push incident updates instantly. If the connection drops, the banner will show the reconnection status.
@@ -52,6 +54,8 @@ At the top of the dashboard, a metrics bar shows:
 - **Acknowledged** -- Number of acknowledged incidents
 - **Critical** -- Number of critical-priority open or acknowledged incidents
 
+![Dashboard Metrics](screenshots/incidents/dashboard-metrics.png)
+
 ### Filtering Incidents
 
 Use the filter controls to narrow down the incident list:
@@ -59,6 +63,8 @@ Use the filter controls to narrow down the incident list:
 - **Status** -- Filter by OPEN, ACKNOWLEDGED, or RESOLVED
 - **Priority** -- Filter by CRITICAL, HIGH, MEDIUM, or LOW
 - **Search** -- Free-text search across incident titles and descriptions
+
+![Dashboard Filters](screenshots/incidents/dashboard-filters.png)
 
 ### Filter Presets
 
@@ -70,9 +76,13 @@ Select multiple incidents using the checkboxes and perform bulk operations:
 - **Acknowledge** -- Acknowledge all selected incidents at once
 - **Resolve** -- Resolve all selected incidents at once
 
+![Bulk Actions](screenshots/incidents/dashboard-bulk-actions.png)
+
 ### Expandable Rows
 
 Click on any incident to expand it inline and see additional details without leaving the dashboard.
+
+![Expanded Row](screenshots/incidents/dashboard-expanded-row.png)
 
 ### Pagination
 
@@ -94,6 +104,8 @@ If PageFree detects it can be installed as a Progressive Web App, an install but
 
 Click on an incident title or navigate to its URL to see the full detail view.
 
+![Incident Detail](screenshots/incidents/incident-detail.png)
+
 ### Incident Information
 
 - **Title** -- The incident title or alert fingerprint
@@ -109,6 +121,8 @@ Click on an incident title or navigate to its URL to see the full detail view.
 - **Assign** -- Reassign the incident to a different engineer
 - **Back to Incidents** -- Return to the dashboard
 
+![Incident Actions](screenshots/incidents/incident-actions.png)
+
 ---
 
 ## Workflows
@@ -116,6 +130,8 @@ Click on an incident title or navigate to its URL to see the full detail view.
 **Route:** `/workflows`
 
 The Workflows page lets you view and manage automated response workflows.
+
+![Workflows List](screenshots/workflows/workflows-list.png)
 
 ### My Workflows Tab
 
@@ -131,6 +147,8 @@ Displays all workflows created by your team. Each workflow card shows:
 - **Status** -- All, Enabled, or Disabled
 - **Search** -- Search by workflow name
 
+![Workflow Filters](screenshots/workflows/workflows-filters.png)
+
 ### Template Library Tab
 
 Browse pre-built workflow templates organized by category:
@@ -139,6 +157,8 @@ Browse pre-built workflow templates organized by category:
 - **Auto-resolution** -- Automatically resolve incidents matching certain criteria
 
 Click a template to create a new workflow based on it.
+
+![Template Library](screenshots/workflows/workflow-template-library.png)
 
 ### Creating a Workflow
 
@@ -156,6 +176,8 @@ Use the duplicate action on any workflow card to create a copy you can modify in
 
 The visual workflow builder uses a three-column layout:
 
+![Workflow Builder Overview](screenshots/workflows/workflow-builder-overview.png)
+
 ### Sidebar (Left)
 
 The sidebar lists available node types that you can drag onto the canvas:
@@ -164,9 +186,13 @@ The sidebar lists available node types that you can drag onto the canvas:
 - **Condition** -- Branches the flow based on a condition (e.g., priority level, team)
 - **Delay** -- Adds a timed pause before the next step
 
+![Workflow Sidebar](screenshots/workflows/workflow-builder-sidebar.png)
+
 ### Canvas (Center)
 
 The drag-and-drop canvas where you arrange and connect nodes. Nodes are automatically laid out using dagre graph layout. Connect nodes by dragging from one node's output handle to another node's input handle.
+
+![Workflow Canvas](screenshots/workflows/workflow-builder-canvas.png)
 
 ### Configuration Panel (Right)
 
@@ -175,6 +201,8 @@ Click any node on the canvas to open its configuration panel. Each node type has
 - **Action nodes** -- Action type, target, message template
 - **Condition nodes** -- Field, operator, value
 - **Delay nodes** -- Duration
+
+![Workflow Configuration](screenshots/workflows/workflow-builder-config.png)
 
 ### Workflow Metadata
 
@@ -198,6 +226,8 @@ At the top, set the workflow:
 
 Manage public and private status pages that communicate system health to your users and stakeholders.
 
+![Status Pages List](screenshots/status-pages/status-pages-list.png)
+
 ### Creating a Status Page
 
 Click **New Status Page** and fill in:
@@ -217,6 +247,8 @@ From the detail view you can:
 - **View Public URL** -- Copy the public URL to share with stakeholders
 - **Open Public Page** -- Preview the page as external users see it
 
+![Status Page Detail](screenshots/status-pages/status-page-detail.png)
+
 ### Component Status Levels
 
 Each component has a status:
@@ -227,6 +259,8 @@ Each component has a status:
 - **Under Maintenance** -- Scheduled maintenance in progress
 
 The overall page status is automatically computed as the worst status among all components.
+
+![Status Page Components](screenshots/status-pages/status-page-components.png)
 
 ---
 
@@ -243,6 +277,8 @@ The page displays:
 
 For private pages, the URL must include a `?token=<access-token>` query parameter.
 
+![Public Status Page](screenshots/status-pages/public-status-page.png)
+
 ---
 
 ## Postmortems
@@ -250,6 +286,8 @@ For private pages, the URL must include a `?token=<access-token>` query paramete
 **Route:** `/postmortems`
 
 Postmortems document what happened during an incident, why it happened, and what the team will do to prevent recurrence.
+
+![Postmortems List](screenshots/postmortems/postmortems-list.png)
 
 ### Postmortem List
 
@@ -284,6 +322,8 @@ A markdown editor for writing the postmortem report. A template is provided with
 
 The editor supports full Markdown with live preview.
 
+![Postmortem Report](screenshots/postmortems/postmortem-report.png)
+
 #### Timeline Tab
 
 An auto-generated chronological timeline of the incident, showing:
@@ -292,12 +332,16 @@ An auto-generated chronological timeline of the incident, showing:
 - Assignment changes
 - Key actions taken
 
+![Postmortem Timeline](screenshots/postmortems/postmortem-timeline.png)
+
 #### Action Items Tab
 
 Track remediation tasks:
 - Add action items with descriptions and assignees
 - Mark items as complete
 - Track completion progress
+
+![Postmortem Action Items](screenshots/postmortems/postmortem-action-items.png)
 
 ### Publishing
 
@@ -319,6 +363,8 @@ This integrates with the backend scheduling system which supports:
 - Calendar sync with Google Calendar and Microsoft Outlook
 - Override management for ad-hoc on-call swaps
 
+![Schedules Overview](screenshots/schedules/schedules-overview.png)
+
 ---
 
 ## Profile & Settings
@@ -331,6 +377,8 @@ The Profile page has four sections:
 
 Displays your account information synced from Okta (name, email, role). This information is read-only and managed by your identity provider.
 
+![Profile Account](screenshots/profile/profile-account.png)
+
 ### Notification Preferences
 
 Configure how you want to receive alerts:
@@ -341,6 +389,8 @@ Configure how you want to receive alerts:
 - **Slack** -- Receive alerts in Slack
 - **Microsoft Teams** -- Receive alerts in Teams
 
+![Notification Preferences](screenshots/profile/profile-notifications.png)
+
 ### Mobile & Push Settings
 
 Configure mobile-specific settings:
@@ -348,10 +398,14 @@ Configure mobile-specific settings:
 - Test push notification delivery
 - Register your device for push alerts
 
+![Mobile & Push Settings](screenshots/profile/profile-mobile.png)
+
 ### Security
 
 - **Biometric Authentication** -- Enable Face ID or Touch ID for quick login on supported devices
 - **Session Management** -- View and manage active sessions
+
+![Security Settings](screenshots/profile/profile-security.png)
 
 ---
 
@@ -362,6 +416,8 @@ Configure mobile-specific settings:
 > Platform administrators only.
 
 The Integrations page allows admins to configure external monitoring tool connections.
+
+![Integrations List](screenshots/integrations/integrations-list.png)
 
 ### Supported Integrations
 
@@ -427,6 +483,8 @@ On-call engineers can respond to SMS alerts:
 
 PageFree is built as a Progressive Web App (PWA) and can be installed on mobile devices for a native-like experience.
 
+![Mobile Bottom Navigation](screenshots/mobile/mobile-bottom-nav.png)
+
 ### Installing the PWA
 
 1. Open PageFree in your mobile browser (Chrome on Android, Safari on iOS)
@@ -434,12 +492,16 @@ PageFree is built as a Progressive Web App (PWA) and can be installed on mobile 
 3. On Chrome: tap "Add to Home Screen"
 4. On Safari: tap the Share button, then "Add to Home Screen"
 
+![PWA Install Prompt](screenshots/mobile/mobile-pwa-install.png)
+
 ### Offline Support
 
 PageFree caches critical resources for offline access. When offline:
 - You can view recently loaded incident data
 - An offline indicator appears at the bottom of the screen
 - Actions are queued and executed when connectivity returns
+
+![Mobile Incidents View](screenshots/mobile/mobile-incidents.png)
 
 ### Push Notifications
 
@@ -497,6 +559,8 @@ Returns the application and database status. Use this for load balancer health c
 
 PageFree supports multiple authentication methods:
 
+![Okta Login](screenshots/authentication/login-okta.png)
+
 ### Okta OAuth (Primary)
 
 The primary authentication method. Users are redirected to Okta for login and provisioned automatically via SCIM.
@@ -508,6 +572,8 @@ For emergency access when Okta is unavailable:
 npm run create-breakglass
 ```
 This creates a local account with username/password authentication.
+
+![Emergency Login](screenshots/authentication/login-emergency.png)
 
 ### Magic Links
 
