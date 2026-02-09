@@ -24,6 +24,7 @@ import {
   Trash2,
   ArrowLeftRight,
   Globe,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,6 +73,12 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   useSchedules,
   useScheduleOverrides,
@@ -215,15 +222,24 @@ function ScheduleCard({
         {/* Current On-Call Indicator */}
         {currentOnCallUserId && (
           <div className="flex items-center gap-2 mb-3 p-2 bg-muted rounded-md">
-            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-3 w-3 text-primary" />
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+              {currentOnCallUserId.slice(0, 2).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium">Current On-Call</p>
-              <p
-                className="text-xs text-muted-foreground truncate"
-                title="Based on rotation order"
-              >
+              <div className="flex items-center gap-1">
+                <p className="text-xs font-medium">Current On-Call</p>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Based on rotation order (first in queue)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
                 {currentOnCallUserId.slice(0, 8)}...
               </p>
             </div>
