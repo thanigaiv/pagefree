@@ -2,20 +2,20 @@
 
 ## What This Is
 
-A production-ready Digital Operations Reliability Platform that orchestrates incident response for 50+ on-call engineers. Features a complete alert pipeline (ingestion, deduplication, routing, escalation) with service-based routing through a comprehensive service catalog, multi-channel notifications (email, SMS, Slack, Teams, push, voice), on-call scheduling with timezone/DST handling, a React dashboard with real-time WebSocket updates, service dependency tracking with visual graphs, a visual no-code workflow automation builder, auto-computed status pages, and postmortem documentation with action item tracking. Built as a cost-effective PagerDuty replacement with enhanced automation capabilities, service ownership clarity, and simpler integration setup.
+A production-ready Digital Operations Reliability Platform that orchestrates incident response for 50+ on-call engineers. Features a complete alert pipeline (ingestion, deduplication, routing, escalation) with service-based routing through a comprehensive service catalog, multi-channel notifications (email, SMS, Slack, Teams, push, voice), on-call scheduling with timezone/DST handling, a React dashboard with real-time WebSocket updates, service dependency tracking with visual graphs, a visual no-code workflow automation builder with webhook-based runbook automation, auto-computed status pages with authenticated partner access, and postmortem documentation with action item tracking. Production-hardened with VAPID-based web push, Redis rate limiting, Socket.IO session validation, and WebSocket event throttling. Built as a cost-effective PagerDuty replacement with enhanced automation capabilities (including pre-approved remediation scripts), service ownership clarity, and simpler integration setup.
 
 ## Core Value
 
 Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds, with clear escalation paths. If alerts don't reach the right person at the right time, nothing else matters.
 
-## Current Milestone: v1.2 Production Readiness
+## Recent Milestone: v1.2 Production Readiness (Shipped 2026-02-09)
 
 **Goal:** Make the platform production-ready for team migration while adding runbook automation and partner status page access.
 
-**Target features:**
-- Production hardening (PWA icons, VAPID keys, webhook test fixes, socket auth, WebSocket rate limiting)
-- Runbook automation with pre-approved admin-managed scripts
-- Partner/contractor authenticated access to status pages
+**Shipped features:**
+- Production hardening (PWA PNG icons, VAPID keys, webhook timestamp validation, Socket.IO session validation, Redis API rate limiting, WebSocket event rate limiting)
+- Runbook automation with pre-approved admin-managed scripts, webhook-based execution, BullMQ queue processing, workflow integration, and manual incident triggering
+- Partner/contractor authenticated access to status pages via magic link authentication with scoped read-only access
 
 ## Requirements
 
@@ -90,16 +90,35 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 - ✓ Service directory with search, filter by team/status — v1.1 (React Query with optimistic updates)
 - ✓ Service dependency relationships with cycle detection — v1.1 (DFS-based graph validation)
 - ✓ Visual dependency graph with upstream/downstream views — v1.1 (React Flow + dagre auto-layout)
-- ✓ Alert routing via service routing_key — v1.1 (three-tier routing with TeamTag fallback)
+- ✓ Alert routing via service_key — v1.1 (three-tier routing with TeamTag fallback)
 - ✓ Integration default service configuration — v1.1 (with ACTIVE-only service dropdown)
 - ✓ Service escalation policy precedence — v1.1 (service overrides team default)
 - ✓ Service display on incident details — v1.1 (conditional rendering for legacy incidents)
 
+**Production Hardening (v1.2):**
+- ✓ VAPID keys for web push notifications — v1.2 (web-push library with signature verification)
+- ✓ Production-ready PWA icons — v1.2 (PNG assets at 192x192, 512x512, 180x180)
+- ✓ Socket.IO session validation — v1.2 (PostgreSQL session store validation, 5-min refresh)
+- ✓ Webhook test suite fixes — v1.2 (timestamp validation, 27/27 tests passing)
+- ✓ Redis-backed API rate limiting — v1.2 (3-tier: webhook/api/public with graceful degradation)
+- ✓ WebSocket event rate limiting — v1.2 (100/min with 80% warning threshold)
+
+**Runbook Automation (v1.2):**
+- ✓ Pre-approved runbook script library — v1.2 (approval workflow DRAFT→APPROVED→DEPRECATED)
+- ✓ Webhook-based execution infrastructure — v1.2 (BullMQ queue, 3-retry exponential backoff)
+- ✓ Workflow builder runbook action nodes — v1.2 (visual workflow integration)
+- ✓ Manual runbook triggering from incidents — v1.2 (Run Runbook button with confirmation)
+
+**Partner Status Pages (v1.2):**
+- ✓ Partner account creation and management — v1.2 (admin UI with access assignment)
+- ✓ Magic link authentication — v1.2 (SHA-256 hashed tokens, 15-min expiry)
+- ✓ Scoped read-only status page access — v1.2 (separate partner.sid sessions)
+- ✓ Partner audit logging — v1.2 (access events with 90-day retention)
+
 ### Active
 
-**Deferred from v1.0:**
-- [ ] Runbook automation (execute scripts on incident trigger) — deferred for security review (sandboxing required)
-- [ ] Public status pages for customer-facing services — deferred to v2
+**Deferred:**
+- [ ] Public status pages for customer-facing services — deferred to future milestone
 
 ### Out of Scope
 
@@ -111,22 +130,20 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 
 ## Context
 
-**Current State (post v1.1):**
-- v1.1 shipped with ~62,000 lines of TypeScript (total codebase)
+**Current State (post v1.2):**
+- v1.2 shipped with ~68,000 lines of TypeScript (total codebase)
 - Tech stack: Express.js + Prisma + PostgreSQL (backend), React + Vite + TanStack Query + shadcn/ui (frontend)
 - Infrastructure: BullMQ + Redis (queues), Socket.io (real-time), AWS SES/SNS (notifications), Twilio (SMS/voice)
 - **v1.0:** 10 phases, 85 plans, 360 commits (shipped 2026-02-08)
 - **v1.1:** 3 phases, 6 plans, 17 commits (shipped 2026-02-08, same day)
-- 91/92 total requirements satisfied across v1.0 + v1.1 (1 intentionally deferred: AUTO-06)
-- Phase 13 UAT: 6/7 tests passed (1 environmental issue resolved)
+- **v1.2:** 4 phases, 13 plans, 35 commits (shipped 2026-02-09)
+- 105/106 total requirements satisfied across v1.0 + v1.1 + v1.2 (1 deferred: public status pages)
+- All Phase 2 webhook tests passing (27/27)
+- Production-ready: session validation, rate limiting, VAPID keys, PWA icons complete
 
 **Known Tech Debt:**
-- AUTO-06 runbook automation deferred for security review
-- PWA icons are SVG placeholders (need production PNGs)
-- VAPID keys need generation before push notification deployment
-- 10 failing Phase 2 webhook tests (regression from Phase 4 changes)
-- Socket authentication needs session verification enhancement for production
-- No rate limiting on WebSocket events
+- None blocking production deployment
+- Quick tasks added RunbooksPage (1041 lines) and Partners card (phase 17 followup)
 
 **Migration Strategy:**
 - Phased rollout — migrate team by team to de-risk
@@ -166,6 +183,25 @@ Reliable alert delivery and escalation - ensuring critical alerts reach the righ
 | Routing key immutable after creation | Prevent breaking integrations, enforce via UI | ✓ Good — Clear constraint, forces intentional service design |
 | ACTIVE-only services in dropdowns | Reduce noise, focus on operational services | ✓ Good — Users only see relevant services in integration config |
 | Service escalation policy as optional override | Flexibility without forcing per-service configuration | ✓ Good — Defaults to team policy, allows service-specific escalation when needed |
+| **v1.2 Production Hardening Decisions** | | |
+| web-push library for VAPID signing | Standard approach, not hand-rolling crypto | ✓ Good — Proper signature verification, secure web push |
+| Sharp for SVG-to-PNG icon conversion | Programmatic, reproducible build process | ✓ Good — Icons can be regenerated from source, 192x192/512x512/180x180 |
+| Cookie-based Socket.IO auth | withCredentials cleaner than auth token payload | ✓ Good — Automatic cookie transmission, session store validated |
+| 5-minute session check interval | Balance freshness with overhead | ✓ Good — Extends session by 24h if within 5min of expiry |
+| Redis-backed rate limiting | Distributed state, graceful degradation | ✓ Good — 3-tier (webhook/api/public), falls back on Redis failure |
+| In-memory WebSocket rate tracking | Per-connection state, no Redis needed | ✓ Good — 100/min limit with 80% warning, system events exempt |
+| BullMQ job ID dashes not colons | BullMQ validation requirement | ✓ Good — incident-id-level-N format works |
+| **v1.2 Runbook Automation Decisions** | | |
+| z.any() for runbook JSON validation | Follow workflow.service.ts pattern | ✓ Good — Type safety via TypeScript, not Zod runtime |
+| Version snapshot on approval | Complete audit trail for all changes | ✓ Good — Prevents execution of unreviewed changes |
+| Rollback reverts to DRAFT | Requires re-approval for safety | ✓ Good — No accidental execution of rolled-back versions |
+| Reuse executeWebhookWithRetry | Proven pattern from webhook.action.ts | ✓ Good — 3-retry exponential backoff already working |
+| Non-blocking runbook scheduling | Returns immediately, executes async | ✓ Good — Workflow executor doesn't wait, BullMQ processes |
+| **v1.2 Partner Status Pages Decisions** | | |
+| Separate PartnerSession table | Complete isolation from internal users | ✓ Good — partner.sid cookie, different session lifecycle |
+| SHA-256 tokenHash for magic links | Never store plaintext tokens | ✓ Good — 15-min expiry, secure passwordless auth |
+| Reuse SESSION_SECRET | Same security, avoid additional env var | ✓ Good — Both sessions use same signing key |
+| Partner routes before audit middleware | Use partner session, not internal | ✓ Good — Middleware ordering critical for session access |
 
 ---
-*Last updated: 2026-02-08 after v1.1 milestone completion*
+*Last updated: 2026-02-09 after v1.2 milestone completion*

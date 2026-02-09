@@ -2,20 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
+See: .planning/PROJECT.md (updated 2026-02-09 after v1.2 milestone completion)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Milestone v1.2 Production Readiness - Phase 17 complete
+**Current focus:** Milestone v1.2 Production Readiness - COMPLETE
 
 ## Current Position
 
-Milestone: v1.2 Production Readiness
-Phase: Phase 17 (Partner Status Pages)
-Plan: 3 of 3 complete
-Status: Phase Complete
-Last activity: 2026-02-09 - Completed quick task 2: create a dedicated RunbooksPage with list, filters, create/edit, and execution history
+Milestone: v1.2 Production Readiness - COMPLETE
+Status: All 4 phases, 13 plans complete
+Last activity: 2026-02-09 - Completed milestone v1.2 (production hardening, runbook automation, partner status pages)
+Git tag: v1.2
 
-Progress: [##############################] 100% (3/3 plans complete in Phase 17)
+Progress: [##############################] 100% (13/13 plans complete across 4 phases)
 
 ## Performance Metrics
 

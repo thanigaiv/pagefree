@@ -73,3 +73,13 @@
 **What's next:** Use `/gsd:new-milestone` to define next milestone
 
 ---
+
+## v1.2 Production Readiness (Shipped: 2026-02-09)
+
+**Phases completed:** 20 phases, 104 plans, 10 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
