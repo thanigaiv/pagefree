@@ -38,7 +38,7 @@ export interface TriggerData {
 // ACTION TYPES
 // =============================================================================
 
-export type ActionType = 'webhook' | 'jira' | 'linear';
+export type ActionType = 'webhook' | 'jira' | 'linear' | 'runbook';
 
 export type WebhookMethod = 'POST' | 'PUT' | 'PATCH';
 
@@ -78,6 +78,11 @@ export interface LinearConfig {
   labelIds?: string[];
 }
 
+export interface RunbookActionConfig {
+  runbookId: string;
+  parameters: Record<string, unknown>;
+}
+
 export interface RetryConfig {
   attempts: number;
   backoff: 'exponential';
@@ -104,7 +109,17 @@ export interface LinearActionData extends BaseActionData {
   config: LinearConfig;
 }
 
-export type ActionData = WebhookActionData | JiraActionData | LinearActionData;
+export interface RunbookActionData extends BaseActionData {
+  actionType: 'runbook';
+  config: RunbookActionConfig;
+}
+
+export type ActionData = WebhookActionData | JiraActionData | LinearActionData | RunbookActionData;
+
+// Type guards
+export function isRunbookAction(data: ActionData): data is RunbookActionData {
+  return data.actionType === 'runbook';
+}
 
 // =============================================================================
 // CONDITION AND DELAY TYPES
