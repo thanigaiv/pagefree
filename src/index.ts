@@ -51,6 +51,8 @@ import { statusComputationService } from './services/statusComputation.service.j
 import { startMaintenanceWorker, stopMaintenanceWorker } from './workers/maintenance.worker.js';
 import { startStatusNotificationWorker, stopStatusNotificationWorker } from './workers/statusNotification.worker.js';
 import { apiRateLimiter, publicRateLimiter } from './middleware/rateLimiter.js';
+import { partnerSessionMiddleware } from './partner/session.js';
+import { partnerRoutes } from './partner/partner.routes.js';
 
 export const app = express();
 
@@ -110,6 +112,10 @@ app.use('/status', publicRateLimiter, statusPublicRoutes);
 
 // SCIM endpoints (mount before auth middleware - uses its own auth)
 app.use('/scim/v2', scimRouter);
+
+// Partner routes with separate session (uses partner.sid cookie, not oncall.sid)
+// Must be before internal API routes to use partner session middleware
+app.use('/api/partner', partnerSessionMiddleware, partnerRoutes);
 
 // Audit logging middleware (must be after body parsing)
 app.use(auditMiddleware);
