@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { usePWA } from './hooks/usePWA';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { MobileLayout } from './components/MobileLayout';
+import { Toaster } from './components/ui/toaster';
 import DashboardPage from './pages/DashboardPage';
 import IncidentDetailPage from './pages/IncidentDetailPage';
 import SchedulePage from './pages/SchedulePage';
@@ -81,6 +82,9 @@ export default function App() {
 
       {/* Offline indicator (per user decision) */}
       <OfflineIndicator isOnline={isOnline} />
+
+      {/* Toast notifications */}
+      <Toaster />
     </>
   );
 }
