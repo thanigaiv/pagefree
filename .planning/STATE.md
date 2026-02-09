@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 Milestone: v1.2 Production Readiness
 Phase: Phase 17 (Partner Status Pages)
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: In Progress
-Last activity: 2026-02-09 - Completed 17-01 (Partner Data Models)
+Last activity: 2026-02-09 - Completed 17-02 (Partner Authentication)
 
-Progress: [##########--------------------] 33% (1/3 plans complete in Phase 17)
+Progress: [####################----------] 67% (2/3 plans complete in Phase 17)
 
 ## Performance Metrics
 
@@ -50,15 +50,15 @@ Progress: [##########--------------------] 33% (1/3 plans complete in Phase 17)
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 **v1.2 Metrics:**
-- Plans completed: 11
-- Time elapsed: 50 min
+- Plans completed: 12
+- Time elapsed: 53 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 14. Production Hardening | 6/6 | 28 min | 4.7 min |
 | 15. Runbook Automation Foundation | 2/2 | 10 min | 5 min |
 | 16. Runbook Integration | 2/2 | 9 min | 4.5 min |
-| 17. Partner Status Pages | 1/3 | 3 min | 3 min |
+| 17. Partner Status Pages | 2/3 | 6 min | 3 min |
 
 ## Accumulated Context
 
@@ -130,6 +130,11 @@ See PROJECT.md Key Decisions table for full list.
 - PartnerMagicToken stores tokenHash (SHA-256) never plaintext
 - PartnerStatusPageAccess uses composite unique on partnerUserId+statusPageId
 
+**Phase 17-02 Decisions:**
+- Reuse SESSION_SECRET for partner sessions (same security, avoids additional env var)
+- Partner routes mounted before audit middleware to use partner session
+- API_BASE_URL has localhost fallback for development environment magic links
+
 **Coverage validation:**
 - Production Hardening: HARD-01, HARD-02, HARD-03, HARD-04, HARD-05, HARD-06 (6 reqs)
 - Runbook Foundation: AUTO-07, AUTO-08 (2 reqs)
@@ -144,9 +149,9 @@ See PROJECT.md Key Decisions table for full list.
 
 ### Pending Todos
 
-Phase 17 (Partner Status Pages) - IN PROGRESS (1/3 plans).
+Phase 17 (Partner Status Pages) - IN PROGRESS (2/3 plans).
 
-**Next action:** Execute 17-02 (Partner Authentication)
+**Next action:** Execute 17-03 (Partner Status Views)
 
 ### Blockers/Concerns
 
@@ -167,6 +172,6 @@ Research notes:
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 17-01 (Partner Data Models)
-Resume file: .planning/phases/17-partner-status-pages/17-01-SUMMARY.md
-Next action: Execute 17-02 (Partner Authentication)
+Stopped at: Completed 17-02 (Partner Authentication)
+Resume file: .planning/phases/17-partner-status-pages/17-02-SUMMARY.md
+Next action: Execute 17-03 (Partner Status Views)
