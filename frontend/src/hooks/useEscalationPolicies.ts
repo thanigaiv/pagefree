@@ -3,23 +3,11 @@ import { apiFetch } from '@/lib/api';
 
 export interface EscalationLevel {
   id: string;
-  level: number;
-  delayMinutes: number;
-  targets: Array<{
-    type: 'USER' | 'SCHEDULE';
-    userId?: string;
-    scheduleId?: string;
-    user?: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      email: string;
-    };
-    schedule?: {
-      id: string;
-      name: string;
-    };
-  }>;
+  levelNumber: number;
+  targetType: 'user' | 'schedule' | 'entire_team';
+  targetId: string | null;
+  timeoutMinutes: number;
+  createdAt: string;
 }
 
 export interface EscalationPolicy {
