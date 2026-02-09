@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Milestone v1.2 Production Readiness - Phase 15 in progress
+**Current focus:** Milestone v1.2 Production Readiness - Phase 16 in progress
 
 ## Current Position
 
 Milestone: v1.2 Production Readiness
-Phase: Phase 15 (Runbook Automation Foundation)
-Plan: 2 of 2 complete
-Status: Phase 15 COMPLETE
-Last activity: 2026-02-09 - Completed 15-02 (Runbook Executor with Webhook Engine)
+Phase: Phase 16 (Runbook Integration)
+Plan: 1 of 2 complete
+Status: In Progress
+Last activity: 2026-02-09 - Completed 16-01 (Runbook Workflow Integration)
 
-Progress: [##############################] 100% (2/2 plans complete in Phase 15)
+Progress: [###############---------------] 50% (1/2 plans complete in Phase 16)
 
 ## Performance Metrics
 
@@ -50,13 +50,14 @@ Progress: [##############################] 100% (2/2 plans complete in Phase 15)
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 **v1.2 Metrics:**
-- Plans completed: 8
-- Time elapsed: 38 min
+- Plans completed: 9
+- Time elapsed: 43 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 14. Production Hardening | 6/6 | 28 min | 4.7 min |
 | 15. Runbook Automation Foundation | 2/2 | 10 min | 5 min |
+| 16. Runbook Integration | 1/2 | 5 min | 5 min |
 
 ## Accumulated Context
 
@@ -113,6 +114,11 @@ See PROJECT.md Key Decisions table for full list.
 - Definition snapshot stored at execution trigger time
 - Re-check APPROVED status at execution time
 
+**Phase 16-01 Decisions:**
+- Direct prisma access in workflow executor (system-level, no permission checks needed)
+- Non-blocking runbook scheduling (returns immediately, executes async via BullMQ)
+- Team scope check for manual trigger (team-scoped runbooks must match incident team)
+
 **Coverage validation:**
 - Production Hardening: HARD-01, HARD-02, HARD-03, HARD-04, HARD-05, HARD-06 (6 reqs)
 - Runbook Foundation: AUTO-07, AUTO-08 (2 reqs)
@@ -127,9 +133,9 @@ See PROJECT.md Key Decisions table for full list.
 
 ### Pending Todos
 
-Phase 15 (Runbook Automation Foundation) COMPLETE.
+Phase 16 (Runbook Integration) - 1/2 plans complete.
 
-**Next action:** Create Phase 16 (Runbook Integration) plans
+**Next action:** Execute 16-02 (Runbook Execution UI)
 
 ### Blockers/Concerns
 
@@ -150,6 +156,6 @@ Research notes:
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed Phase 15 (Runbook Automation Foundation)
-Resume file: .planning/phases/15-runbook-automation-foundation/15-02-SUMMARY.md
-Next action: Create Phase 16 (Runbook Integration) plans
+Stopped at: Completed 16-01 (Runbook Workflow Integration)
+Resume file: .planning/phases/16-runbook-integration/16-01-SUMMARY.md
+Next action: Execute 16-02 (Runbook Execution UI)
