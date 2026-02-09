@@ -53,6 +53,7 @@ import { startStatusNotificationWorker, stopStatusNotificationWorker } from './w
 import { apiRateLimiter, publicRateLimiter } from './middleware/rateLimiter.js';
 import { partnerSessionMiddleware } from './partner/session.js';
 import { partnerRoutes } from './partner/partner.routes.js';
+import { adminRoutes } from './routes/admin.routes.js';
 
 export const app = express();
 
@@ -177,6 +178,7 @@ app.use('/api/runbooks', runbookRoutes);
 app.use('/api/status-pages', statusPageRoutes);
 app.use('/api/postmortems', postmortemRouter);
 app.use('/api/services', serviceRouter);
+app.use('/api/admin', adminRoutes);
 
 // Global error handler (last middleware)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
