@@ -13,7 +13,7 @@ Milestone: v1.2 Production Readiness
 Phase: Phase 17 (Partner Status Pages)
 Plan: 3 of 3 complete
 Status: Phase Complete
-Last activity: 2026-02-09 - Completed quick task 1: add a card for partners setup in the admin page. Also, make the runbook page accessible from the header
+Last activity: 2026-02-09 - Completed quick task 2: create a dedicated RunbooksPage with list, filters, create/edit, and execution history
 
 Progress: [##############################] 100% (3/3 plans complete in Phase 17)
 
@@ -174,6 +174,7 @@ Research notes:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | add a card for partners setup in the admin page. Also, make the runbook page accessible from the header | 2026-02-09 | afcefd3 | [1-add-a-card-for-partners-setup-in-the-adm](./quick/1-add-a-card-for-partners-setup-in-the-adm/) |
+| 2 | create a dedicated RunbooksPage with list, filters, create/edit, and execution history | 2026-02-09 | 8f7063a | [2-create-a-dedicated-runbookspage-with-lis](./quick/2-create-a-dedicated-runbookspage-with-lis/) |
 
 ## Session Continuity
 
