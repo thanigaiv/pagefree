@@ -124,12 +124,12 @@ export interface TriggerData {
 // ACTION DATA (Discriminated union)
 // =============================================================================
 
-export type ActionType = 'webhook' | 'jira' | 'linear';
+export type ActionType = 'webhook' | 'jira' | 'linear' | 'runbook';
 
 /**
  * Action node data - discriminated union by actionType
  */
-export type ActionData = WebhookActionData | JiraActionData | LinearActionData;
+export type ActionData = WebhookActionData | JiraActionData | LinearActionData | RunbookActionData;
 
 interface BaseActionData {
   name: string;
@@ -149,6 +149,21 @@ export interface JiraActionData extends BaseActionData {
 export interface LinearActionData extends BaseActionData {
   actionType: 'linear';
   config: LinearConfig;
+}
+
+export interface RunbookActionData extends BaseActionData {
+  actionType: 'runbook';
+  config: RunbookActionConfig;
+}
+
+/**
+ * Runbook action configuration for workflow execution
+ */
+export interface RunbookActionConfig {
+  /** ID of the runbook to execute */
+  runbookId: string;
+  /** Parameters to pass to the runbook */
+  parameters: Record<string, unknown>;
 }
 
 // =============================================================================
@@ -471,6 +486,13 @@ export function isJiraAction(data: ActionData): data is JiraActionData {
  */
 export function isLinearAction(data: ActionData): data is LinearActionData {
   return data.actionType === 'linear';
+}
+
+/**
+ * Type guard for RunbookActionData
+ */
+export function isRunbookAction(data: ActionData): data is RunbookActionData {
+  return data.actionType === 'runbook';
 }
 
 /**
