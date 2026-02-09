@@ -20,6 +20,10 @@ import PostmortemsPage from './pages/PostmortemsPage';
 import PostmortemDetailPage from './pages/PostmortemDetailPage';
 import EmergencyLoginPage from './pages/EmergencyLoginPage';
 import ServicesPage from './pages/ServicesPage';
+import { PartnerLoginPage } from './pages/partner/PartnerLoginPage';
+import { PartnerDashboardPage } from './pages/partner/PartnerDashboardPage';
+import { PartnerStatusPageView } from './pages/partner/PartnerStatusPageView';
+import { PartnersPage } from './pages/admin/PartnersPage';
 
 export default function App() {
   const { isOnline } = usePWA();
@@ -30,6 +34,11 @@ export default function App() {
         {/* Public routes (no auth required, outside MobileLayout) */}
         <Route path="/status/:slug" element={<PublicStatusPage />} />
         <Route path="/auth/emergency" element={<EmergencyLoginPage />} />
+
+        {/* Partner routes (separate auth, outside MobileLayout) */}
+        <Route path="/partner/login" element={<PartnerLoginPage />} />
+        <Route path="/partner/dashboard" element={<PartnerDashboardPage />} />
+        <Route path="/partner/status/:statusPageId" element={<PartnerStatusPageView />} />
 
         {/* Authenticated routes with mobile navigation */}
         <Route
@@ -48,6 +57,7 @@ export default function App() {
                 <Route path="/admin/teams" element={<TeamsAdminPage />} />
                 <Route path="/admin/escalation-policies" element={<EscalationPoliciesPage />} />
                 <Route path="/admin/services" element={<ServicesPage />} />
+                <Route path="/admin/partners" element={<PartnersPage />} />
                 <Route path="/integrations" element={<IntegrationsPage />} />
 
                 {/* Workflow routes */}
