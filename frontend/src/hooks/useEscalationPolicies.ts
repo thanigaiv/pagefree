@@ -45,13 +45,22 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateLevelInput {
-  level: number;
-  delayMinutes: number;
-  targets: Array<{
-    type: 'USER' | 'SCHEDULE';
-    userId?: string;
-    scheduleId?: string;
-  }>;
+  levelNumber: number;
+  targetType: 'user' | 'schedule' | 'entire_team';
+  targetId?: string;
+  timeoutMinutes?: number;
+}
+
+export interface UpdateLevelInput {
+  targetType?: 'user' | 'schedule' | 'entire_team';
+  targetId?: string;
+  timeoutMinutes?: number;
+}
+
+export interface Schedule {
+  id: string;
+  name: string;
+  teamId: string;
 }
 
 export function useEscalationPoliciesByTeam(teamId: string | undefined) {
@@ -151,5 +160,45 @@ export function useDeleteEscalationLevel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['escalation-policies'] });
     },
+  });
+}
+
+export function useUpdateEscalationLevel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      levelId,
+      data,
+    }: {
+      levelId: string;
+      data: UpdateLevelInput;
+    }) => {
+      const response = await apiFetch<{ level: EscalationLevel }>(
+        `/escalation-policies/levels/${levelId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }
+      );
+      return response.level;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['escalation-policies'] });
+    },
+  });
+}
+
+export function useSchedulesByTeam(teamId: string | undefined) {
+  return useQuery({
+    queryKey: ['schedules', 'team', teamId],
+    queryFn: async () => {
+      const response = await apiFetch<{ schedules: Schedule[] }>(
+        `/schedules?teamId=${teamId}`
+      );
+      return response.schedules;
+    },
+    enabled: !!teamId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
