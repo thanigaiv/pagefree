@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-08 after v1.2 milestone start)
 
 **Core value:** Reliable alert delivery and escalation - ensuring critical alerts reach the right on-call engineer within seconds
-**Current focus:** Milestone v1.2 Production Readiness - Phase 14 in progress
+**Current focus:** Milestone v1.2 Production Readiness - Phase 15 in progress
 
 ## Current Position
 
 Milestone: v1.2 Production Readiness
-Phase: Phase 14 (Production Hardening) - COMPLETE
-Plan: 6 of 6 complete
-Status: Phase 14 complete, ready for Phase 15
-Last activity: 2026-02-08 - Completed 14-06 (WebSocket Rate Limiting)
+Phase: Phase 15 (Runbook Automation Foundation)
+Plan: 1 of 2 complete
+Status: Phase 15 in progress
+Last activity: 2026-02-08 - Completed 15-01 (Database Models and CRUD Service)
 
-Progress: [##############################] 100% (6/6 plans complete in Phase 14)
+Progress: [###############---------------] 50% (1/2 plans complete in Phase 15)
 
 ## Performance Metrics
 
@@ -50,12 +50,13 @@ Progress: [##############################] 100% (6/6 plans complete in Phase 14)
 | 13. Service-based Alert Routing | 2/2 | 6 min | 3 min |
 
 **v1.2 Metrics:**
-- Plans completed: 6
-- Time elapsed: 28 min
+- Plans completed: 7
+- Time elapsed: 33 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 14. Production Hardening | 6/6 | 28 min | 4.7 min |
+| 15. Runbook Automation Foundation | 1/2 | 5 min | 5 min |
 
 ## Accumulated Context
 
@@ -101,6 +102,11 @@ See PROJECT.md Key Decisions table for full list.
 - System events (ping, pong, disconnect, error) exempt from limits
 - 100ms delay before disconnect to allow client to receive final warning
 
+**Phase 15-01 Decisions:**
+- z.any() for complex JSON validation (follows workflow.service.ts pattern)
+- Version snapshot on every definition change and approval
+- Rollback reverts to DRAFT status (requires re-approval)
+
 **Coverage validation:**
 - Production Hardening: HARD-01, HARD-02, HARD-03, HARD-04, HARD-05, HARD-06 (6 reqs)
 - Runbook Foundation: AUTO-07, AUTO-08 (2 reqs)
@@ -115,9 +121,9 @@ See PROJECT.md Key Decisions table for full list.
 
 ### Pending Todos
 
-Phase 14 (Production Hardening) complete. Ready to start Phase 15 (Runbook Foundation).
+Phase 15 (Runbook Automation Foundation) in progress. Plan 15-01 complete.
 
-**Next action:** Start Phase 15 planning and execution
+**Next action:** Execute plan 15-02 (Runbook Executor with Webhook Engine)
 
 ### Blockers/Concerns
 
@@ -138,6 +144,6 @@ Research notes:
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed plan 14-06 (WebSocket Rate Limiting) - Phase 14 complete
-Resume file: .planning/phases/14-production-hardening/14-06-SUMMARY.md
-Next action: Start Phase 15 (Runbook Foundation) planning and execution
+Stopped at: Completed plan 15-01 (Database Models and CRUD Service)
+Resume file: .planning/phases/15-runbook-automation-foundation/15-01-SUMMARY.md
+Next action: Execute plan 15-02 (Runbook Executor with Webhook Engine)
