@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 
 // Types
 export interface Runbook {
@@ -52,8 +52,8 @@ export function useApprovedRunbooks(teamId?: string) {
     queryFn: async () => {
       const params = new URLSearchParams({ approvalStatus: 'APPROVED' });
       if (teamId) params.append('teamId', teamId);
-      const res = await api.get(`/runbooks?${params.toString()}`);
-      return res.data.runbooks as Runbook[];
+      const res = await apiFetch<{ runbooks: Runbook[] }>(`/runbooks?${params.toString()}`);
+      return res.runbooks;
     }
   });
 }
@@ -65,8 +65,8 @@ export function useRunbook(id: string | undefined) {
   return useQuery({
     queryKey: ['runbook', id],
     queryFn: async () => {
-      const res = await api.get(`/runbooks/${id}`);
-      return res.data.runbook as Runbook;
+      const res = await apiFetch<{ runbook: Runbook }>(`/runbooks/${id}`);
+      return res.runbook;
     },
     enabled: !!id
   });
@@ -79,8 +79,8 @@ export function useIncidentRunbookExecutions(incidentId: string) {
   return useQuery({
     queryKey: ['incidents', incidentId, 'runbook-executions'],
     queryFn: async () => {
-      const res = await api.get(`/incidents/${incidentId}/runbooks/executions`);
-      return res.data.executions as RunbookExecution[];
+      const res = await apiFetch<{ executions: RunbookExecution[] }>(`/incidents/${incidentId}/runbooks/executions`);
+      return res.executions;
     }
   });
 }
@@ -99,11 +99,14 @@ export function useExecuteRunbook(incidentId: string) {
       runbookId: string;
       parameters: Record<string, unknown>;
     }) => {
-      const res = await api.post(
+      const res = await apiFetch<{ execution: RunbookExecution }>(
         `/incidents/${incidentId}/runbooks/${runbookId}/execute`,
-        { parameters }
+        {
+          method: 'POST',
+          body: JSON.stringify({ parameters })
+        }
       );
-      return res.data.execution;
+      return res.execution;
     },
     onSuccess: () => {
       // Invalidate timeline and executions to show new entry
