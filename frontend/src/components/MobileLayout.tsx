@@ -17,7 +17,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   const desktopNavItems = [
     { to: '/incidents', icon: AlertCircle, label: 'Incidents' },
     { to: '/workflows', icon: Workflow, label: 'Workflows' },
-    { to: '/workflows', icon: BookOpen, label: 'Runbooks' },
+    { to: '/runbooks', icon: BookOpen, label: 'Runbooks' },
     { to: '/status-pages', icon: BarChart3, label: 'Status' },
     { to: '/postmortems', icon: FileText, label: 'Postmortems' },
     { to: '/schedule', icon: Calendar, label: 'Schedule' },

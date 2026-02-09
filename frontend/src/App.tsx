@@ -21,6 +21,7 @@ import PostmortemsPage from './pages/PostmortemsPage';
 import PostmortemDetailPage from './pages/PostmortemDetailPage';
 import EmergencyLoginPage from './pages/EmergencyLoginPage';
 import ServicesPage from './pages/ServicesPage';
+import RunbooksPage from './pages/RunbooksPage';
 import { PartnerLoginPage } from './pages/partner/PartnerLoginPage';
 import { PartnerDashboardPage } from './pages/partner/PartnerDashboardPage';
 import { PartnerStatusPageView } from './pages/partner/PartnerStatusPageView';
@@ -65,6 +66,9 @@ export default function App() {
                 <Route path="/workflows" element={<WorkflowsPage />} />
                 <Route path="/workflows/new" element={<WorkflowBuilderPage />} />
                 <Route path="/workflows/:id" element={<WorkflowBuilderPage />} />
+
+                {/* Runbook routes */}
+                <Route path="/runbooks" element={<RunbooksPage />} />
 
                 {/* Status page admin routes */}
                 <Route path="/status-pages" element={<StatusPagesPage />} />
