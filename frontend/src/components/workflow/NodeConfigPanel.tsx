@@ -23,6 +23,7 @@ import {
   Globe,
   Ticket,
   ListTodo,
+  BookOpen,
   GitBranch,
   Timer,
   Plus,
@@ -60,6 +61,7 @@ import type {
   WebhookAuth,
   WebhookMethod,
 } from '@/types/workflow';
+import { useApprovedRunbooks, useRunbook } from '@/hooks/useRunbooks';
 
 // =============================================================================
 // TYPES
@@ -876,6 +878,183 @@ function LinearConfig({ data, onChange }: LinearConfigProps) {
 }
 
 // =============================================================================
+// RUNBOOK ACTION CONFIG
+// =============================================================================
+
+interface RunbookConfigProps {
+  data: ActionData & { actionType: 'runbook' };
+  onChange: (data: Partial<ActionData>) => void;
+}
+
+function RunbookConfig({ data, onChange }: RunbookConfigProps) {
+  const config = data.config;
+  const { data: runbooks, isLoading: loadingRunbooks } = useApprovedRunbooks();
+  const { data: selectedRunbook } = useRunbook(config.runbookId || undefined);
+
+  const updateConfig = (updates: Partial<typeof config>) => {
+    onChange({
+      ...data,
+      config: { ...config, ...updates },
+    });
+  };
+
+  // Build parameter inputs from selected runbook's schema
+  const renderParameterInputs = () => {
+    if (!selectedRunbook?.parameters?.properties) return null;
+
+    const { properties, required = [] } = selectedRunbook.parameters;
+
+    return Object.entries(properties).map(([key, prop]) => {
+      const isRequired = required.includes(key);
+      const value = config.parameters?.[key] ?? prop.default ?? '';
+
+      return (
+        <div key={key} className="space-y-1">
+          <Label htmlFor={`param-${key}`}>
+            {key} {isRequired && <span className="text-red-500">*</span>}
+          </Label>
+          {prop.description && (
+            <p className="text-xs text-muted-foreground">{prop.description}</p>
+          )}
+          {prop.enum ? (
+            <Select
+              value={String(value)}
+              onValueChange={(v) =>
+                updateConfig({
+                  parameters: { ...config.parameters, [key]: prop.type === 'number' ? Number(v) : v }
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={`Select ${key}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {prop.enum.map((opt) => (
+                  <SelectItem key={String(opt)} value={String(opt)}>
+                    {String(opt)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : prop.type === 'boolean' ? (
+            <Select
+              value={String(value)}
+              onValueChange={(v) =>
+                updateConfig({ parameters: { ...config.parameters, [key]: v === 'true' } })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">True</SelectItem>
+                <SelectItem value="false">False</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              id={`param-${key}`}
+              type={prop.type === 'number' ? 'number' : 'text'}
+              value={String(value)}
+              onChange={(e) =>
+                updateConfig({
+                  parameters: {
+                    ...config.parameters,
+                    [key]: prop.type === 'number' ? Number(e.target.value) : e.target.value
+                  }
+                })
+              }
+              placeholder={prop.default !== undefined ? `Default: ${prop.default}` : undefined}
+            />
+          )}
+        </div>
+      );
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Name */}
+      <div className="space-y-2">
+        <Label htmlFor="runbook-name">
+          Name <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="runbook-name"
+          value={data.name || ''}
+          onChange={(e) => onChange({ ...data, name: e.target.value })}
+          placeholder="e.g., Restart Service"
+        />
+      </div>
+
+      {/* Runbook Selector */}
+      <div className="space-y-2">
+        <Label htmlFor="runbook-select">
+          Runbook <span className="text-red-500">*</span>
+        </Label>
+        <Select
+          value={config.runbookId || ''}
+          onValueChange={(value) =>
+            updateConfig({ runbookId: value, parameters: {} })
+          }
+          disabled={loadingRunbooks}
+        >
+          <SelectTrigger className={cn(!config.runbookId && 'border-red-300')}>
+            <SelectValue placeholder={loadingRunbooks ? 'Loading...' : 'Select runbook'} />
+          </SelectTrigger>
+          <SelectContent>
+            {runbooks?.map((rb) => (
+              <SelectItem key={rb.id} value={rb.id}>
+                <div className="flex flex-col">
+                  <span>{rb.name}</span>
+                  <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                    {rb.description}
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+            {runbooks?.length === 0 && (
+              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                No approved runbooks available
+              </div>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Selected Runbook Info */}
+      {selectedRunbook && (
+        <div className="bg-muted/50 rounded-lg p-3 text-sm">
+          <div className="font-medium">{selectedRunbook.name}</div>
+          <div className="text-muted-foreground text-xs mt-1">
+            {selectedRunbook.description}
+          </div>
+          <Badge variant="secondary" className="mt-2 text-xs">
+            v{selectedRunbook.version}
+          </Badge>
+        </div>
+      )}
+
+      {/* Parameters */}
+      {selectedRunbook && Object.keys(selectedRunbook.parameters?.properties || {}).length > 0 && (
+        <div className="space-y-3">
+          <Label>Parameters</Label>
+          {renderParameterInputs()}
+        </div>
+      )}
+
+      {/* Retry config (reuse pattern from webhook) */}
+      <div className="space-y-2">
+        <Label>Retry Configuration</Label>
+        <p className="text-xs text-muted-foreground">
+          Runbook uses built-in retry (3 attempts with exponential backoff)
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
 // CONDITION CONFIG
 // =============================================================================
 
@@ -1069,6 +1248,10 @@ export function NodeConfigPanel({ selectedNode, onChange }: NodeConfigPanelProps
       Icon = ListTodo;
       title = 'Configure Linear';
       color = 'text-violet-600';
+    } else if (actionType === 'runbook') {
+      Icon = BookOpen;
+      title = 'Configure Runbook';
+      color = 'text-green-600';
     }
   } else if (nodeType === 'condition') {
     Icon = GitBranch;
@@ -1113,6 +1296,13 @@ export function NodeConfigPanel({ selectedNode, onChange }: NodeConfigPanelProps
         {nodeType === 'action' && (nodeData as ActionData).actionType === 'linear' && (
           <LinearConfig
             data={nodeData as ActionData & { actionType: 'linear' }}
+            onChange={handleChange}
+          />
+        )}
+
+        {nodeType === 'action' && (nodeData as ActionData).actionType === 'runbook' && (
+          <RunbookConfig
+            data={nodeData as ActionData & { actionType: 'runbook' }}
             onChange={handleChange}
           />
         )}

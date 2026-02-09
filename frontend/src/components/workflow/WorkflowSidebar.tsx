@@ -21,6 +21,7 @@ import {
   Globe,
   Ticket,
   ListTodo,
+  BookOpen,
   GitBranch,
   Timer,
   Sparkles,
@@ -136,6 +137,15 @@ const actionNodes: DraggableNodeConfig[] = [
     icon: ListTodo,
     color: 'text-violet-600 dark:text-violet-400',
     iconBg: 'bg-violet-100 dark:bg-violet-900',
+  },
+  {
+    type: 'action',
+    subType: 'runbook',
+    label: 'Run Runbook',
+    description: 'Execute an approved runbook',
+    icon: BookOpen,
+    color: 'text-green-600 dark:text-green-400',
+    iconBg: 'bg-green-100 dark:bg-green-900',
   },
 ];
 

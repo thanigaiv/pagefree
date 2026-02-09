@@ -141,6 +141,16 @@ function createDefaultNodeData(
           },
           retry: { attempts: 1, backoff: 'exponential', initialDelayMs: 1000 },
         };
+      } else if (subType === 'runbook') {
+        return {
+          name: 'New Runbook',
+          actionType: 'runbook',
+          config: {
+            runbookId: '',
+            parameters: {},
+          },
+          retry: { attempts: 3, backoff: 'exponential', initialDelayMs: 1000 },
+        };
       }
       // Default to webhook
       return {
@@ -225,6 +235,9 @@ function validateWorkflow(
       }
       if (actionData.actionType === 'linear' && !actionData.config?.teamId) {
         errors.push(`Linear action "${data.name || node.id}" is missing team ID`);
+      }
+      if (actionData.actionType === 'runbook' && !actionData.config?.runbookId) {
+        errors.push(`Runbook action "${data.name || node.id}" is missing runbook selection`);
       }
     }
 
