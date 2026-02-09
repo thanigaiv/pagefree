@@ -77,7 +77,7 @@ export default function EscalationPoliciesPage() {
   // Get team members and schedules for the selected policy's team
   const policyTeamId = selectedPolicy?.teamId;
   const { data: teamWithMembers } = useTeamWithMembers(policyTeamId);
-  const { data: schedules } = useSchedulesByTeam(policyTeamId);
+  const { data: schedules = [] } = useSchedulesByTeam(policyTeamId);
 
   const createMutation = useCreateEscalationPolicy();
   const deleteMutation = useDeleteEscalationPolicy();
@@ -641,14 +641,14 @@ export default function EscalationPoliciesPage() {
                               ))
                             )}
                             {levelForm.targetType === 'user' && !teamWithMembers?.members.length && (
-                              <SelectItem value="" disabled>
+                              <div className="px-2 py-1.5 text-sm text-muted-foreground">
                                 No team members found
-                              </SelectItem>
+                              </div>
                             )}
                             {levelForm.targetType === 'schedule' && !schedules?.length && (
-                              <SelectItem value="" disabled>
+                              <div className="px-2 py-1.5 text-sm text-muted-foreground">
                                 No schedules found
-                              </SelectItem>
+                              </div>
                             )}
                           </SelectContent>
                         </Select>
